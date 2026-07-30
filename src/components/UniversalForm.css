@@ -62,7 +62,7 @@
 }
 
 .uf-modal {
-  background: rgba(255, 255, 255, 0.85);
+  background: #ffffff;
   border: 1px solid rgba(255, 255, 255, 0.6);
   width: 100%;
   max-width: 500px;
