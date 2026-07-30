@@ -1,0 +1,1 @@
+const fs = require('fs'); let c = fs.readFileSync('src/pages/Aquapp.jsx', 'utf8'); c = c.replace(/\{item.fecha\}/g, '{item.fecha ? item.fecha.split(\'T\')[0] : \'-\'}'); fs.writeFileSync('src/pages/Aquapp.jsx', c);  

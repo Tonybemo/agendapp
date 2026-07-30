@@ -1,0 +1,208 @@
+.dashboard-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 24px 16px;
+  min-height: calc(100vh - 140px); /* Adjust based on header/footer */
+  position: relative;
+}
+
+/* Background elements for depth */
+.dashboard-container::before {
+  content: '';
+  position: fixed;
+  top: -20%;
+  left: -10%;
+  width: 70vw;
+  height: 70vw;
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.15) 0%, rgba(255,255,255,0) 70%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.dashboard-container::after {
+  content: '';
+  position: fixed;
+  bottom: -20%;
+  right: -10%;
+  width: 60vw;
+  height: 60vw;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, rgba(255,255,255,0) 70%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.dashboard-header {
+  margin-bottom: 32px;
+  text-align: left;
+}
+
+.dashboard-header h1 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+
+.dashboard-header p {
+  color: #64748b;
+  font-size: 1.05rem;
+  font-weight: 500;
+  max-width: 500px;
+}
+
+/* Bento Box Grid */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.dash-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 28px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 
+    0 10px 25px -5px rgba(0, 0, 0, 0.05), 
+    0 8px 10px -6px rgba(0, 0, 0, 0.01),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.dash-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 100%);
+  border-radius: 28px;
+  pointer-events: none;
+}
+
+.dash-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 
+    0 20px 40px -10px rgba(0, 0, 0, 0.1), 
+    0 10px 15px -5px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
+  border-color: rgba(255, 255, 255, 1);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.dash-card:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.dash-card-icon-wrapper {
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  position: relative;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.dash-card-icon-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: 18px;
+  box-shadow: inset 0 2px 4px rgba(255,255,255,0.5);
+}
+
+.dash-card-content h3 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 6px;
+  line-height: 1.2;
+}
+
+.dash-card-content p {
+  font-size: 0.85rem;
+  color: #64748b;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+/* Featured / Wide Cards */
+.dash-card.featured {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  align-items: center;
+  padding: 24px;
+}
+
+.dash-card.featured .dash-card-icon-wrapper {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  margin-bottom: 0;
+  margin-right: 20px;
+  flex-shrink: 0;
+}
+
+.dash-card.featured .dash-card-content {
+  flex: 1;
+}
+
+.dash-card.featured .dash-card-content h3 {
+  font-size: 1.3rem;
+}
+
+.dash-card.featured .dash-card-content p {
+  font-size: 0.95rem;
+}
+
+/* Arrow for wide cards */
+.dash-card-arrow {
+  display: none;
+  background: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  transition: transform 0.2s;
+}
+
+.dash-card.featured .dash-card-arrow {
+  display: flex;
+}
+
+.dash-card.featured:hover .dash-card-arrow {
+  transform: translateX(4px);
+}
+
+
+/* Responsive Desktop */
+@media (min-width: 768px) {
+  .dashboard-header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .dashboard-header p {
+    margin: 0 auto;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  .dash-card.featured {
+    grid-column: span 2;
+  }
+}
