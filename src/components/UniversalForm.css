@@ -423,3 +423,21 @@
 .uf-btn-toggle.active-red { border-color: #ef4444; background: #fef2f2; color: #dc2626; }
 .uf-recordatorio-box { background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 16px; margin-top: 16px; }
 .uf-checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 800; color: #b45309; cursor: pointer; }
+
+/* Responsive adjustments for mobile */
+@media (max-width: 768px) {
+  .uf-options-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .uf-option-card {
+    padding: 16px;
+    gap: 16px;
+  }
+  .uf-plagas-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .uf-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}

@@ -52,7 +52,7 @@ const Catalogo = () => {
         registro: p.registro,
         plazoSeguridad: p.plazo_seguridad,
         lote: p.lote,
-        hasWarning: p.has_warning,
+        hasWarning: p.has_warning || (p.plazo_seguridad && p.plazo_seguridad.toLowerCase() !== 'no aplica' && p.plazo_seguridad !== '0'),
         badge: p.badge || 'PRO',
         pdfUrl: p.pdf_url
       }));

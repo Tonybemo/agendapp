@@ -514,12 +514,25 @@
 /* Mobile Adjustments */
 @media (max-width: 768px) {
   .taskflow-sidebar {
-    display: none;
+    width: 100%;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 16px;
   }
-  .taskflow-main {
-    border-radius: 0;
+  .months-list {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 8px;
+    padding-bottom: 8px;
+  }
+  .month-item {
+    min-width: 120px;
+    margin-bottom: 0;
   }
   .taskflow-container {
+    flex-direction: column;
     margin: 0;
     height: auto;
   }

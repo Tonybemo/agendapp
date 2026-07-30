@@ -605,3 +605,19 @@ input[type="text"]:focus, textarea:focus {
 .dropzone:hover {
   background-color: #f1f5f9;
 }
+
+
+/* Mobile Adjustments */
+@media (max-width: 768px) {
+  .avisos-grid {
+    grid-template-columns: 1fr;
+    padding-left: 0;
+  }
+  .dropdowns {
+    flex-direction: column;
+  }
+  .year-header, .month-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

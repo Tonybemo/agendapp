@@ -885,7 +885,7 @@ const Aquapp = () => {
         {loadingTorres ? (
            <div style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>Cargando datos...</div>
         ) : (
-          <div style={{background: 'white', borderRadius: '16px', overflowX: 'auto', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)', border: '1px solid #e2e8f0'}}>
+          <div style={{background: 'white', borderRadius: '16px', overflowX: 'auto', overflowY: 'auto', maxHeight: '65vh', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)', border: '1px solid #e2e8f0'}}>
             <table className="torres-table" style={{width: '100%', borderCollapse: 'collapse', minWidth: '800px', backgroundColor: 'white'}}>
               <thead>
                 <tr style={{ borderBottom: '2px solid #e2e8f0', backgroundColor: '#f8fafc' }}>
