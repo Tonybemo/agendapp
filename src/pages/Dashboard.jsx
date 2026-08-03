@@ -70,17 +70,7 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-container animate-fade-in">
-      <div className="dashboard-header" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'}}>
-        <div>
-          <h1 style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
-            <div style={{background: '#0f172a', borderRadius: '14px', padding: '10px', display: 'flex', boxShadow: '0 4px 10px rgba(0,0,0,0.1)'}}>
-              <LayoutDashboard size={28} color="white" strokeWidth={2.5} />
-            </div>
-            Centro de Mandos
-          </h1>
-          <p>Tu plataforma integral. Selecciona un módulo para gestionar tu trabajo diario.</p>
-        </div>
-        
+      <div className="dashboard-header" style={{display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-start'}}>
         <button 
           onClick={() => navigate('/gestor')}
           style={{

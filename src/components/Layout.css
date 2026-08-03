@@ -158,17 +158,21 @@
 
   .bottom-nav {
     position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: var(--bottom-nav-height);
-    background-color: var(--bg-card);
-    border-top: 1px solid var(--border);
+    bottom: 24px;
+    left: 24px;
+    right: 24px;
+    height: 70px;
+    background-color: rgba(255, 255, 255, 0.95);
+    border: 1px solid var(--border);
+    border-radius: 35px;
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
     display: flex;
     justify-content: space-around;
     align-items: center;
     z-index: 40;
-    padding-bottom: env(safe-area-inset-bottom);
+    padding: 0 16px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
 
   .bottom-nav-link {

@@ -5,6 +5,18 @@ import './UniversalForm.css';
 
 const UniversalForm = () => {
   const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
   const [selectedType, setSelectedType] = useState(null);
   
   // Estados para Aquapp

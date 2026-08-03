@@ -441,3 +441,7 @@
     grid-template-columns: 1fr;
   }
 }
+
+.uf-input-basic::placeholder, .uf-textarea::placeholder, input::placeholder, textarea::placeholder { color: transparent; }
+.uf-input-basic:focus::placeholder, .uf-textarea:focus::placeholder, input:focus::placeholder, textarea:focus::placeholder { color: #cbd5e1; }
+

@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, CalendarCheck, Droplet, MapPin, BookOpen, Clock, Menu, X, BarChart2, Calendar as CalendarIcon, Database } from 'lucide-react';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { LayoutDashboard, CalendarCheck, Droplet, MapPin, BookOpen, Clock, Menu, X, BarChart2, Calendar as CalendarIcon, Database, ArrowLeft } from 'lucide-react';
 import UniversalForm from './UniversalForm';
 import './Layout.css';
 
 const Layout = ({ children }) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleResize = () => {
@@ -33,8 +35,7 @@ const Layout = ({ children }) => {
   // Mobile Bottom Nav items (just a few core ones)
   const bottomNavItems = [
     { path: '/', label: 'Inicio', icon: <LayoutDashboard size={24} /> },
-    { path: '/tareas', label: 'Tareas', icon: <CalendarCheck size={24} /> },
-    { path: '/workapp', label: 'Jornada', icon: <Clock size={24} /> },
+    { path: '/calendario', label: 'Calendario', icon: <CalendarIcon size={24} /> },
   ];
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
@@ -44,10 +45,17 @@ const Layout = ({ children }) => {
       {/* Mobile Top Bar */}
       {isMobile && (
         <header className="mobile-header">
-          <div className="logo-container">
-            <div className="logo-icon">A</div>
-            <h1>Agendapp</h1>
-          </div>
+          {location.pathname !== '/' ? (
+            <button onClick={() => navigate(-1)} style={{background: 'none', border: 'none', color: '#1e293b', cursor: 'pointer', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+              <ArrowLeft size={24} />
+            </button>
+          ) : (
+            <div className="logo-container">
+              <div className="logo-icon">A</div>
+              <h1 style={{margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#1e293b'}}>Agendapp</h1>
+            </div>
+          )}
+          
           <button className="menu-btn" onClick={toggleSidebar}>
             {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
           </button>

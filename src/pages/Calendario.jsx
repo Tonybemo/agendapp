@@ -195,17 +195,21 @@ const Calendario = () => {
         >
           <span className="cal-day-num">{d}</span>
           <div className="cal-client-chips">
-            {grouped.slice(0, 3).map(g => (
-              <div
-                key={g.client}
-                className="cal-client-chip"
-                style={{ backgroundColor: (clientColors[g.client] || '#6366f1') + '25', borderLeft: `3px solid ${clientColors[g.client] || '#6366f1'}` }}
-                title={g.client}
-              >
-                <span className="cal-chip-dot" style={{ backgroundColor: clientColors[g.client] || '#6366f1' }}></span>
-                <span className="cal-chip-name">{g.client.length > 12 ? g.client.substring(0, 12) + '…' : g.client}</span>
-              </div>
-            ))}
+            {grouped.slice(0, 3).map(g => {
+              const primaryActKey = Object.keys(g.activities)[0];
+              const cfg = ACTIVITY_CONFIG[primaryActKey] || { bg: '#f1f5f9', color: '#64748b', label: 'Actividad' };
+              return (
+                <div
+                  key={g.client}
+                  className="cal-client-chip"
+                  style={{ backgroundColor: cfg.bg, borderLeft: `3px solid ${cfg.color}` }}
+                  title={`${g.client} - ${cfg.label}`}
+                >
+                  <span className="cal-chip-dot" style={{ backgroundColor: cfg.color }}></span>
+                  <span className="cal-chip-name" style={{ color: '#1e293b', fontWeight: 600, fontSize: '0.65rem' }}>{g.client.length > 12 ? g.client.substring(0, 12) + '…' : g.client}</span>
+                </div>
+              );
+            })}
             {grouped.length > 3 && (
               <div className="cal-chip-more">+{grouped.length - 3}</div>
             )}
@@ -294,15 +298,15 @@ const Calendario = () => {
                             const cfg = ACTIVITY_CONFIG[actKey] || ACTIVITY_CONFIG.muestra_estandar;
                             const Icon = cfg.icon;
                             return (
-                              <div key={actKey} className="cal-activity-row" style={{ backgroundColor: cfg.bg }}>
+                              <div key={actKey} className="cal-activity-row" style={{ backgroundColor: cfg.bg, cursor: 'pointer' }} onClick={() => alert(`Resumen:\nCliente: ${g.client}\nActividad: ${cfg.label}\nDetalles: ${extras.length > 0 ? extras.join(', ') : 'Sin detalles extra'}`)}>
                                 <div className="cal-activity-icon" style={{ color: cfg.color }}>
                                   <Icon size={14} />
                                 </div>
-                                <div className="cal-activity-text">
-                                  <span style={{ color: cfg.color, fontWeight: 700 }}>{cfg.label}</span>
-                                  {count > 1 && <span className="cal-activity-count">×{count}</span>}
-                                  {extras.length > 0 && <span className="cal-activity-extra"> — {[...new Set(extras)].join(', ')}</span>}
+                                <div className="cal-activity-details" style={{ flex: 1 }}>
+                                  <span style={{ color: cfg.color, fontWeight: 700 }}>{count}x {cfg.label}</span>
+                                  {extras.length > 0 && <small className="cal-activity-extras" style={{ display: 'block', fontSize: '0.7rem', color: '#64748b' }}>{extras.join(', ')}</small>}
                                 </div>
+                                <ChevronRight size={16} color={cfg.color} style={{opacity: 0.5}} />
                               </div>
                             );
                           })}

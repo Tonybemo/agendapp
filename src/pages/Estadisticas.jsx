@@ -23,7 +23,7 @@ const Estadisticas = () => {
   // Aquapp State
   const [aquappMuestrasRaw, setAquappMuestrasRaw] = useState([]);
   const [aquappTratamientosRaw, setAquappTratamientosRaw] = useState([]);
-  const [aquappYearFilter, setAquappYearFilter] = useState(new Date().getFullYear().toString());
+  const [aquappYearFilter, setAquappYearFilter] = useState(() => localStorage.getItem('est_aquapp_year') || new Date().getFullYear().toString());
   const [aquappStats, setAquappStats] = useState({
     availableYears: [],
     muestrasChartData: [],
@@ -33,7 +33,7 @@ const Estadisticas = () => {
 
   // Avisomap State
   const [avisomapAvisosRaw, setAvisomapAvisosRaw] = useState([]);
-  const [avisomapYearFilter, setAvisomapYearFilter] = useState('Todos');
+  const [avisomapYearFilter, setAvisomapYearFilter] = useState(() => localStorage.getItem('est_avisomap_year') || 'Todos');
   const [avisomapStats, setAvisomapStats] = useState({
     total: 0,
     plagas: [],
@@ -43,7 +43,14 @@ const Estadisticas = () => {
 
   // Workapp State
   const [jornadas, setJornadas] = useState([]);
-  const [workappFiltro, setWorkappFiltro] = useState({ desde: '', hasta: '' });
+  const [workappFiltro, setWorkappFiltro] = useState(() => {
+    const saved = localStorage.getItem('est_workapp_filtro');
+    return saved ? JSON.parse(saved) : { desde: '', hasta: '' };
+  });
+
+  React.useEffect(() => { localStorage.setItem('est_aquapp_year', aquappYearFilter); }, [aquappYearFilter]);
+  React.useEffect(() => { localStorage.setItem('est_avisomap_year', avisomapYearFilter); }, [avisomapYearFilter]);
+  React.useEffect(() => { localStorage.setItem('est_workapp_filtro', JSON.stringify(workappFiltro)); }, [workappFiltro]);
   const [workappResultados, setWorkappResultados] = useState({
     totalHoras: '0',
     totalExtras: '0',
@@ -370,7 +377,7 @@ const Estadisticas = () => {
           >
             <XAxis dataKey="mes" tick={{fontSize: 12}} />
             <YAxis allowDecimals={false} />
-            <RechartsTooltip 
+            <RechartsTooltip wrapperStyle={{ fontSize: window.innerWidth <= 768 ? '0.75rem' : '0.9rem' }} 
               cursor={{fill: 'rgba(0,0,0,0.05)'}} 
               contentStyle={{backgroundColor: '#222', color: '#fff', borderRadius: '6px', border: 'none'}}
               itemStyle={{color: '#fff'}}
@@ -390,7 +397,7 @@ const Estadisticas = () => {
           >
             <XAxis dataKey="mes" tick={{fontSize: 12}} />
             <YAxis allowDecimals={false} />
-            <RechartsTooltip 
+            <RechartsTooltip wrapperStyle={{ fontSize: window.innerWidth <= 768 ? '0.75rem' : '0.9rem' }} 
               cursor={{fill: 'rgba(0,0,0,0.05)'}} 
               contentStyle={{backgroundColor: '#222', color: '#fff', borderRadius: '6px', border: 'none'}}
             />
@@ -604,7 +611,7 @@ const Estadisticas = () => {
           >
             <XAxis dataKey="label" tick={{fontSize: 12}} />
             <YAxis />
-            <RechartsTooltip 
+            <RechartsTooltip wrapperStyle={{ fontSize: window.innerWidth <= 768 ? '0.75rem' : '0.9rem' }} 
               cursor={{fill: 'rgba(0,0,0,0.05)'}} 
               contentStyle={{backgroundColor: '#222', color: '#fff', borderRadius: '6px', border: 'none'}}
               itemStyle={{color: '#fff'}}
@@ -629,7 +636,7 @@ const Estadisticas = () => {
             >
               <XAxis type="number" />
               <YAxis dataKey="date" type="category" width={60} tick={{fontSize: 12}} />
-              <RechartsTooltip cursor={{fill: 'rgba(0,0,0,0.05)'}} contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
+              <RechartsTooltip wrapperStyle={{ fontSize: window.innerWidth <= 768 ? '0.75rem' : '0.9rem' }} cursor={{fill: 'rgba(0,0,0,0.05)'}} contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
               <Legend />
               <Bar dataKey="value" name="Horas Extras" fill="#fb7185" radius={[0, 4, 4, 0]} barSize={12} />
             </BarChart>
@@ -650,7 +657,7 @@ const Estadisticas = () => {
             >
               <XAxis dataKey="date" tick={{fontSize: 12, angle: -45, textAnchor: 'end'}} interval={0} />
               <YAxis />
-              <RechartsTooltip 
+              <RechartsTooltip wrapperStyle={{ fontSize: window.innerWidth <= 768 ? '0.75rem' : '0.9rem' }} 
                 cursor={{fill: 'rgba(0,0,0,0.05)'}} 
                 contentStyle={{backgroundColor: '#222', color: '#fff', borderRadius: '6px', border: 'none'}}
                 itemStyle={{color: '#fff'}}
@@ -709,7 +716,7 @@ const Estadisticas = () => {
           pointerEvents: 'none',
           zIndex: 99999,
           boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-          whiteSpace: 'nowrap'
+          whiteSpace: 'nowrap', fontSize: window.innerWidth <= 768 ? '0.75rem' : '0.85rem'
         }}>
           {tableTooltip.text}
         </div>,

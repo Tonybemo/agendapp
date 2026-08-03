@@ -89,6 +89,17 @@ const Catalogo = () => {
       filteredProducts = products.filter(p => p.categoryId === selectedCategory);
     }
 
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      filteredProducts = filteredProducts.filter(p => 
+        (p.name || '').toLowerCase().includes(q) ||
+        (p.materiaActiva || '').toLowerCase().includes(q) ||
+        (p.lote || '').toLowerCase().includes(q)
+      );
+    }
+
+    filteredProducts.sort((a,b) => (a.name || '').localeCompare(b.name || ''));
+
     return (
       <div className="catalogo-container animate-fade-in">
         {/* Header inside category view */}
