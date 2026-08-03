@@ -66,6 +66,7 @@ const Avisomap = () => {
     
     const { error } = await supabase.from('avisomap_avisos').update({
       direccion: editingAviso.direccion,
+      portal: editingAviso.portal,
       localidad: editingAviso.localidad,
       fecha: editingAviso.fecha,
       hora: editingAviso.hora,
@@ -246,7 +247,7 @@ const Avisomap = () => {
                               return true;
                             }).map(aviso => (
                               <div key={aviso.id} className="aviso-map-card">
-                                <h4>{aviso.direccion}</h4>
+                                <h4>{aviso.direccion}{aviso.portal ? `, ${aviso.portal}` : ''}</h4>
                                 <div className="aviso-loc">
                                   <MapPin size={14} color="#22c55e" />
                                   <span>{aviso.localidad}</span>
@@ -277,7 +278,7 @@ const Avisomap = () => {
                                   </div>
                                 )}
                                 <div className="aviso-card-footer">
-                                  <button className="btn-ruta" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(aviso.direccion + ', ' + aviso.localidad)}`, '_blank')}><Navigation size={14}/> Ruta GPS</button>
+                                  <button className="btn-ruta" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(aviso.direccion + (aviso.portal ? ' ' + aviso.portal : '') + ', ' + aviso.localidad)}`, '_blank')}><Navigation size={14}/> Ruta GPS</button>
                                   <div className="aviso-actions">
                                     {aviso.adjunto ? (
                                       <a href={aviso.adjunto} target="_blank" rel="noopener noreferrer" style={{display:'flex',alignItems:'center'}}>
@@ -395,9 +396,15 @@ const Avisomap = () => {
               <XCircle size={24} color="#64748b" style={{cursor: 'pointer'}} onClick={() => setEditingAviso(null)} />
             </div>
             <form onSubmit={handleSaveEdit} style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
-              <div>
-                <label style={{fontSize: '0.8rem', fontWeight: 700, color: '#64748b'}}>DIRECCIÓN</label>
-                <input type="text" value={editingAviso.direccion} onChange={e => setEditingAviso({...editingAviso, direccion: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1'}} required />
+              <div style={{display: 'flex', gap: '12px'}}>
+                <div style={{flex: 2}}>
+                  <label style={{fontSize: '0.8rem', fontWeight: 700, color: '#64748b'}}>DIRECCIÓN</label>
+                  <input type="text" value={editingAviso.direccion || ''} onChange={e => setEditingAviso({...editingAviso, direccion: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1'}} required />
+                </div>
+                <div style={{flex: 1}}>
+                  <label style={{fontSize: '0.8rem', fontWeight: 700, color: '#64748b'}}>PORTAL</label>
+                  <input type="text" value={editingAviso.portal || ''} onChange={e => setEditingAviso({...editingAviso, portal: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1'}} />
+                </div>
               </div>
               <div>
                 <label style={{fontSize: '0.8rem', fontWeight: 700, color: '#64748b'}}>LOCALIDAD</label>

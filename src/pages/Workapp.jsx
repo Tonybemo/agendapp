@@ -552,35 +552,7 @@ const Workapp = () => {
           />
         </div>
 
-        <div className="wa-filter-dates">
-          <div className="wa-filter-group">
-            <label>Desde</label>
-            <input 
-              type="date" 
-              className="wa-form-input wa-filter-input"
-              value={filterDesde}
-              onChange={(e) => setFilterDesde(e.target.value)}
-            />
-          </div>
-          <div className="wa-filter-group">
-            <label>Hasta</label>
-            <input 
-              type="date" 
-              className="wa-form-input wa-filter-input"
-              value={filterHasta}
-              onChange={(e) => setFilterHasta(e.target.value)}
-            />
-          </div>
-          {(filterDesde || filterHasta) && (
-            <button 
-              className="wa-filter-clear"
-              onClick={() => { setFilterDesde(''); setFilterHasta(''); }}
-              title="Limpiar filtros"
-            >
-              <X size={16} /> Limpiar
-            </button>
-          )}
-        </div>
+
 
         {loading ? (
           <div style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>Cargando jornadas...</div>

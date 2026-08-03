@@ -133,38 +133,36 @@ const Catalogo = () => {
 
         {/* Product List or Detail */}
         {selectedProduct ? (
-          <div className="product-detail-view animate-fade-in" style={{padding: '32px', marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '24px'}}>
-            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'}}>
-              <div style={{display: 'flex', gap: '24px'}}>
-                <img src={selectedProduct.image} alt={selectedProduct.name} style={{width: '120px', height: '120px', borderRadius: '20px', objectFit: 'cover', border: '1px solid rgba(255,255,255,0.8)', boxShadow: '0 4px 10px rgba(0,0,0,0.05)'}} />
+          <div className="product-detail-view animate-fade-in">
+            <div className="product-detail-header">
+              <div className="product-detail-info-row">
+                <img src={selectedProduct.image} alt={selectedProduct.name} className="product-detail-img" />
                 <div>
-                  <h2 style={{fontSize: '1.25rem', color: '#0f172a', marginBottom: '8px'}}>{selectedProduct.name}</h2>
-                  <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
+                  <h2 className="product-detail-name">{selectedProduct.name}</h2>
+                  <div className="product-detail-badges">
                     <span className="badge-ins">{selectedProduct.badge}</span>
-                    <span style={{padding: '6px 12px', borderRadius: '10px', fontSize: '0.8rem', fontWeight: '700', background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(4px)', color: '#475569', border: '1px solid rgba(255,255,255,0.8)'}}>Registro: {selectedProduct.registro}</span>
-                    <span style={{padding: '6px 12px', borderRadius: '10px', fontSize: '0.8rem', fontWeight: '700', background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(4px)', color: '#475569', border: '1px solid rgba(255,255,255,0.8)'}}>Lote: {selectedProduct.lote}</span>
+                    <span className="product-detail-badge">Registro: {selectedProduct.registro}</span>
+                    <span className="product-detail-badge">Lote: {selectedProduct.lote}</span>
                   </div>
                 </div>
               </div>
-              <button onClick={() => setSelectedProduct(null)} style={{background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8'}}><X size={28}/></button>
+              <button onClick={() => setSelectedProduct(null)} className="btn-close-product"><X size={28}/></button>
             </div>
             
-            <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', padding: '24px', background: 'rgba(255,255,255,0.5)', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.8)'}}>
+            <div className="product-detail-grid">
               <div>
-                <p style={{fontSize: '0.75rem', color: '#64748b', fontWeight: '600', marginBottom: '4px'}}>MATERIA ACTIVA</p>
-                <p style={{fontSize: '0.9rem', color: '#0f172a', fontWeight: '500'}}>{selectedProduct.materiaActiva}</p>
+                <p className="product-detail-label">MATERIA ACTIVA</p>
+                <p className="product-detail-value">{selectedProduct.materiaActiva}</p>
               </div>
               <div>
-                <p style={{fontSize: '0.75rem', color: '#64748b', fontWeight: '600', marginBottom: '4px'}}>PLAGA DIANA</p>
-                <p style={{fontSize: '0.9rem', color: '#0f172a', fontWeight: '500'}}>{selectedProduct.plagaDiana}</p>
+                <p className="product-detail-label">PLAGA DIANA</p>
+              <div>
+                <p className="product-detail-label">MÉTODO APLICACIÓN</p>
+                <p className="product-detail-value">{selectedProduct.metodoAplicacion}</p>
               </div>
               <div>
-                <p style={{fontSize: '0.75rem', color: '#64748b', fontWeight: '600', marginBottom: '4px'}}>MÉTODO APLICACIÓN</p>
-                <p style={{fontSize: '0.9rem', color: '#0f172a', fontWeight: '500'}}>{selectedProduct.metodoAplicacion}</p>
-              </div>
-              <div>
-                <p style={{fontSize: '0.75rem', color: '#64748b', fontWeight: '600', marginBottom: '4px'}}>CADUCIDAD</p>
-                <p style={{fontSize: '0.9rem', color: '#0f172a', fontWeight: '500'}}>{selectedProduct.caducidad}</p>
+                <p className="product-detail-label">CADUCIDAD</p>
+                <p className="product-detail-value">{selectedProduct.caducidad}</p>
               </div>
             </div>
 

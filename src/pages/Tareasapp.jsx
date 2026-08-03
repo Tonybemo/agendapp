@@ -420,7 +420,7 @@ const Tareasapp = () => {
                             <CalendarIcon size={12}/> <span style={{marginLeft: '4px'}}>{task.date}</span> <Edit3 size={10} style={{marginLeft: '4px', opacity: 0.5}}/>
                             <input 
                               type="date" 
-                              style={{position: 'absolute', top: 0, left: 0, opacity: 0, width: '100%', height: '100%', cursor: 'pointer'}} 
+                              style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer', zIndex: 10}} onClick={(e) => e.target.showPicker && e.target.showPicker()} 
                               onChange={(e) => changeTaskDate(tarea.id, task.id, e.target.value)} 
                             />
                           </span>

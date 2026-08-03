@@ -287,11 +287,13 @@ const Calendario = () => {
                   </div>
                 ) : (
                   <div className="cal-events-list">
-                    {selectedDate.grouped.map(g => (
-                      <div key={g.client} className="cal-client-card" style={{ borderLeftColor: clientColors[g.client] || '#6366f1' }}>
-                        <div className="cal-client-card-header" style={{ color: clientColors[g.client] || '#6366f1' }}>
-                          <Building2 size={16} />
-                          <strong>{g.client}</strong>
+                    {selectedDate.grouped.map(g => {
+                      const primaryActKey = Object.keys(g.activities)[0];
+                      const mainCfg = ACTIVITY_CONFIG[primaryActKey] || { bg: '#f1f5f9', color: '#64748b' };
+                      return (
+                      <div key={g.client} className="cal-client-card" style={{ borderLeftColor: mainCfg.color, backgroundColor: mainCfg.bg }}>
+                        <div className="cal-client-card-header" style={{ color: '#1e293b', borderBottom: 'none', paddingBottom: '0' }}>
+                          <strong style={{ fontSize: '1.05rem', fontWeight: 800 }}>{g.client}</strong>
                         </div>
                         <div className="cal-activity-list">
                           {Object.entries(g.activities).map(([actKey, { count, extras }]) => {
@@ -312,7 +314,7 @@ const Calendario = () => {
                           })}
                         </div>
                       </div>
-                    ))}
+                    })}
                   </div>
                 )}
               </div>
