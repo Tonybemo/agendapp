@@ -191,6 +191,25 @@ const Workapp = () => {
       
       mObj.items.push(j);
     });
+    // Sort years descending (most recent first)
+    years.sort((a, b) => parseInt(b.year) - parseInt(a.year));
+
+    // Sort months descending within each year (most recent first)
+    years.forEach(y => {
+      y.months.sort((a, b) => monthNames.indexOf(b.month) - monthNames.indexOf(a.month));
+      // Sort items within each month by date descending
+      y.months.forEach(m => {
+        m.items.sort((a, b) => {
+          const parseDate = (f) => {
+            if (!f) return 0;
+            if (f.includes('/')) { const [d,mo,yr] = f.split('/'); return new Date(yr, mo-1, d).getTime(); }
+            if (f.includes('-')) { const [yr,mo,d] = f.split('-'); return new Date(yr, mo-1, d).getTime(); }
+            return 0;
+          };
+          return parseDate(b.fecha) - parseDate(a.fecha);
+        });
+      });
+    });
 
     return years;
   };

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, X, Droplet, Bug, CalendarCheck, Info, FlaskConical, Building2, ThermometerSun, Waves } from 'lucide-react';
 import './Calendario.css';
 import { supabase } from '../lib/supabase';
@@ -40,6 +41,7 @@ const normalizeActivityKey = (type, group) => {
 };
 
 const Calendario = () => {
+  const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState(null);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState('mes');
@@ -76,7 +78,7 @@ const Calendario = () => {
       muestras.forEach(m => {
         const d = normalizeDate(m.fecha);
         if (d && m.cliente_nombre) {
-          allRaw.push({ date: d, client: m.cliente_nombre, actKey: normalizeActivityKey(m.tipo_muestra, 'muestra') });
+          allRaw.push({ id: m.id, date: d, client: m.cliente_nombre, actKey: normalizeActivityKey(m.tipo_muestra, 'muestra') });
         }
       });
     }
@@ -87,7 +89,7 @@ const Calendario = () => {
       tratos.forEach(t => {
         const d = normalizeDate(t.fecha);
         if (d && t.cliente_nombre) {
-          allRaw.push({ date: d, client: t.cliente_nombre, actKey: normalizeActivityKey(t.tipo_tratamiento, 'tratamiento') });
+          allRaw.push({ id: t.id, date: d, client: t.cliente_nombre, actKey: normalizeActivityKey(t.tipo_tratamiento, 'tratamiento') });
         }
       });
     }
@@ -98,7 +100,7 @@ const Calendario = () => {
       avisos.forEach(a => {
         const d = normalizeDate(a.fecha);
         if (d) {
-          allRaw.push({ date: d, client: a.localidad || 'Aviso Mapfre', actKey: 'aviso', extra: a.plagas });
+          allRaw.push({ id: a.id, date: d, client: a.localidad || 'Aviso Mapfre', actKey: 'aviso', extra: a.plagas });
         }
       });
     }
@@ -111,7 +113,7 @@ const Calendario = () => {
           row.tareas_json.forEach(task => {
             if (task.status === 'completed') {
               const d = normalizeDate(task.date);
-              if (d) allRaw.push({ date: d, client: row.clientes?.name || 'Tarea', actKey: 'tarea', extra: task.name });
+              if (d) allRaw.push({ id: task.id, date: d, client: row.clientes?.name || 'Tarea', actKey: 'tarea', extra: task.name });
             }
           });
         }
@@ -300,7 +302,17 @@ const Calendario = () => {
                             const cfg = ACTIVITY_CONFIG[actKey] || ACTIVITY_CONFIG.muestra_estandar;
                             const Icon = cfg.icon;
                             return (
-                              <div key={actKey} className="cal-activity-row" style={{ backgroundColor: cfg.bg, cursor: 'pointer' }} onClick={() => alert(`Resumen:\nCliente: ${g.client}\nActividad: ${cfg.label}\nDetalles: ${extras.length > 0 ? extras.join(', ') : 'Sin detalles extra'}`)}>
+                              <div key={actKey} className="cal-activity-row" style={{ backgroundColor: cfg.bg, cursor: 'pointer' }} onClick={() => {
+                                if (actKey.startsWith('muestra') || actKey === 'hipercloracion' || actKey === 'choque_termico') {
+                                  navigate('/aquapp');
+                                } else if (actKey === 'aviso') {
+                                  navigate('/avisomap');
+                                } else if (actKey === 'tarea') {
+                                  navigate('/tareas');
+                                } else {
+                                  navigate('/');
+                                }
+                              }}>
                                 <div className="cal-activity-icon" style={{ color: cfg.color }}>
                                   <Icon size={14} />
                                 </div>

@@ -64,12 +64,14 @@ const Estadisticas = () => {
       const { data } = await supabase.from('workapp_jornadas').select('*');
       if (data) {
         setJornadas(data);
-        const now = new Date();
-        const start = new Date(now.getFullYear(), now.getMonth(), 1);
-        const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-        
-        const formatYMD = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-        setWorkappFiltro({ desde: formatYMD(start), hasta: formatYMD(end) });
+        if (!workappFiltro.desde && !workappFiltro.hasta) {
+          const now = new Date();
+          const start = new Date(now.getFullYear(), now.getMonth(), 1);
+          const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+          
+          const formatYMD = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+          setWorkappFiltro({ desde: formatYMD(start), hasta: formatYMD(end) });
+        }
       }
     };
 
