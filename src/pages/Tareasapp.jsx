@@ -89,7 +89,8 @@ const Tareasapp = () => {
         month: t.mes,
         año: t.año,
         frecuencia: t.frecuencia,
-        tasks: t.tareas_json
+        tasks: t.tareas_json,
+        notas: t.notas || ''
       }));
       setTareas(mapped);
     }
@@ -188,11 +189,13 @@ const Tareasapp = () => {
   };
 
   const deleteTask = (tareaId, taskId) => {
-    const tarea = tareas.find(t => t.id === tareaId);
-    if (!tarea) return;
-    const newTasks = tarea.tasks.filter(t => t.id !== taskId);
-    setTareas(prev => prev.map(t => t.id === tareaId ? { ...t, tasks: newTasks } : t));
-    updateTaskInSupabase(tareaId, newTasks);
+    if (window.confirm('¿Seguro que quieres eliminar esta tarea?')) {
+      const tarea = tareas.find(t => t.id === tareaId);
+      if (!tarea) return;
+      const newTasks = tarea.tasks.filter(t => t.id !== taskId);
+      setTareas(prev => prev.map(t => t.id === tareaId ? { ...t, tasks: newTasks } : t));
+      updateTaskInSupabase(tareaId, newTasks);
+    }
   };
 
   const deleteCard = async (tareaId) => {
@@ -202,20 +205,24 @@ const Tareasapp = () => {
     }
   };
 
-  const changeTaskDate = (tareaId, taskId) => {
-    const newDate = window.prompt('Introduce la nueva fecha (Ej: 15/07/2026):', 'Hoy');
-    if (newDate !== null) {
-      const tarea = tareas.find(t => t.id === tareaId);
-      if (!tarea) return;
-      const newTasks = tarea.tasks.map(t => t.id === taskId ? { ...t, date: newDate } : t);
-      setTareas(prev => prev.map(t => t.id === tareaId ? { ...t, tasks: newTasks } : t));
-      updateTaskInSupabase(tareaId, newTasks);
-    }
+  const changeTaskDate = (tareaId, taskId, rawDate) => {
+    if (!rawDate) return;
+    const parts = rawDate.split('-');
+    const newDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+    const tarea = tareas.find(t => t.id === tareaId);
+    if (!tarea) return;
+    const newTasks = tarea.tasks.map(t => t.id === taskId ? { ...t, date: newDate } : t);
+    setTareas(prev => prev.map(t => t.id === tareaId ? { ...t, tasks: newTasks } : t));
+    updateTaskInSupabase(tareaId, newTasks);
   };
 
-  const addNote = (tareaId) => {
-    window.prompt('Añade una nota para este cliente:');
-    // In a real app we'd save it to the state. For now, prompt is enough UX.
+  const addNote = async (tareaId) => {
+    const tarea = tareas.find(t => t.id === tareaId);
+    const newNote = window.prompt('Añade una nota para este cliente:', tarea.notas || '');
+    if (newNote !== null) {
+      setTareas(prev => prev.map(t => t.id === tareaId ? { ...t, notas: newNote } : t));
+      await supabase.from('tareas_programadas').update({ notas: newNote }).eq('id', tareaId);
+    }
   };
 
   const getProgressInfo = (tarea) => {
@@ -388,7 +395,7 @@ const Tareasapp = () => {
                     </p>
                   </div>
                   <div className="tf-card-actions">
-                    <MessageSquare size={16} color="#cbd5e1" style={{cursor: 'pointer'}} onClick={() => addNote(tarea.id)}/>
+                    <MessageSquare size={16} color={tarea.notas ? "#10b981" : "#cbd5e1"} style={{cursor: 'pointer'}} onClick={() => addNote(tarea.id)}/>
                     <MoreVertical size={16} color="#cbd5e1" style={{cursor: 'pointer'}} onClick={() => deleteCard(tarea.id)}/>
                   </div>
                 </div>
@@ -409,8 +416,13 @@ const Tareasapp = () => {
                         )}
                         <span className="tf-task-name">{task.name}</span>
                         {task.date && (
-                          <span className="tf-task-date" onClick={(e) => { e.stopPropagation(); changeTaskDate(tarea.id, task.id); }}>
-                            <CalendarIcon size={12}/> {task.date} <Edit3 size={10} style={{marginLeft: '2px', opacity: 0.5}}/>
+                          <span className="tf-task-date" style={{position: 'relative', display: 'flex', alignItems: 'center', cursor: 'pointer'}}>
+                            <CalendarIcon size={12}/> <span style={{marginLeft: '4px'}}>{task.date}</span> <Edit3 size={10} style={{marginLeft: '4px', opacity: 0.5}}/>
+                            <input 
+                              type="date" 
+                              style={{position: 'absolute', top: 0, left: 0, opacity: 0, width: '100%', height: '100%', cursor: 'pointer'}} 
+                              onChange={(e) => changeTaskDate(tarea.id, task.id, e.target.value)} 
+                            />
                           </span>
                         )}
                       </div>
@@ -449,8 +461,8 @@ const Tareasapp = () => {
       {/* Modal Nueva Planificación */}
       {isModalOpen && (
         <div className="modal-overlay" style={{position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999}}>
-          <div className="modal-content animate-fade-in" style={{background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(255,255,255,0.8)', padding: '32px', borderRadius: '24px', width: '90%', maxWidth: '500px', boxShadow: '0 20px 40px rgba(0,0,0,0.1)'}}>
-            <h2 style={{color: '#0f172a', marginBottom: '24px', fontSize: '1.5rem', fontWeight: '800'}}>Nueva Planificación</h2>
+          <div className="modal-content animate-fade-in" style={{background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(255,255,255,0.8)', padding: '24px', borderRadius: '24px', width: '90%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 40px rgba(0,0,0,0.1)'}}>
+            <h2 style={{color: '#0f172a', marginBottom: '20px', fontSize: '1.3rem', fontWeight: '800'}}>Nueva Planificación</h2>
             
             <div style={{display: 'flex', flexDirection: 'column', gap: '20px'}}>
 

@@ -273,10 +273,8 @@
 
 .aviso-map-card {
   position: relative;
-  background: rgba(255, 255, 255, 0.65);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.8);
+  background: #ffffff;
+  border: 1px solid #f1f5f9;
   border-radius: 20px;
   padding: 24px;
   border-left: 6px solid #10b981;
@@ -619,5 +617,17 @@ input[type="text"]:focus, textarea:focus {
   .year-header, .month-header {
     flex-direction: column;
     align-items: flex-start;
+  }
+  .aviso-map-card {
+    padding: 16px;
+  }
+  .year-header {
+    padding: 12px 16px;
+  }
+  .year-header h2 {
+    font-size: 1.05rem;
+  }
+  .month-header {
+    padding: 10px 16px;
   }
 }

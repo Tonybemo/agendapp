@@ -17,6 +17,41 @@ const formatTime = (t) => {
   return `${parts[0]}:${parts[1] || '00'}`;
 };
 
+// Converts stored hour values like "8.0h", "+1.5h ext", "8:00:00", "07:30" to "HH:MM" display format
+const formatHoursDisplay = (val) => {
+  if (!val || val === '-') return null;
+  let totalMinutes = 0;
+  const str = String(val).trim();
+  
+  // Format: "HH:MM:SS" or "HH:MM" (time-like)
+  if (str.includes(':')) {
+    const parts = str.split(':');
+    const h = parseInt(parts[0], 10) || 0;
+    const m = parseInt(parts[1], 10) || 0;
+    totalMinutes = h * 60 + m;
+  } else {
+    // Format: "8.0h", "+1.5h ext", "0.0h", plain number
+    const num = parseFloat(str.replace(/[^0-9.\-]/g, '')) || 0;
+    totalMinutes = Math.round(num * 60);
+  }
+  
+  if (totalMinutes <= 0) return null;
+  
+  const hours = Math.floor(totalMinutes / 60);
+  const mins = totalMinutes % 60;
+  return `${hours}:${mins.toString().padStart(2, '0')}`;
+};
+
+// Pastel accent colors for nómina cards
+const NOMINA_ACCENTS = [
+  { bg: 'linear-gradient(135deg, #dbeafe, #e0e7ff)', border: '#93c5fd' },  // pastel blue
+  { bg: 'linear-gradient(135deg, #dcfce7, #d1fae5)', border: '#86efac' },  // pastel green
+  { bg: 'linear-gradient(135deg, #ede9fe, #e8e0fe)', border: '#c4b5fd' },  // pastel purple
+  { bg: 'linear-gradient(135deg, #fef3c7, #fde68a)', border: '#fbbf24' },  // pastel amber
+  { bg: 'linear-gradient(135deg, #fce7f3, #fbcfe8)', border: '#f9a8d4' },  // pastel pink
+  { bg: 'linear-gradient(135deg, #ccfbf1, #c7f9e2)', border: '#5eead4' },  // pastel teal
+];
+
 // Removed mockNominas
 
 const Workapp = () => {
@@ -43,6 +78,13 @@ const Workapp = () => {
   // Accordion
   const [expandedYears, setExpandedYears] = useState({});
   const [expandedMonths, setExpandedMonths] = useState({});
+
+  // Filter dates (persisted in localStorage)
+  const [filterDesde, setFilterDesde] = useState(() => localStorage.getItem('workapp_filter_desde') || '');
+  const [filterHasta, setFilterHasta] = useState(() => localStorage.getItem('workapp_filter_hasta') || '');
+
+  // Nóminas year filter
+  const [nominaYearFilter, setNominaYearFilter] = useState(new Date().getFullYear().toString());
 
   // Edit Jornada State
   const [editForm, setEditForm] = useState({});
@@ -106,8 +148,42 @@ const Workapp = () => {
   }, []);
 
   // ---- Group by Year/Month ----
+  // Persist filter dates to localStorage
+  useEffect(() => {
+    localStorage.setItem('workapp_filter_desde', filterDesde);
+  }, [filterDesde]);
+
+  useEffect(() => {
+    localStorage.setItem('workapp_filter_hasta', filterHasta);
+  }, [filterHasta]);
+
   const getGroupedData = () => {
     const filtered = jornadas.filter(j => {
+      // Date range filter
+      if (filterDesde || filterHasta) {
+        let jDate = null;
+        if (j.fecha && j.fecha.includes('/')) {
+          const [jd, jm, jy] = j.fecha.split('/');
+          jDate = new Date(parseInt(jy), parseInt(jm) - 1, parseInt(jd));
+        } else if (j.fecha && j.fecha.includes('-')) {
+          const [jy, jm, jd] = j.fecha.split('-');
+          jDate = new Date(parseInt(jy), parseInt(jm) - 1, parseInt(jd));
+        }
+        if (jDate) {
+          if (filterDesde) {
+            const [dy, dm, dd] = filterDesde.split('-');
+            const desdeDate = new Date(parseInt(dy), parseInt(dm) - 1, parseInt(dd));
+            if (jDate < desdeDate) return false;
+          }
+          if (filterHasta) {
+            const [hy, hm, hd] = filterHasta.split('-');
+            const hastaDate = new Date(parseInt(hy), parseInt(hm) - 1, parseInt(hd));
+            if (jDate > hastaDate) return false;
+          }
+        }
+      }
+
+      // Text search filter
       if (!searchQuery) return true;
       const q = searchQuery.toLowerCase();
       // Safely handle paradas being a string (from old DB) or array (from new DB)
@@ -356,26 +432,38 @@ const Workapp = () => {
     const fechaCierreObj = new Date(parseInt(fcY), parseInt(fcM) - 1, parseInt(fcD));
     
     const jornadasAnteriores = jornadas.filter(j => {
-      if (!j.fecha || !j.fecha.includes('/')) return false;
-      const [jd, jm, jy] = j.fecha.split('/');
-      const jDate = new Date(parseInt(jy), parseInt(jm) - 1, parseInt(jd));
+      if (!j.fecha) return false;
+      let jDate;
+      if (j.fecha.includes('/')) {
+          const [jd, jm, jy] = j.fecha.split('/');
+          jDate = new Date(parseInt(jy), parseInt(jm) - 1, parseInt(jd));
+      } else if (j.fecha.includes('-')) {
+          const [jy, jm, jd] = j.fecha.split('-');
+          jDate = new Date(parseInt(jy), parseInt(jm) - 1, parseInt(jd));
+      } else {
+          return false;
+      }
       return jDate <= fechaCierreObj;
     }).sort((a, b) => {
-      const [ad, am, ay] = a.fecha.split('/');
-      const [bd, bm, by] = b.fecha.split('/');
-      const dateA = new Date(parseInt(ay), parseInt(am) - 1, parseInt(ad));
-      const dateB = new Date(parseInt(by), parseInt(bm) - 1, parseInt(bd));
+      let dateA, dateB;
+      if (a.fecha.includes('/')) { const p = a.fecha.split('/'); dateA = new Date(p[2], p[1]-1, p[0]); }
+      else { const p = a.fecha.split('-'); dateA = new Date(p[0], p[1]-1, p[2]); }
+      if (b.fecha.includes('/')) { const p = b.fecha.split('/'); dateB = new Date(p[2], p[1]-1, p[0]); }
+      else { const p = b.fecha.split('-'); dateB = new Date(p[0], p[1]-1, p[2]); }
       return dateB - dateA;
     });
 
     for (const j of jornadasAnteriores) {
       let extraNum = 0;
-      const val = j.horas_extras || '0';
+      const val = String(j.horas_extras || '0').trim();
       if (val.includes(':')) {
-        const parts = val.split(':');
-        extraNum = parseInt(parts[0], 10) + parseInt(parts[1], 10) / 60;
+        // Handle "HH:MM:SS" or "HH:MM" format, possibly with leading "+"
+        const cleaned = val.replace(/^\+/, '');
+        const parts = cleaned.split(':');
+        extraNum = Math.abs(parseInt(parts[0], 10) || 0) + (parseInt(parts[1], 10) || 0) / 60;
       } else {
-        extraNum = parseFloat(val.replace(/[^0-9.]/g, '')) || 0;
+        // Handle "+1.5h ext", "0.0h", plain number — strip everything except digits, dot, minus
+        extraNum = Math.abs(parseFloat(val.replace(/[^0-9.\-]/g, '')) || 0);
       }
 
       if (extraNum > 0) {
@@ -464,6 +552,36 @@ const Workapp = () => {
           />
         </div>
 
+        <div className="wa-filter-dates">
+          <div className="wa-filter-group">
+            <label>Desde</label>
+            <input 
+              type="date" 
+              className="wa-form-input wa-filter-input"
+              value={filterDesde}
+              onChange={(e) => setFilterDesde(e.target.value)}
+            />
+          </div>
+          <div className="wa-filter-group">
+            <label>Hasta</label>
+            <input 
+              type="date" 
+              className="wa-form-input wa-filter-input"
+              value={filterHasta}
+              onChange={(e) => setFilterHasta(e.target.value)}
+            />
+          </div>
+          {(filterDesde || filterHasta) && (
+            <button 
+              className="wa-filter-clear"
+              onClick={() => { setFilterDesde(''); setFilterHasta(''); }}
+              title="Limpiar filtros"
+            >
+              <X size={16} /> Limpiar
+            </button>
+          )}
+        </div>
+
         {loading ? (
           <div style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>Cargando jornadas...</div>
         ) : grouped.length === 0 ? (
@@ -506,10 +624,9 @@ const Workapp = () => {
                                 <div className="wa-card-header">
                                   <span className="wa-date-pill">{formatFechaDisplay(reg.fecha)}</span>
                                   <div className="wa-hours-group">
-                                    <span className="wa-hour-pill base">{formatTime(reg.horas_calculadas) || '—'}</span>
-                                    {reg.horas_extras && reg.horas_extras !== '0.0h' && reg.horas_extras !== '0:00:00' && reg.horas_extras !== '00:00:00' && reg.horas_extras !== '0:00' && (
-                                      <span className="wa-hour-pill extra">+{formatTime(reg.horas_extras)}</span>
-                                    )}
+                                    <span className="wa-hour-pill base">
+                                        {formatHoursDisplay(reg.horas_calculadas) || '?'}{formatHoursDisplay(reg.horas_extras) ? ` ${formatHoursDisplay(reg.horas_extras)} Ext.` : ''}
+                                    </span>
                                   </div>
                                 </div>
 
@@ -603,19 +720,49 @@ const Workapp = () => {
       </div>
 
       <div style={{display: 'inline-block', marginBottom: '24px'}}>
-        <div className="wa-date-pill" style={{display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', background: '#6d28d9', color: 'white'}}>
-          <Calendar size={16} /> 2026 <ChevronDown size={16} />
+        <div className="wa-date-pill" style={{display: 'flex', alignItems: 'center', gap: '8px', background: '#6d28d9', color: 'white', position: 'relative'}}>
+          <Calendar size={16} />
+          <select
+            value={nominaYearFilter}
+            onChange={(e) => setNominaYearFilter(e.target.value)}
+            style={{
+              appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none',
+              background: 'transparent', border: 'none', color: 'white',
+              fontWeight: 800, fontSize: '1rem', cursor: 'pointer', outline: 'none',
+              paddingRight: '20px'
+            }}
+          >
+            <option value="all" style={{color: '#0f172a'}}>Todos</option>
+            {[...new Set([new Date().getFullYear().toString(), ...nominas.map(n => {
+                const parts = (n.mes || '').split('-');
+                return parts[0] || '';
+            })])].filter(Boolean).sort().reverse().map(y => (
+                <option key={y} value={y} style={{color: '#0f172a'}}>{y}</option>
+            ))}
+          </select>
+          <ChevronDown size={16} style={{pointerEvents: 'none'}} />
         </div>
       </div>
 
       <div className="wa-record-list" style={{marginTop: 0}}>
         {loadingNominas ? (
           <div style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>Cargando nóminas...</div>
-        ) : nominas.length === 0 ? (
-          <div style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>Aún no hay nóminas registradas. Pulsa CUADRAR para añadir una.</div>
-        ) : nominas.map(nom => (
+        ) : (() => {
+          const filteredNominas = nominaYearFilter === 'all' 
+            ? nominas 
+            : nominas.filter(n => (n.mes || '').includes(nominaYearFilter));
+          return filteredNominas.length === 0 ? (
+            <div style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>
+              {nominas.length === 0 
+                ? 'Aún no hay nóminas registradas. Pulsa CUADRAR para añadir una.'
+                : `No hay nóminas para el año ${nominaYearFilter}.`}
+            </div>
+          ) : filteredNominas.map((nom, idx) => (
           <div key={nom.id} className="wa-nomina-card">
-            <div className="wa-nom-header">
+            <div className="wa-nom-header" style={{
+              background: NOMINA_ACCENTS[idx % NOMINA_ACCENTS.length].bg,
+              borderBottom: `2px solid ${NOMINA_ACCENTS[idx % NOMINA_ACCENTS.length].border}`
+            }}>
               <div className="wa-nom-title">
                 <h3>{nom.mes}</h3>
                 <p><Calendar size={14}/> {nom.rango}</p>
@@ -664,7 +811,9 @@ const Workapp = () => {
               </div>
             </div>
           </div>
-        ))}
+        ));
+        })()
+        }
       </div>
     </div>
   );

@@ -753,10 +753,15 @@ const Aquapp = () => {
                   {isYearExpanded && (
                     <div style={{padding: '0 16px 16px'}}>
                       {yGroup.months.map(mGroup => {
-                        const mId = `tab-month-${yGroup.year}-${mGroup.month}`;
-                        const isMonthExpanded = expandedMonthsTab[mId];
-                        const itemsFiltrados = mGroup.items.filter(i => (i.cliente_nombre||'').toLowerCase().includes(tratamientosTabSearch.toLowerCase()));
-                        return (
+                          const mId = `tab-month-${yGroup.year}-${mGroup.month}`;
+                          const isMonthExpanded = expandedMonthsTab[mId];
+                          const itemsFiltrados = mGroup.items.filter(i => {
+                            const q = tratamientosTabSearch.toLowerCase();
+                            return (i.cliente_nombre||'').toLowerCase().includes(q) ||
+                                   (i.tipo_tratamiento||'').toLowerCase().includes(q) ||
+                                   (i.motivo||'').toLowerCase().includes(q);
+                          });
+                          return (
                           <div key={mGroup.month} style={{marginTop: '16px'}}>
                             <div onClick={() => setExpandedMonthsTab(prev => ({...prev, [mId]: !prev[mId]}))} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', paddingBottom: '8px', borderBottom: '1px solid #f1f5f9'}}>
                               <div style={{display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold'}}>
@@ -889,9 +894,9 @@ const Aquapp = () => {
             <table className="torres-table" style={{width: '100%', borderCollapse: 'collapse', minWidth: '800px', backgroundColor: 'white'}}>
               <thead>
                 <tr style={{ borderBottom: '2px solid #e2e8f0', backgroundColor: '#f8fafc' }}>
-                  <th style={{position: 'sticky', left: 0, zIndex: 11, textAlign: 'left', padding: '16px', color: '#64748b', backgroundColor: '#f8fafc'}}>PARÁMETROS</th>
+                  <th style={{position: 'sticky', top: 0, left: 0, zIndex: 12, textAlign: 'left', padding: '16px', color: '#64748b', backgroundColor: '#f8fafc'}}>PARÁMETROS</th>
                   {months.map(m => (
-                    <th key={m} style={{textAlign: 'center', minWidth: '100px', padding: '16px', color: '#1e293b', fontWeight: 'bold'}}>{m}</th>
+                    <th key={m} style={{position: 'sticky', top: 0, zIndex: 11, backgroundColor: '#f8fafc', textAlign: 'center', minWidth: '100px', padding: '16px', color: '#1e293b', fontWeight: 'bold'}}>{m}</th>
                   ))}
                 </tr>
               </thead>
