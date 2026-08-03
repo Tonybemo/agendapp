@@ -156,6 +156,8 @@ const Catalogo = () => {
               </div>
               <div>
                 <p className="product-detail-label">PLAGA DIANA</p>
+                <p className="product-detail-value">{selectedProduct.plagaDiana}</p>
+              </div>
               <div>
                 <p className="product-detail-label">MÉTODO APLICACIÓN</p>
                 <p className="product-detail-value">{selectedProduct.metodoAplicacion}</p>
