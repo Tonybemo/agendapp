@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Search, Bug, Mouse, ShieldAlert, CalendarClock, ArrowLeft, Plus, CheckCircle2, AlertTriangle, BookOpen, FileText, Edit3, Trash2, X } from 'lucide-react';
 import { categories } from '../data/mockCatalogo';
 import { supabase } from '../lib/supabase';
@@ -17,34 +17,6 @@ const Catalogo = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [editingProduct, setEditingProduct] = useState(null);
-  const [isSavingProduct, setIsSavingProduct] = useState(false);
-
-  const handleSaveProductEdit = async (e) => {
-    e.preventDefault();
-    setIsSavingProduct(true);
-    const { error } = await supabase.from('productos').update({
-      name: editingProduct.name,
-      badge: editingProduct.badge,
-      registro: editingProduct.registro,
-      lote: editingProduct.lote,
-      materiaActiva: editingProduct.materiaActiva,
-      plagaDiana: editingProduct.plagaDiana,
-      metodoAplicacion: editingProduct.metodoAplicacion,
-      caducidad: editingProduct.caducidad,
-      plazoSeguridad: editingProduct.plazoSeguridad,
-      hasWarning: editingProduct.hasWarning
-    }).eq('id', editingProduct.id);
-    
-    setIsSavingProduct(false);
-    if (!error) {
-      setSelectedProduct(editingProduct);
-      setEditingProduct(null);
-      fetchProducts();
-    } else {
-      alert("Error al guardar el producto");
-    }
-  };
 
   useEffect(() => {
     fetchProducts();
@@ -90,7 +62,7 @@ const Catalogo = () => {
   };
 
   const deleteProduct = async (id) => {
-    if(window.confirm('¿Seguro que deseas eliminar este producto?')) {
+    if(window.confirm('Â¿Seguro que deseas eliminar este producto?')) {
       const { error } = await supabase.from('productos').delete().eq('id', id);
       if (!error) {
         setSelectedProduct(null);
@@ -107,7 +79,7 @@ const Catalogo = () => {
     let filteredProducts = [];
     if (selectedCategory === 'caducar') {
       const hoy = new Date();
-      const limite = new Date(hoy.getTime() + (30 * 24 * 60 * 60 * 1000)); // 30 días
+      const limite = new Date(hoy.getTime() + (30 * 24 * 60 * 60 * 1000)); // 30 dÃ­as
       filteredProducts = products.filter(p => {
         if (!p.caducidad) return false;
         const fechaCad = new Date(p.caducidad);
@@ -134,7 +106,7 @@ const Catalogo = () => {
         <div className="catalogo-header-card">
           <div className="catalogo-title-row">
             <BookOpen size={28} color="#2563eb" />
-            <h1>Catálogo</h1>
+            <h1>CatÃ¡logo</h1>
             <div className="brand-icon">A</div>
           </div>
           <div className="search-container">
@@ -187,7 +159,7 @@ const Catalogo = () => {
                 <p className="product-detail-value">{selectedProduct.plagaDiana}</p>
               </div>
               <div>
-                <p className="product-detail-label">MÉTODO APLICACIÓN</p>
+                <p className="product-detail-label">MÃ‰TODO APLICACIÃ“N</p>
                 <p className="product-detail-value">{selectedProduct.metodoAplicacion}</p>
               </div>
               <div>
@@ -218,7 +190,7 @@ const Catalogo = () => {
               <div style={{display: 'flex', gap: '12px'}}>
                 <button 
                   style={{display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 16px', backgroundColor: 'white', color: '#14b8a6', border: '1px solid #14b8a6', borderRadius: '8px', fontWeight: '600', cursor: 'pointer'}}
-                  onClick={() => setEditingProduct(selectedProduct)}
+                  onClick={() => alert('Editando producto...')}
                 >
                   <Edit3 size={18} /> Editar
                 </button>
@@ -232,9 +204,9 @@ const Catalogo = () => {
             </div>
           </div>
         ) : loading ? (
-          <div style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>Cargando catálogo...</div>
+          <div style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>Cargando catÃ¡logo...</div>
         ) : filteredProducts.length === 0 ? (
-          <div style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>No hay productos en esta categoría. Añade uno desde el botón central (+).</div>
+          <div style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>No hay productos en esta categorÃ­a. AÃ±ade uno desde el botÃ³n central (+).</div>
         ) : (
           <div className="products-grid">
             {filteredProducts.map(product => (
@@ -251,7 +223,7 @@ const Catalogo = () => {
                   
                   <div style={{display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '16px', flex: 1}}>
                     <span style={{fontSize: '0.8rem', color: '#64748b'}}>Lote: <strong>{product.lote}</strong></span>
-                    <span style={{fontSize: '0.8rem', color: '#64748b'}}>Nº Reg: <strong>{product.registro}</strong></span>
+                    <span style={{fontSize: '0.8rem', color: '#64748b'}}>NÂº Reg: <strong>{product.registro}</strong></span>
                   </div>
 
                   <div className={`product-status ${product.hasWarning ? 'warning' : 'safe'}`}>
@@ -265,66 +237,6 @@ const Catalogo = () => {
         )}
 
 
-        {editingProduct && (
-          <div className="uf-overlay" onClick={() => setEditingProduct(null)} style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-            <div className="uf-modal animate-fade-in" onClick={e => e.stopPropagation()} style={{background: 'white', padding: '24px', borderRadius: '16px', width: '90%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto'}}>
-              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px'}}>
-                <h2 style={{margin: 0}}>Editar Producto</h2>
-                <X size={24} color="#64748b" style={{cursor: 'pointer'}} onClick={() => setEditingProduct(null)} />
-              </div>
-              <form onSubmit={handleSaveProductEdit} style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
-                <div>
-                  <label style={{fontSize: '0.8rem', fontWeight: 700, color: '#64748b'}}>NOMBRE</label>
-                  <input type="text" value={editingProduct.name || ''} onChange={e => setEditingProduct({...editingProduct, name: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1'}} required />
-                </div>
-                <div style={{display: 'flex', gap: '12px'}}>
-                  <div style={{flex: 1}}>
-                    <label style={{fontSize: '0.8rem', fontWeight: 700, color: '#64748b'}}>TIPO (PRO, BASICO, etc)</label>
-                    <input type="text" value={editingProduct.badge || ''} onChange={e => setEditingProduct({...editingProduct, badge: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1'}} />
-                  </div>
-                  <div style={{flex: 1}}>
-                    <label style={{fontSize: '0.8rem', fontWeight: 700, color: '#64748b'}}>CADUCIDAD</label>
-                    <input type="date" value={editingProduct.caducidad || ''} onChange={e => setEditingProduct({...editingProduct, caducidad: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1'}} />
-                  </div>
-                </div>
-                <div style={{display: 'flex', gap: '12px'}}>
-                  <div style={{flex: 1}}>
-                    <label style={{fontSize: '0.8rem', fontWeight: 700, color: '#64748b'}}>Nº REGISTRO</label>
-                    <input type="text" value={editingProduct.registro || ''} onChange={e => setEditingProduct({...editingProduct, registro: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1'}} />
-                  </div>
-                  <div style={{flex: 1}}>
-                    <label style={{fontSize: '0.8rem', fontWeight: 700, color: '#64748b'}}>LOTE</label>
-                    <input type="text" value={editingProduct.lote || ''} onChange={e => setEditingProduct({...editingProduct, lote: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1'}} />
-                  </div>
-                </div>
-                <div>
-                  <label style={{fontSize: '0.8rem', fontWeight: 700, color: '#64748b'}}>MATERIA ACTIVA</label>
-                  <input type="text" value={editingProduct.materiaActiva || ''} onChange={e => setEditingProduct({...editingProduct, materiaActiva: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1'}} />
-                </div>
-                <div>
-                  <label style={{fontSize: '0.8rem', fontWeight: 700, color: '#64748b'}}>PLAGA DIANA</label>
-                  <input type="text" value={editingProduct.plagaDiana || ''} onChange={e => setEditingProduct({...editingProduct, plagaDiana: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1'}} />
-                </div>
-                <div>
-                  <label style={{fontSize: '0.8rem', fontWeight: 700, color: '#64748b'}}>MÉTODO APLICACIÓN</label>
-                  <input type="text" value={editingProduct.metodoAplicacion || ''} onChange={e => setEditingProduct({...editingProduct, metodoAplicacion: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1'}} />
-                </div>
-                <div>
-                  <label style={{fontSize: '0.8rem', fontWeight: 700, color: '#64748b'}}>PLAZO DE SEGURIDAD</label>
-                  <input type="text" value={editingProduct.plazoSeguridad || ''} onChange={e => setEditingProduct({...editingProduct, plazoSeguridad: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1'}} />
-                </div>
-                <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px'}}>
-                  <input type="checkbox" checked={editingProduct.hasWarning || false} onChange={e => setEditingProduct({...editingProduct, hasWarning: e.target.checked})} id="hasWarningCheck" />
-                  <label htmlFor="hasWarningCheck" style={{fontSize: '0.9rem', color: '#0f172a'}}>Marca si tiene alerta / plazo de seguridad alto</label>
-                </div>
-                
-                <button type="submit" disabled={isSavingProduct} style={{padding: '12px', background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', marginTop: '16px'}}>
-                  {isSavingProduct ? 'Guardando...' : 'Guardar Cambios'}
-                </button>
-              </form>
-            </div>
-          </div>
-        )}
       </div>
     );
   }
@@ -336,7 +248,7 @@ const Catalogo = () => {
       <div className="catalogo-header-card">
         <div className="catalogo-title-row">
           <BookOpen size={28} color="#2563eb" />
-          <h1>Catálogo</h1>
+          <h1>CatÃ¡logo</h1>
           <div className="brand-icon">A</div>
         </div>
         <div className="search-container">
@@ -385,3 +297,4 @@ const Catalogo = () => {
 };
 
 export default Catalogo;
+

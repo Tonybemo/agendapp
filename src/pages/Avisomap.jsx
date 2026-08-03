@@ -288,7 +288,7 @@ const Avisomap = () => {
                                       <Eye size={18} color="#cbd5e1" style={{cursor:'not-allowed'}} />
                                     )}
                                     <Edit3 size={18} color="#14b8a6" style={{cursor: 'pointer'}} onClick={() => {
-                                      setEditingAviso({...aviso, plagasStr: (aviso.plagas || []).join(', ')});
+                                      setEditingAviso({...aviso, plagasStr: (Array.isArray(aviso.plagas) ? aviso.plagas.join(', ') : String(aviso.plagas || ''))});
                                       setAvisoFileName('');
                                     }} />
                                     <Trash2 size={18} color="#ef4444" style={{cursor: 'pointer'}} onClick={() => handleDeleteAviso(aviso.id)} />

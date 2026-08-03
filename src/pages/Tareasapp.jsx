@@ -416,14 +416,30 @@ const Tareasapp = () => {
                         )}
                         <span className="tf-task-name">{task.name}</span>
                         {task.date && (
-                          <span className="tf-task-date" style={{position: 'relative', display: 'flex', alignItems: 'center', cursor: 'pointer'}}>
-                            <CalendarIcon size={12}/> <span style={{marginLeft: '4px'}}>{task.date}</span> <Edit3 size={10} style={{marginLeft: '4px', opacity: 0.5}}/>
-                            <input 
-                              type="date" 
-                              style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer', zIndex: 10}} onClick={(e) => e.target.showPicker && e.target.showPicker()} 
-                              onChange={(e) => changeTaskDate(tarea.id, task.id, e.target.value)} 
-                            />
-                          </span>
+                          <input 
+                            type="date" 
+                            style={{
+                              background: 'rgba(99, 102, 241, 0.1)',
+                              color: '#4f46e5',
+                              border: 'none',
+                              borderRadius: '12px',
+                              padding: '4px 8px',
+                              fontSize: '0.75rem',
+                              fontWeight: '600',
+                              cursor: 'pointer',
+                              outline: 'none',
+                              fontFamily: 'inherit',
+                              marginLeft: '8px'
+                            }}
+                            value={(() => {
+                              if (task.date === 'Hoy') return new Date().toISOString().split('T')[0];
+                              const parts = task.date.split('/');
+                              if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+                              return '';
+                            })()}
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={(e) => changeTaskDate(tarea.id, task.id, e.target.value)} 
+                          />
                         )}
                       </div>
                       <div className="tf-task-right">

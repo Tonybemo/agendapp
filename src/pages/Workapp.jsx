@@ -597,8 +597,13 @@ const Workapp = () => {
                                   <span className="wa-date-pill">{formatFechaDisplay(reg.fecha)}</span>
                                   <div className="wa-hours-group">
                                     <span className="wa-hour-pill base">
-                                        {formatHoursDisplay(reg.horas_calculadas) || '?'}{formatHoursDisplay(reg.horas_extras) ? ` ${formatHoursDisplay(reg.horas_extras)} Ext.` : ''}
+                                      {formatHoursDisplay(reg.horas_calculadas) || '?'}h
                                     </span>
+                                    {formatHoursDisplay(reg.horas_extras) && (
+                                      <span className="wa-hour-pill extra">
+                                        +{formatHoursDisplay(reg.horas_extras)}h ext
+                                      </span>
+                                    )}
                                   </div>
                                 </div>
 
