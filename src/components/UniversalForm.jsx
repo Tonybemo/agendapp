@@ -182,6 +182,7 @@ const UniversalForm = () => {
 
     if (!error) {
       window.dispatchEvent(new Event('refresh-workapp'));
+      alert("✅ Jornada guardada correctamente");
       handleClose();
     } else {
       console.error(error);

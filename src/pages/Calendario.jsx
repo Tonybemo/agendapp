@@ -195,23 +195,23 @@ const Calendario = () => {
         >
           <span className="cal-day-num">{d}</span>
           <div className="cal-client-chips">
-            {grouped.slice(0, 3).map(g => {
+            {grouped.slice(0, 4).map(g => {
               const primaryActKey = Object.keys(g.activities)[0];
               const cfg = ACTIVITY_CONFIG[primaryActKey] || { bg: '#f1f5f9', color: '#64748b', label: 'Actividad' };
+              const shortName = g.client.length > 10 ? g.client.substring(0, 10) : g.client;
               return (
-                <div
+                <span
                   key={g.client}
                   className="cal-client-chip"
-                  style={{ backgroundColor: cfg.bg, borderLeft: `3px solid ${cfg.color}` }}
+                  style={{ color: cfg.color, borderColor: cfg.color }}
                   title={`${g.client} - ${cfg.label}`}
                 >
-                  <span className="cal-chip-dot" style={{ backgroundColor: cfg.color }}></span>
-                  <span className="cal-chip-name" style={{ color: '#1e293b', fontWeight: 600, fontSize: '0.65rem' }}>{g.client.length > 12 ? g.client.substring(0, 12) + '…' : g.client}</span>
-                </div>
+                  {shortName}
+                </span>
               );
             })}
-            {grouped.length > 3 && (
-              <div className="cal-chip-more">+{grouped.length - 3}</div>
+            {grouped.length > 4 && (
+              <div className="cal-chip-more">+{grouped.length - 4}</div>
             )}
           </div>
         </div>

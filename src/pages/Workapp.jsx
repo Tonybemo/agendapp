@@ -79,9 +79,6 @@ const Workapp = () => {
   const [expandedYears, setExpandedYears] = useState({});
   const [expandedMonths, setExpandedMonths] = useState({});
 
-  // Filter dates (persisted in localStorage)
-  const [filterDesde, setFilterDesde] = useState(() => localStorage.getItem('workapp_filter_desde') || '');
-  const [filterHasta, setFilterHasta] = useState(() => localStorage.getItem('workapp_filter_hasta') || '');
 
   // Nóminas year filter
   const [nominaYearFilter, setNominaYearFilter] = useState(new Date().getFullYear().toString());
@@ -148,40 +145,8 @@ const Workapp = () => {
   }, []);
 
   // ---- Group by Year/Month ----
-  // Persist filter dates to localStorage
-  useEffect(() => {
-    localStorage.setItem('workapp_filter_desde', filterDesde);
-  }, [filterDesde]);
-
-  useEffect(() => {
-    localStorage.setItem('workapp_filter_hasta', filterHasta);
-  }, [filterHasta]);
-
   const getGroupedData = () => {
     const filtered = jornadas.filter(j => {
-      // Date range filter
-      if (filterDesde || filterHasta) {
-        let jDate = null;
-        if (j.fecha && j.fecha.includes('/')) {
-          const [jd, jm, jy] = j.fecha.split('/');
-          jDate = new Date(parseInt(jy), parseInt(jm) - 1, parseInt(jd));
-        } else if (j.fecha && j.fecha.includes('-')) {
-          const [jy, jm, jd] = j.fecha.split('-');
-          jDate = new Date(parseInt(jy), parseInt(jm) - 1, parseInt(jd));
-        }
-        if (jDate) {
-          if (filterDesde) {
-            const [dy, dm, dd] = filterDesde.split('-');
-            const desdeDate = new Date(parseInt(dy), parseInt(dm) - 1, parseInt(dd));
-            if (jDate < desdeDate) return false;
-          }
-          if (filterHasta) {
-            const [hy, hm, hd] = filterHasta.split('-');
-            const hastaDate = new Date(parseInt(hy), parseInt(hm) - 1, parseInt(hd));
-            if (jDate > hastaDate) return false;
-          }
-        }
-      }
 
       // Text search filter
       if (!searchQuery) return true;

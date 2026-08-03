@@ -165,38 +165,26 @@
 }
 
 .cal-client-chip {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 5px;
-  border-radius: 4px;
-  font-size: 0.62rem;
-  font-weight: 600;
+  display: block;
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-size: 0.6rem;
+  font-weight: 700;
   overflow: hidden;
   white-space: nowrap;
-}
-
-.cal-chip-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.cal-chip-name {
-  overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
-  color: #334155;
+  border: 1.5px solid currentColor;
+  background: transparent;
+  line-height: 1.4;
 }
 
 .cal-chip-more {
-  font-size: 0.62rem;
+  font-size: 0.6rem;
   font-weight: 700;
   color: #94a3b8;
-  padding: 2px 5px;
+  padding: 1px 6px;
   background: #f1f5f9;
-  border-radius: 4px;
+  border-radius: 6px;
   text-align: center;
 }
 
@@ -407,8 +395,8 @@
   }
 
   .cal-cell {
-    min-height: 60px;
-    padding: 2px 1px;
+    min-height: 80px;
+    padding: 3px 2px;
   }
 
   .cal-weekday {
@@ -420,7 +408,14 @@
     font-size: 0.8rem;
   }
 
-  .cal-chip-name {
-    display: none;
+  .cal-client-chip {
+    font-size: 0.52rem;
+    padding: 0px 4px;
+    border-width: 1px;
+  }
+
+  .cal-day-num {
+    font-size: 0.72rem;
+    margin-bottom: 2px;
   }
 }
