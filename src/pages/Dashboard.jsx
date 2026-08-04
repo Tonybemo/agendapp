@@ -1,4 +1,5 @@
 import React from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Droplet, MapPin, Briefcase, BookOpen, CalendarCheck, ChevronRight, BarChart2, Calendar, LayoutDashboard, Settings } from 'lucide-react';
 import './Dashboard.css';
