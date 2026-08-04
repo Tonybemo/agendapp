@@ -56,8 +56,9 @@ const Tareasapp = () => {
   const [tareas, setTareas] = useState([]);
   const [clientesGlobales, setClientesGlobales] = useState([]);
   const [defaultTasksList, setDefaultTasksList] = useState([]);
-  const [currentMonth, setCurrentMonth] = useState('Julio');
-  const [currentYear, setCurrentYear] = useState(2026);
+  const mesesNombres = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const [currentMonth, setCurrentMonth] = useState(mesesNombres[new Date().getMonth()]);
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [filter, setFilter] = useState('Todos'); // 'Todos' | 'Pendientes' | 'Completos'
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);

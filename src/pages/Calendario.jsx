@@ -260,17 +260,8 @@ const Calendario = () => {
             </div>
           </div>
 
-          <div className="cal-legend">
-            {Object.entries(ACTIVITY_CONFIG).map(([key, cfg]) => {
-              const Icon = cfg.icon;
-              return (
-                <span key={key}>
-                  <span className="cal-legend-dot" style={{ backgroundColor: cfg.color }}></span>
-                  {cfg.label}
-                </span>
-              );
-            })}
-          </div>
+
+
         </div>
 
         {/* Sidebar panel */}

@@ -215,18 +215,20 @@ const Catalogo = () => {
                 </div>
               )}
               
-              <div style={{display: 'flex', gap: '12px'}}>
+              <div style={{display: 'flex', gap: '8px'}}>
                 <button 
-                  style={{display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 16px', backgroundColor: 'white', color: '#14b8a6', border: '1px solid #14b8a6', borderRadius: '8px', fontWeight: '600', cursor: 'pointer'}}
+                  style={{display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', backgroundColor: 'white', color: '#14b8a6', border: '1px solid #14b8a6', borderRadius: '10px', cursor: 'pointer'}}
                   onClick={() => setEditingProduct(selectedProduct)}
+                  title="Editar"
                 >
-                  <Edit3 size={18} /> Editar
+                  <Edit3 size={18} />
                 </button>
                 <button 
-                  style={{display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 16px', backgroundColor: 'white', color: '#ef4444', border: '1px solid #ef4444', borderRadius: '8px', fontWeight: '600', cursor: 'pointer'}}
+                  style={{display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', backgroundColor: 'white', color: '#ef4444', border: '1px solid #ef4444', borderRadius: '10px', cursor: 'pointer'}}
                   onClick={() => deleteProduct(selectedProduct.id)}
+                  title="Eliminar"
                 >
-                  <Trash2 size={18} /> Eliminar
+                  <Trash2 size={18} />
                 </button>
               </div>
             </div>
@@ -350,36 +352,58 @@ const Catalogo = () => {
         </div>
       </div>
 
-      {/* Categories List */}
-      <div className="categories-list">
-        {categories.map(category => {
-          const Icon = IconMap[category.iconType];
+      {/* Categories or Search Results */}
+      {searchQuery ? (
+        <div className="catalogo-products-grid">
+          {(() => {
+            const q = searchQuery.toLowerCase();
+            const results = products.filter(p => 
+              (p.name || '').toLowerCase().includes(q) ||
+              (p.materiaActiva || '').toLowerCase().includes(q) ||
+              (p.lote || '').toLowerCase().includes(q) ||
+              (p.plagaDiana || '').toLowerCase().includes(q)
+            );
+            if (results.length === 0) return <div style={{textAlign: 'center', padding: '40px', color: '#64748b', gridColumn: '1/-1'}}>No se encontraron productos para "{searchQuery}"</div>;
+            return results.map(p => (
+              <div key={p.id} className="product-card" onClick={() => { setSelectedCategory(p.categoryId); setSelectedProduct(p); setSearchQuery(''); }}>
+                <h4>{p.name}</h4>
+                {p.badge && <span className="product-badge">{p.badge}</span>}
+                {p.materiaActiva && <p style={{fontSize: '0.75rem', color: '#64748b', margin: '4px 0 0'}}>{p.materiaActiva}</p>}
+              </div>
+            ));
+          })()}
+        </div>
+      ) : (
+        <div className="categories-list">
+          {categories.map(category => {
+            const Icon = IconMap[category.iconType];
 
-          return (
-            <div 
-              key={category.id} 
-              className="category-card"
-              onClick={() => setSelectedCategory(category.id)}
-              style={{ borderLeft: `6px solid ${category.color}` }}
-            >
+            return (
               <div 
-                className="category-icon" 
-                style={{ background: `linear-gradient(135deg, ${category.color}, #334155)` }}
+                key={category.id} 
+                className="category-card"
+                onClick={() => setSelectedCategory(category.id)}
+                style={{ borderLeft: `6px solid ${category.color}` }}
               >
-                <Icon size={28} color="white" />
+                <div 
+                  className="category-icon" 
+                  style={{ background: `linear-gradient(135deg, ${category.color}, #334155)` }}
+                >
+                  <Icon size={28} color="white" />
+                </div>
+                <div className="category-info">
+                  <h3>{category.title}</h3>
+                  <span>
+                    {category.id === 'caducar' 
+                      ? products.filter(p => p.caducidad && (new Date(p.caducidad) <= new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))).length 
+                      : products.filter(p => p.categoryId === category.id).length} productos
+                  </span>
+                </div>
               </div>
-              <div className="category-info">
-                <h3>{category.title}</h3>
-                <span>
-                  {category.id === 'caducar' 
-                    ? products.filter(p => p.caducidad && (new Date(p.caducidad) <= new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))).length 
-                    : products.filter(p => p.categoryId === category.id).length} productos
-                </span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };

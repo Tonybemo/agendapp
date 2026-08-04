@@ -709,9 +709,17 @@ const Workapp = () => {
         {loadingNominas ? (
           <div style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>Cargando nóminas...</div>
         ) : (() => {
-          const filteredNominas = nominaYearFilter === 'all' 
-            ? nominas 
+          const monthOrder = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+          let filteredNominas = nominaYearFilter === 'all' 
+            ? [...nominas] 
             : nominas.filter(n => (n.mes || '').includes(nominaYearFilter));
+          filteredNominas.sort((a, b) => {
+            const extractYear = (m) => { const match = (m || '').match(/\d{4}/); return match ? parseInt(match[0]) : 0; };
+            const extractMonth = (m) => { const name = (m || '').split(' ')[0]; return monthOrder.indexOf(name); };
+            const yDiff = extractYear(b.mes) - extractYear(a.mes);
+            if (yDiff !== 0) return yDiff;
+            return extractMonth(b.mes) - extractMonth(a.mes);
+          });
           return filteredNominas.length === 0 ? (
             <div style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>
               {nominas.length === 0 
