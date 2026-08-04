@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   CheckCircle2, Circle, Edit3, Trash2, Plus, Search, 
   Settings, MessageSquare, MoreVertical, LayoutGrid, Calendar as CalendarIcon,
@@ -476,7 +477,7 @@ const Tareasapp = () => {
       </main>
 
       {/* Modal Nueva Planificación */}
-      {isModalOpen && (
+      {isModalOpen && createPortal(
         <div className="modal-overlay" style={{position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999}}>
           <div className="modal-content animate-fade-in" style={{background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(255,255,255,0.8)', padding: '24px', borderRadius: '24px', width: '90%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 40px rgba(0,0,0,0.1)'}}>
             <h2 style={{color: '#0f172a', marginBottom: '20px', fontSize: '1.3rem', fontWeight: '800'}}>Nueva Planificación</h2>
@@ -577,7 +578,8 @@ const Tareasapp = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

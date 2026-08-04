@@ -46,8 +46,8 @@ const GestorGlobal = () => {
     if(!window.confirm("¿Descargar copia de seguridad de la base de datos (CSV)?")) return;
     setIsExporting(true);
     try {
-      const tables = ['clientes', 'tareas_estandar', 'aquapp_muestras', 'aquapp_tratamientos', 'avisos_mapfre', 'nominas'];
-      let csvContent = "data:text/csv;charset=utf-8,\n";
+      const tables = ['clientes', 'tareas_estandar', 'aquapp_muestras', 'aquapp_tratamientos', 'avisos_mapfre', 'workapp_nominas', 'workapp_jornadas'];
+      let csvContent = "";
       
       for (const table of tables) {
         const { data, error } = await supabase.from(table).select('*');
@@ -75,14 +75,18 @@ const GestorGlobal = () => {
         }
       }
 
-      const encodedUri = encodeURI(csvContent);
+      // Añadir BOM para asegurar compatibilidad UTF-8 en Excel
+      const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+      const blob = new Blob([bom, csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.setAttribute("href", encodedUri);
+      link.setAttribute("href", url);
       const dateStr = new Date().toISOString().split('T')[0];
       link.setAttribute("download", `agendapp_backup_${dateStr}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     } catch (err) {
       console.error(err);
       alert("Error al exportar la copia de seguridad.");
