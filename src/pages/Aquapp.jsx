@@ -154,29 +154,45 @@ const Aquapp = () => {
   const fetchClientes = async () => {
     const { data, error } = await supabase.from('clientes').select('*').order('name');
     const { data: muestras } = await supabase.from('aquapp_muestras').select('cliente_id, fecha').order('fecha', { ascending: false });
+    const { data: tratamientos } = await supabase.from('aquapp_tratamientos').select('cliente_id, fecha').order('fecha', { ascending: false });
     
     if (data) {
-      if (muestras) {
-        const latestDates = {};
-        muestras.forEach(m => {
-          if (m.cliente_id && m.fecha && !latestDates[m.cliente_id]) {
-            let parsedDate = m.fecha;
-            if (parsedDate.includes('T')) parsedDate = parsedDate.split('T')[0];
-            if (parsedDate.includes('-')) {
-              const parts = parsedDate.split('-');
-              parsedDate = `${parts[2]}/${parts[1]}/${parts[0].slice(-2)}`;
-            }
-            latestDates[m.cliente_id] = parsedDate;
+      const latestDates = {};
+      const parseFecha = (fecha) => {
+        if (!fecha) return null;
+        let d = fecha;
+        if (d.includes('T')) d = d.split('T')[0];
+        if (d.includes('-')) {
+          const parts = d.split('-');
+          return { raw: new Date(parts[0], parts[1]-1, parts[2]), display: `${parts[2]}/${parts[1]}/${parts[0].slice(-2)}` };
+        }
+        if (d.includes('/')) {
+          const parts = d.split('/');
+          return { raw: new Date(parts[2], parts[1]-1, parts[0]), display: d };
+        }
+        return null;
+      };
+
+      const processRecords = (records) => {
+        if (!records) return;
+        records.forEach(r => {
+          if (!r.cliente_id || !r.fecha) return;
+          const parsed = parseFecha(r.fecha);
+          if (!parsed) return;
+          if (!latestDates[r.cliente_id] || parsed.raw > latestDates[r.cliente_id].raw) {
+            latestDates[r.cliente_id] = parsed;
           }
         });
-        const enhancedData = data.map(c => ({
-          ...c,
-          ultima_muestra: latestDates[c.id] || 'Sin datos'
-        }));
-        setClientes(enhancedData);
-      } else {
-        setClientes(data);
-      }
+      };
+
+      processRecords(muestras);
+      processRecords(tratamientos);
+
+      const enhancedData = data.map(c => ({
+        ...c,
+        ultima_muestra: latestDates[c.id] ? latestDates[c.id].display : 'Sin datos'
+      }));
+      setClientes(enhancedData);
     }
   };
 
@@ -333,20 +349,20 @@ const Aquapp = () => {
             <div 
               key={client.id} 
               className="client-card"
-              style={{ display: 'flex', alignItems: 'center', gap: '14px', background: 'white', padding: '12px 16px', borderRadius: '12px', boxShadow: '0 2px 4px -1px rgba(0, 0, 0, 0.05)', cursor: 'pointer', border: '1px solid #f1f5f9', transition: 'all 0.2s' }}
+              style={{ display: 'flex', alignItems: 'center', gap: '16px', background: 'white', padding: '16px 20px', borderRadius: '14px', boxShadow: '0 2px 4px -1px rgba(0, 0, 0, 0.05)', cursor: 'pointer', border: '1px solid #f1f5f9', transition: 'all 0.2s' }}
               onClick={() => fetchClientDetails(client)}
               onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 10px -3px rgba(0, 0, 0, 0.08)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 2px 4px -1px rgba(0, 0, 0, 0.05)'; }}
             >
-              <div className="client-avatar" style={{ width: '42px', height: '42px', borderRadius: '12px', backgroundColor: getAvatarColor(client.name), display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '1.1rem', flexShrink: 0, boxShadow: '0 2px 4px -1px rgba(0,0,0,0.1)' }}>
+              <div className="client-avatar" style={{ width: '50px', height: '50px', borderRadius: '14px', backgroundColor: getAvatarColor(client.name), display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '1.2rem', flexShrink: 0, boxShadow: '0 2px 4px -1px rgba(0,0,0,0.1)' }}>
                 {client.name.substring(0,2).toUpperCase()}
               </div>
               <div className="client-info" style={{ flex: 1 }}>
-                <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px'}}>
-                  <h3 style={{ margin: 0, fontSize: '1.05rem', color: '#1e293b', fontWeight: '700' }}>{client.name}</h3>
+                <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px'}}>
+                  <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#1e293b', fontWeight: '700' }}>{client.name}</h3>
                   <Edit3 size={14} color="#94a3b8" />
                 </div>
-                <p style={{ margin: 0, color: '#64748b', fontSize: '0.82rem', fontWeight: '500' }}>Última muestra: {client.ultima_muestra}</p>
+                <p style={{ margin: 0, color: '#64748b', fontSize: '0.88rem', fontWeight: '500' }}>Último registro: {client.ultima_muestra}</p>
               </div>
               <ChevronDown size={18} color="#cbd5e1" style={{ transform: 'rotate(-90deg)' }} />
             </div>
