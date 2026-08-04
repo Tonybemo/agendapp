@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, CalendarCheck, Droplet, MapPin, BookOpen, Clock, Menu, X, BarChart2, Calendar as CalendarIcon, Database, ArrowLeft } from 'lucide-react';
+import { LayoutDashboard, CalendarCheck, Droplet, MapPin, BookOpen, Clock, Menu, X, BarChart2, Calendar as CalendarIcon, Database, ArrowLeft, LogOut, LogIn } from 'lucide-react';
 import UniversalForm from './UniversalForm';
+import { useAuth } from '../contexts/AuthContext';
 import './Layout.css';
 
 const Layout = ({ children }) => {
@@ -9,6 +10,7 @@ const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { isAdmin, signOut } = useAuth();
 
   useEffect(() => {
     const handleResize = () => {
@@ -22,15 +24,18 @@ const Layout = ({ children }) => {
   }, []);
 
   const navItems = [
-    { path: '/', label: 'Inicio', icon: <LayoutDashboard size={20} /> },
-    { path: '/calendario', label: 'Calendario Global', icon: <CalendarIcon size={20} /> },
-    { path: '/tareas', label: 'Tareas Mensuales', icon: <CalendarCheck size={20} /> },
-    { path: '/aquapp', label: 'Muestras y Tratamientos', icon: <Droplet size={20} /> },
-    { path: '/avisomap', label: 'Avisos Mapfre', icon: <MapPin size={20} /> },
-    { path: '/catalogo', label: 'Productos', icon: <BookOpen size={20} /> },
-    { path: '/workapp', label: 'Resumen Jornada', icon: <Clock size={20} /> },
-    { path: '/estadisticas', label: 'Estadísticas', icon: <BarChart2 size={20} /> }
+    { path: '/', label: 'Inicio', icon: <LayoutDashboard size={20} />, public: true },
+    { path: '/calendario', label: 'Calendario Global', icon: <CalendarIcon size={20} />, public: true },
+    { path: '/aquapp', label: 'Muestras y Tratamientos', icon: <Droplet size={20} />, public: true },
+    { path: '/avisomap', label: 'Avisos Mapfre', icon: <MapPin size={20} />, public: true },
+    { path: '/tareas', label: 'Tareas Mensuales', icon: <CalendarCheck size={20} />, public: false },
+    { path: '/catalogo', label: 'Productos', icon: <BookOpen size={20} />, public: false },
+    { path: '/workapp', label: 'Resumen Jornada', icon: <Clock size={20} />, public: false },
+    { path: '/estadisticas', label: 'Estadísticas', icon: <BarChart2 size={20} />, public: false },
+    { path: '/gestor', label: 'Gestor Global', icon: <Database size={20} />, public: false }
   ];
+
+  const visibleNavItems = isAdmin ? navItems : navItems.filter(item => item.public);
 
   // Mobile Bottom Nav items (just a few core ones)
   const bottomNavItems = [
@@ -71,7 +76,7 @@ const Layout = ({ children }) => {
           </div>
         )}
         <nav className="sidebar-nav">
-          {navItems.map((item) => (
+          {visibleNavItems.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
@@ -83,6 +88,26 @@ const Layout = ({ children }) => {
             </NavLink>
           ))}
         </nav>
+        
+        <div style={{ padding: '20px', marginTop: 'auto' }}>
+          {isAdmin ? (
+            <button 
+              onClick={() => { signOut(); isMobile && setSidebarOpen(false); navigate('/'); }}
+              style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '12px', background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}
+            >
+              <LogOut size={20} />
+              <span>Cerrar Sesión</span>
+            </button>
+          ) : (
+            <button 
+              onClick={() => { isMobile && setSidebarOpen(false); navigate('/login'); }}
+              style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '12px', background: '#eff6ff', color: '#2563eb', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}
+            >
+              <LogIn size={20} />
+              <span>Acceso Admin</span>
+            </button>
+          )}
+        </div>
       </aside>
 
       {/* Main Content Area */}
@@ -113,8 +138,9 @@ const Layout = ({ children }) => {
         <div className="sidebar-overlay" onClick={toggleSidebar}></div>
       )}
 
-      {/* Formulario Universal Flotante */}
-      <UniversalForm />
+      {/* Formulario Universal Flotante (Solo Admin) */}
+      {isAdmin && <UniversalForm />}
+      {!isAdmin && <style>{`.admin-only { display: none !important; }`}</style>}
     </div>
   );
 };

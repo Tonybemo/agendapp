@@ -4,6 +4,7 @@ import { Droplet, MapPin, Briefcase, BookOpen, CalendarCheck, ChevronRight, BarC
 import './Dashboard.css';
 
 const Dashboard = () => {
+  const { isAdmin } = useAuth();
   const navigate = useNavigate();
 
   const accessCards = [
@@ -18,6 +19,7 @@ const Dashboard = () => {
     },
     {
       id: 'tareas',
+        adminOnly: true,
       title: 'Tareas',
       description: 'Visitas mensuales.',
       icon: <CalendarCheck size={28} color="#e11d48" />,
@@ -27,6 +29,7 @@ const Dashboard = () => {
     },
     {
       id: 'workapp',
+        adminOnly: true,
       title: 'Workapp',
       description: 'Jornada laboral y descansos.',
       icon: <Briefcase size={28} color="#7c3aed" />,
@@ -44,6 +47,7 @@ const Dashboard = () => {
     },
     {
       id: 'catalogo',
+        adminOnly: true,
       title: 'Catálogo',
       description: 'Fichas y productos.',
       icon: <BookOpen size={24} color="#d97706" />,
@@ -52,6 +56,7 @@ const Dashboard = () => {
     },
     {
       id: 'estadisticas',
+        adminOnly: true,
       title: 'Estadísticas',
       description: 'Métricas globales.',
       icon: <BarChart2 size={24} color="#4f46e5" />,

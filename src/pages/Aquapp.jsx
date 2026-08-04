@@ -5,6 +5,7 @@ import {
   FlaskConical, Factory, SprayCan, Edit3, Trash2, Clock, Plus, BookOpen, Bug, Box, Download, BarChart2, CheckCircle2, Zap, Waves, Folder
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
 import './Aquapp.css';
 
 const IconMap = {
@@ -26,6 +27,7 @@ const ColorMap = {
 };
 
 const Aquapp = () => {
+  const { isAdmin } = useAuth();
   const [activeTab, setActiveTab] = useState('historial');
   const [currentView, setCurrentView] = useState('historial'); 
   const [selectedClient, setSelectedClient] = useState(null);
@@ -360,7 +362,7 @@ const Aquapp = () => {
               <div className="client-info" style={{ flex: 1 }}>
                 <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px'}}>
                   <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#1e293b', fontWeight: '700' }}>{client.name}</h3>
-                  <Edit3 size={14} color="#94a3b8" />
+                  <span className="admin-only"><Edit3 size={14} color="#94a3b8" /></span>
                 </div>
                 <p style={{ margin: 0, color: '#64748b', fontSize: '0.88rem', fontWeight: '500' }}>Último registro: {client.ultima_muestra}</p>
               </div>
@@ -534,7 +536,7 @@ const Aquapp = () => {
                                     )}
 
 
-                                    <div style={{display: 'flex', gap: '12px'}}>
+                                    <div className="admin-only" style={{display: 'flex', gap: '12px'}}>
                                       <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => {
                                         e.stopPropagation();
                                         window.dispatchEvent(new CustomEvent('edit-record', { detail: { ...item, editType: 'tratamiento' } }));
@@ -568,7 +570,7 @@ const Aquapp = () => {
                                       <span style={{background: '#d1fae5', color: '#047857', padding: '6px 12px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: '700'}}>{item.tipo_actuacion}</span>
                                     </div>
 
-                                    <div style={{display: 'flex', gap: '12px'}}>
+                                    <div className="admin-only" style={{display: 'flex', gap: '12px'}}>
                                       <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => {
                                         e.stopPropagation();
                                         window.dispatchEvent(new CustomEvent('edit-record', { detail: { ...item, editType: 'plaga' } }));
@@ -810,7 +812,7 @@ const Aquapp = () => {
                                         <strong style={{color: '#1e293b'}}>Notas:</strong> {item.notas}
                                       </div>
                                     )}
-                                    <div style={{display: 'flex', gap: '12px'}}>
+                                    <div className="admin-only" style={{display: 'flex', gap: '12px'}}>
                                       <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); window.dispatchEvent(new CustomEvent('edit-record', { detail: { ...item, editType: 'tratamiento' } })); }}>
                                         <Edit3 size={16}/> Editar
                                       </button>
@@ -948,7 +950,7 @@ const Aquapp = () => {
                   {torresData.map((item, idx) => (
                     <td key={idx} style={{textAlign: 'center'}}>
                       {item ? (
-                        <div style={{display: 'flex', gap: '8px', justifyContent: 'center'}}>
+                        <div className="admin-only" style={{display: 'flex', gap: '8px', justifyContent: 'center'}}>
                           <button onClick={() => window.dispatchEvent(new CustomEvent('edit-record', {detail: {...item, editType: 'muestra'}}))} style={{background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer'}}><Edit3 size={16}/></button>
                           <button onClick={async () => {
                             if(window.confirm("¿Borrar esta muestra?")) {
@@ -1143,7 +1145,7 @@ const Aquapp = () => {
                                       <span style={{background: getMotivoStyle(item.motivo).bg, color: getMotivoStyle(item.motivo).color, padding: '6px 12px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: '700'}}>{item.motivo}</span>
                                     </div>
 
-                                    <div style={{display: 'flex', gap: '12px'}}>
+                                    <div className="admin-only" style={{display: 'flex', gap: '12px'}}>
                                       <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => {
                                         e.stopPropagation();
                                         window.dispatchEvent(new CustomEvent('edit-record', { detail: { ...item, editType: 'tratamiento' } }));
@@ -1221,7 +1223,7 @@ const Aquapp = () => {
                   </div>
                 )}
 
-                <div style={{display: 'flex', gap: '12px'}}>
+                <div className="admin-only" style={{display: 'flex', gap: '12px'}}>
                   <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => {
                     e.stopPropagation();
                     window.dispatchEvent(new CustomEvent('edit-record', { detail: { ...item, editType: 'tratamiento' } }));

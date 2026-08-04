@@ -6,6 +6,7 @@ import {
   Bug, Hexagon, XCircle, Phone
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
 import './Avisomap.css';
 
 const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
@@ -21,6 +22,7 @@ const plagaColors = {
 };
 
 const Avisomap = () => {
+  const { isAdmin } = useAuth();
   const [activeTab, setActiveTab] = useState('historial');
   const [expandedYears, setExpandedYears] = useState({ '2026': true });
   const [expandedMonths, setExpandedMonths] = useState({ '2026-Julio': true });
@@ -286,13 +288,17 @@ const Avisomap = () => {
                                       </a>
                                     ) : (
                                       <Eye size={18} color="#cbd5e1" style={{cursor:'not-allowed'}} />
-                                    )}
-                                    <Edit3 size={18} color="#14b8a6" style={{cursor: 'pointer'}} onClick={() => {
+                                      )}
+                                      {isAdmin && (
+                                      <div className="admin-only" style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
+                                        <Edit3 size={18} color="#14b8a6" style={{cursor: 'pointer'}} onClick={() => {
                                       setEditingAviso({...aviso, plagasStr: (Array.isArray(aviso.plagas) ? aviso.plagas.join(', ') : String(aviso.plagas || ''))});
-                                      setAvisoFileName('');
-                                    }} />
-                                    <Trash2 size={18} color="#ef4444" style={{cursor: 'pointer'}} onClick={() => handleDeleteAviso(aviso.id)} />
-                                  </div>
+                                        setAvisoFileName('');
+                                      }} />
+                                      <Trash2 size={18} color="#ef4444" style={{cursor: 'pointer'}} onClick={() => handleDeleteAviso(aviso.id)} />
+                                      </div>
+                                      )}
+                                    </div>
                                 </div>
                               </div>
                             ))}

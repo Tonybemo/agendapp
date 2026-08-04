@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Users, CalendarCheck, Search, PlusCircle, Edit3, Trash2, 
-  MapPin, Mail, AlignLeft, CheckCircle2 
+  MapPin, Mail, AlignLeft, CheckCircle2, Download 
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import './GestorGlobal.css';
@@ -13,6 +13,7 @@ const GestorGlobal = () => {
   const [clientes, setClientes] = useState([]);
   const [tareas, setTareas] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -39,6 +40,55 @@ const GestorGlobal = () => {
     if (errorTareas) console.error("Error al cargar tareas:", errorTareas);
     
     setLoading(false);
+  };
+
+  const handleExportBackup = async () => {
+    if(!window.confirm("¿Descargar copia de seguridad de la base de datos (CSV)?")) return;
+    setIsExporting(true);
+    try {
+      const tables = ['clientes', 'tareas_estandar', 'aquapp_muestras', 'aquapp_tratamientos', 'avisos_mapfre', 'nominas'];
+      let csvContent = "data:text/csv;charset=utf-8,\n";
+      
+      for (const table of tables) {
+        const { data, error } = await supabase.from(table).select('*');
+        if (error) throw error;
+        
+        csvContent += `\n--- TABLA: ${table.toUpperCase()} ---\n`;
+        if (data && data.length > 0) {
+          const headers = Object.keys(data[0]);
+          csvContent += headers.join(",") + "\n";
+          
+          data.forEach(row => {
+            const rowData = headers.map(header => {
+              let cell = row[header] === null ? "" : String(row[header]);
+              // Escape quotes and wrap in quotes if contains comma
+              cell = cell.replace(/"/g, '""');
+              if (cell.search(/("|,|\n)/g) >= 0) {
+                cell = `"${cell}"`;
+              }
+              return cell;
+            });
+            csvContent += rowData.join(",") + "\n";
+          });
+        } else {
+          csvContent += "Sin datos\n";
+        }
+      }
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      const dateStr = new Date().toISOString().split('T')[0];
+      link.setAttribute("download", `agendapp_backup_${dateStr}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error(err);
+      alert("Error al exportar la copia de seguridad.");
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const handleAddCliente = async () => {
@@ -165,12 +215,28 @@ const GestorGlobal = () => {
 
   return (
     <div className="gg-container">
-      <div className="gg-header">
-        <div className="gg-header-title">
-          <CheckCircle2 size={28} color="#6366f1" />
-          <h1>Gestor Global</h1>
+      <div className="gg-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <div className="gg-header-title">
+            <CheckCircle2 size={28} color="#6366f1" />
+            <h1>Gestor Global</h1>
+          </div>
+          <p className="gg-subtitle">Administra tu base de clientes y tareas (Conectado a Supabase).</p>
         </div>
-        <p className="gg-subtitle">Administra tu base de clientes y tareas (Conectado a Supabase).</p>
+        <button 
+          onClick={handleExportBackup}
+          disabled={isExporting}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '8px',
+            background: '#10b981', color: 'white', border: 'none',
+            padding: '10px 16px', borderRadius: '8px', fontWeight: 'bold',
+            cursor: isExporting ? 'not-allowed' : 'pointer',
+            opacity: isExporting ? 0.7 : 1
+          }}
+        >
+          <Download size={18} />
+          {isExporting ? 'Exportando...' : 'Backup CSV'}
+        </button>
       </div>
 
       <div className="gg-tabs">
