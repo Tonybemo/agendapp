@@ -51,9 +51,15 @@ const GestorGlobal = () => {
       
       for (const table of tables) {
         const { data, error } = await supabase.from(table).select('*');
-        if (error) throw error;
         
         csvContent += `\n--- TABLA: ${table.toUpperCase()} ---\n`;
+
+        if (error) {
+          console.error(`Error al consultar tabla ${table}:`, error);
+          csvContent += `Error: ${error.message || 'No se pudo acceder a la tabla'}\n`;
+          continue;
+        }
+        
         if (data && data.length > 0) {
           const headers = Object.keys(data[0]);
           csvContent += headers.join(",") + "\n";
@@ -88,8 +94,8 @@ const GestorGlobal = () => {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     } catch (err) {
-      console.error(err);
-      alert("Error al exportar la copia de seguridad.");
+      console.error("Error general exportando CSV:", err);
+      alert("Error al exportar la copia de seguridad: " + (err.message || "Error desconocido"));
     } finally {
       setIsExporting(false);
     }
