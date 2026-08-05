@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, X, Droplet, Bug, CalendarCheck, Info, FlaskConical, Building2, ThermometerSun, Waves } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, X, Droplet, Bug, CalendarCheck, Info, FlaskConical, Building2, ThermometerSun, Waves, Zap, Box, Clock } from 'lucide-react';
 import './Calendario.css';
 import { supabase } from '../lib/supabase';
 
@@ -301,94 +301,180 @@ const Calendario = () => {
                         const isTarea = actKey === 'tarea';
 
                         return (
-                          <div key={`${actKey}-${idx}`} className="cal-detail-card" style={{ border: `1px solid ${cfg.color}40`, backgroundColor: 'white', borderRadius: '16px', padding: '16px', marginBottom: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                              <strong style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#1e293b', fontSize: '1.1rem' }}>
-                                <div style={{ padding: '6px', borderRadius: '8px', backgroundColor: cfg.bg, color: cfg.color }}>
-                                  <Icon size={18} />
-                                </div>
-                                {isMuestra ? `Muestra ${item.identificador || ''}` : cfg.label}
-                              </strong>
-                              {isMuestra && item.tipo_muestra && (
-                                <span style={{ backgroundColor: cfg.bg, color: cfg.color, padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 700 }}>
-                                  {item.tipo_muestra}
-                                </span>
-                              )}
-                            </div>
-
+                          <div key={`${actKey}-${idx}`}>
                             {isMuestra && (
-                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '16px' }}>
-                                <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px', textAlign: 'center' }}>
-                                  <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 800, marginBottom: '2px' }}>PH</div>
-                                  <div style={{ fontWeight: 800, color: '#1e293b' }}>{item.ph || '-'}</div>
+                              <div className="sample-card" style={{border: '1px solid #e2e8f0', borderRadius: '12px', padding: '12px', marginBottom: '12px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', background: 'white'}}>
+                                <div className="sample-header" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px'}}>
+                                  <div className="sample-title-badge" style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                                    <h4 style={{margin: 0, fontSize: '1.1rem', color: '#1e293b', fontWeight: '800'}}>Muestra {item.identificador || ''}</h4>
+                                    {item.tipo_muestra && (
+                                      <span className="badge-tipo" style={{ backgroundColor: item.tipo_muestra === 'Torre' ? '#ffedd5' : '#fef08a', color: item.tipo_muestra === 'Torre' ? '#c2410c' : '#a16207', display: 'flex', alignItems: 'center', gap: '4px', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: '700' }}>
+                                        <Droplet size={12}/> {item.tipo_muestra}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {item.identificador && <span className="sample-id" style={{fontSize: '0.8rem', color: '#64748b', fontWeight: 'bold', background: '#f1f5f9', padding: '2px 8px', borderRadius: '12px'}}>{item.identificador}</span>}
                                 </div>
-                                <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px', textAlign: 'center' }}>
-                                  <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 800, marginBottom: '2px' }}>TEMP</div>
-                                  <div style={{ fontWeight: 800, color: '#1e293b' }}>{item.temperatura || '-'}</div>
+                                
+                                <div className="sample-meta" style={{display: 'flex', gap: '12px', color: '#64748b', fontSize: '0.8rem', marginBottom: '12px', fontWeight: '600'}}>
+                                  <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><Clock size={14}/> {item.hora || '-'}</span>
+                                  <span>•</span>
+                                  <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><CalendarIcon size={14}/> {item.fecha ? item.fecha.split('T')[0] : '-'}</span>
                                 </div>
-                                <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px', textAlign: 'center' }}>
-                                  <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 800, marginBottom: '2px' }}>CLORO</div>
-                                  <div style={{ fontWeight: 800, color: '#1e293b' }}>{item.cloro_libre || '-'}</div>
-                                </div>
-                                <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px', textAlign: 'center' }}>
-                                  <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 800, marginBottom: '2px' }}>HIERRO</div>
-                                  <div style={{ fontWeight: 800, color: '#1e293b' }}>{item.hierro || '-'}</div>
-                                </div>
+                                
+                                {item.tipo_muestra === 'Torre' ? (
+                                  <div className="parameters-grid" style={{marginTop: '12px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px'}}>
+                                    <div className="param-box ph" style={{ flex: 1, padding: '8px 0', border: '1px solid #fef08a', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><FlaskConical size={16} color="#eab308" /><span className="param-name" style={{ color: '#eab308', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>PH</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: '#1e293b' }}>{item.ph || '-'}</span></div>
+                                    <div className="param-box temp" style={{ flex: 1, padding: '8px 0', border: '1px solid #fecaca', borderRadius: '8px', background: '#fef2f2', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><ThermometerSun size={16} color="#ef4444" /><span className="param-name" style={{ color: '#ef4444', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>TEMP</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: '#1e293b' }}>{item.temp || item.temperatura ? (item.temp || item.temperatura) + 'º' : '-'}</span></div>
+                                    <div className="param-box cond" style={{ flex: 1, padding: '8px 0', border: '1px solid #e2e8f0', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Zap size={16} color="#475569" /><span className="param-name" style={{ color: '#475569', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>COND.</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: '#1e293b' }}>{item.conductividad || '-'}</span></div>
+                                    <div className="param-box turb" style={{ flex: 1, padding: '8px 0', border: '1px solid #bae6fd', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Waves size={16} color="#0ea5e9" /><span className="param-name" style={{ color: '#0ea5e9', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>TURB.</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: '#1e293b' }}>{item.turbidez || '-'}</span></div>
+                                    <div className="param-box hierro" style={{ flex: 1, padding: '8px 0', border: '1px solid #e2e8f0', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Box size={16} color="#64748b" /><span className="param-name" style={{ color: '#64748b', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>HIERRO</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: '#1e293b' }}>{item.hierro || '-'}</span></div>
+                                    <div className="param-box f8583" style={{ flex: 1, padding: '8px 0', border: '1px solid #bae6fd', borderRadius: '8px', background: '#f0f9ff', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Droplet size={16} color="#0ea5e9" /><span className="param-name" style={{ color: '#0ea5e9', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>F-8583</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: '#1e293b' }}>{item.f_8583_kit || '-'}</span></div>
+                                    <div className="param-box f8580" style={{ flex: 1, padding: '8px 0', border: '1px solid #e2e8f0', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><FlaskConical size={16} color="#64748b" /><span className="param-name" style={{ color: '#64748b', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>F-8580</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: '#1e293b' }}>{item.f_8580_total || '-'}</span></div>
+                                  </div>
+                                ) : (
+                                  <div className="parameters-grid" style={{marginTop: '12px', display: 'flex', gap: '6px'}}>
+                                    <div className="param-box ph" style={{ flex: 1, padding: '8px 0', border: '1px solid #fef08a', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><FlaskConical size={16} color="#eab308" /><span className="param-name" style={{ color: '#eab308', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>PH</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: '#1e293b' }}>{item.ph || '-'}</span></div>
+                                    <div className="param-box temp" style={{ flex: 1, padding: '8px 0', border: '1px solid #fecaca', borderRadius: '8px', background: '#fef2f2', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><ThermometerSun size={16} color="#ef4444" /><span className="param-name" style={{ color: '#ef4444', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>TEMP</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: '#1e293b' }}>{item.temp || item.temperatura ? (item.temp || item.temperatura) + 'º' : '-'}</span></div>
+                                    <div className="param-box cloro" style={{ flex: 1, padding: '8px 0', border: '1px solid #bae6fd', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Droplet size={16} color="#0ea5e9" /><span className="param-name" style={{ color: '#0ea5e9', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>CLORO</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: '#1e293b' }}>{item.cloro_libre || item.cloro || '-'}</span></div>
+                                    <div className="param-box hierro" style={{ flex: 1, padding: '8px 0', border: '1px solid #e2e8f0', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Box size={16} color="#64748b" /><span className="param-name" style={{ color: '#64748b', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>HIERRO</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: '#1e293b' }}>{item.hierro || '-'}</span></div>
+                                  </div>
+                                )}
+
+                                {isAdmin && (
+                                  <div className="sample-actions" style={{marginTop: '12px', display: 'flex', gap: '8px'}}>
+                                    <button className="action-btn-outline edit" style={{flex: 1, padding: '8px', borderRadius: '8px', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); navigate('/aquapp'); }}>
+                                      Editar
+                                    </button>
+                                    <button className="action-btn-outline delete" style={{flex: 1, padding: '8px', borderRadius: '8px', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: '#fef2f2', color: '#ef4444', border: '1px solid #fecaca', cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); navigate('/aquapp'); }}>
+                                      Borrar
+                                    </button>
+                                  </div>
+                                )}
                               </div>
                             )}
 
                             {isTratamiento && (
-                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px', backgroundColor: '#f8fafc', padding: '12px', borderRadius: '8px' }}>
-                                <div>
-                                  <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 700 }}>PRODUCTO</div>
-                                  <div style={{ fontWeight: 600, color: '#1e293b', fontSize: '0.9rem' }}>{item.producto || '-'}</div>
+                              <div className="tratamiento-record-card" style={{border: '1px solid #e2e8f0', borderRadius: '16px', padding: '16px', position: 'relative', overflow: 'hidden', marginBottom: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)', background: 'white'}}>
+                                {/* Borde izquierdo decorativo */}
+                                <div style={{position: 'absolute', left: 0, top: 0, bottom: 0, width: '6px', background: actKey.includes('limpieza') ? '#10b981' : '#8b5cf6'}}></div>
+                                
+                                <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px'}}>
+                                  <div style={{width: '20px', height: '20px', borderRadius: '50%', background: actKey.includes('limpieza') ? '#10b981' : '#8b5cf6'}}></div>
+                                  <h4 style={{margin: 0, fontSize: '1.2rem', color: '#1e293b', fontWeight: '800'}}>{item.tipo_tratamiento || item.tipo_actuacion || cfg.label}</h4>
                                 </div>
-                                <div>
-                                  <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 700 }}>DOSIS</div>
-                                  <div style={{ fontWeight: 600, color: '#1e293b', fontSize: '0.9rem' }}>{item.dosis || '-'}</div>
+                                
+                                <div style={{display: 'flex', gap: '16px', color: '#64748b', fontSize: '0.85rem', marginBottom: '12px', fontWeight: '600'}}>
+                                  <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><Clock size={14}/> {item.hora || '-'}</span>
+                                  <span>•</span>
+                                  <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><CalendarIcon size={14}/> {item.fecha ? item.fecha.split('T')[0] : '-'}</span>
                                 </div>
+                                
+                                {item.motivo && (
+                                  <div style={{display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap'}}>
+                                    <span style={{background: '#f1f5f9', color: '#475569', padding: '6px 12px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: '700'}}>{item.motivo}</span>
+                                  </div>
+                                )}
+
+                                {item.producto && (
+                                  <div style={{marginBottom: '12px'}}>
+                                    <div style={{fontSize: '0.75rem', fontWeight: '800', color: '#64748b', marginBottom: '4px'}}>PRODUCTO</div>
+                                    <div style={{fontWeight: '600', color: '#1e293b', fontSize: '0.95rem'}}>{item.producto}</div>
+                                  </div>
+                                )}
+
+                                {item.dosis && (
+                                  <div style={{marginBottom: '12px'}}>
+                                    <div style={{fontSize: '0.75rem', fontWeight: '800', color: '#64748b', marginBottom: '4px'}}>DOSIS</div>
+                                    <div style={{fontWeight: '600', color: '#1e293b', fontSize: '0.95rem'}}>{item.dosis}</div>
+                                  </div>
+                                )}
+                                
+                                {item.notas && (
+                                  <div style={{background: '#f8fafc', padding: '12px', borderRadius: '12px', fontSize: '0.9rem', color: '#475569', marginBottom: '16px'}}>
+                                    <div style={{fontWeight: 'bold', fontSize: '0.75rem', color: '#94a3b8', marginBottom: '4px'}}>NOTAS</div>
+                                    {item.notas}
+                                  </div>
+                                )}
+
+                                {isAdmin && (
+                                  <div className="admin-only" style={{display: 'flex', gap: '12px'}}>
+                                    <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); navigate('/aquapp'); }}>
+                                      Editar
+                                    </button>
+                                    <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: '#fef2f2', color: '#ef4444', border: '1px solid #fecaca', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); navigate('/aquapp'); }}>
+                                      Borrar
+                                    </button>
+                                  </div>
+                                )}
                               </div>
                             )}
 
                             {isAviso && (
-                              <div style={{ marginBottom: '16px' }}>
-                                <div style={{ fontSize: '0.8rem', color: '#475569', marginBottom: '4px' }}>
-                                  <strong>Plagas: </strong> {(Array.isArray(item.plagas) ? item.plagas : []).join(', ') || '-'}
+                              <div style={{border: '1px solid #e2e8f0', borderRadius: '16px', padding: '16px', marginBottom: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)', background: 'white'}}>
+                                <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px'}}>
+                                  <div style={{padding: '8px', borderRadius: '12px', background: '#dcfce7', color: '#22c55e'}}><Bug size={20}/></div>
+                                  <h4 style={{margin: 0, fontSize: '1.2rem', color: '#1e293b', fontWeight: '800'}}>Aviso Plagas</h4>
                                 </div>
+                                
+                                <div style={{display: 'flex', gap: '16px', color: '#64748b', fontSize: '0.85rem', marginBottom: '12px', fontWeight: '600'}}>
+                                  <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><Clock size={14}/> {item.hora || '-'}</span>
+                                  <span>•</span>
+                                  <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><CalendarIcon size={14}/> {item.fecha ? item.fecha.split('T')[0] : '-'}</span>
+                                </div>
+
+                                <div style={{display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap'}}>
+                                  {(Array.isArray(item.plagas) ? item.plagas : (item.plagas ? item.plagas.split(',') : [])).map((p, i) => (
+                                    <span key={i} style={{background: '#f1f5f9', color: '#475569', padding: '4px 10px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: '700'}}>{p.trim()}</span>
+                                  ))}
+                                </div>
+
                                 {item.observaciones && (
-                                  <div style={{ fontSize: '0.85rem', color: '#64748b', padding: '8px', backgroundColor: '#f8fafc', borderRadius: '8px', marginTop: '8px' }}>
+                                  <div style={{background: '#f8fafc', padding: '12px', borderRadius: '12px', fontSize: '0.9rem', color: '#475569', marginBottom: '16px'}}>
+                                    <div style={{fontWeight: 'bold', fontSize: '0.75rem', color: '#94a3b8', marginBottom: '4px'}}>OBSERVACIONES</div>
                                     {item.observaciones}
+                                  </div>
+                                )}
+
+                                {isAdmin && (
+                                  <div className="admin-only" style={{display: 'flex', gap: '12px'}}>
+                                    <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); navigate('/avisomap'); }}>
+                                      Editar
+                                    </button>
+                                    <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: '#fef2f2', color: '#ef4444', border: '1px solid #fecaca', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); navigate('/avisomap'); }}>
+                                      Borrar
+                                    </button>
                                   </div>
                                 )}
                               </div>
                             )}
 
                             {isTarea && (
-                              <div style={{ marginBottom: '16px' }}>
-                                <div style={{ fontWeight: 600, color: '#1e293b', marginBottom: '8px' }}>{item.name || '-'}</div>
-                                <div style={{ padding: '8px', backgroundColor: '#f0fdf4', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <div style={{border: '1px solid #e2e8f0', borderRadius: '16px', padding: '16px', marginBottom: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)', background: 'white'}}>
+                                <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px'}}>
+                                  <div style={{padding: '8px', borderRadius: '12px', background: '#fee2e2', color: '#ef4444'}}><CalendarCheck size={20}/></div>
+                                  <h4 style={{margin: 0, fontSize: '1.2rem', color: '#1e293b', fontWeight: '800'}}>{item.name || 'Tarea'}</h4>
+                                </div>
+                                
+                                <div style={{display: 'flex', gap: '16px', color: '#64748b', fontSize: '0.85rem', marginBottom: '12px', fontWeight: '600'}}>
+                                  <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><CalendarIcon size={14}/> {item.date ? item.date.split('T')[0] : '-'}</span>
+                                </div>
+
+                                <div style={{padding: '8px', backgroundColor: '#f0fdf4', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px'}}>
                                   <CalendarCheck size={18} color="#16a34a" />
                                   <span style={{ color: '#15803d', fontWeight: 600 }}>Completada</span>
                                 </div>
-                              </div>
-                            )}
 
-                            {isAdmin && (
-                              <div style={{ display: 'flex', gap: '8px' }}>
-                                <button onClick={() => {
-                                  if (isMuestra || isTratamiento) navigate('/aquapp');
-                                  else if (isAviso) navigate('/avisomap');
-                                  else if (isTarea) navigate('/tareas');
-                                }} style={{ flex: 1, padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', backgroundColor: '#eff6ff', color: '#3b82f6', border: '1px solid #bfdbfe', borderRadius: '8px', fontWeight: 700, cursor: 'pointer' }}>
-                                  Editar
-                                </button>
-                                <button onClick={() => {
-                                  if (isMuestra || isTratamiento) navigate('/aquapp');
-                                  else if (isAviso) navigate('/avisomap');
-                                  else if (isTarea) navigate('/tareas');
-                                }} style={{ flex: 1, padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', backgroundColor: '#fef2f2', color: '#ef4444', border: '1px solid #fecaca', borderRadius: '8px', fontWeight: 700, cursor: 'pointer' }}>
-                                  Borrar
-                                </button>
+                                {isAdmin && (
+                                  <div className="admin-only" style={{display: 'flex', gap: '12px'}}>
+                                    <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); navigate('/tareas'); }}>
+                                      Editar
+                                    </button>
+                                    <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: '#fef2f2', color: '#ef4444', border: '1px solid #fecaca', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); navigate('/tareas'); }}>
+                                      Borrar
+                                    </button>
+                                  </div>
+                                )}
                               </div>
                             )}
                           </div>
