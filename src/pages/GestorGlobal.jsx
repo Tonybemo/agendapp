@@ -46,7 +46,7 @@ const GestorGlobal = () => {
     if(!window.confirm("¿Descargar copia de seguridad de la base de datos (CSV)?")) return;
     setIsExporting(true);
     try {
-      const tables = ['clientes', 'tareas_estandar', 'aquapp_muestras', 'aquapp_tratamientos', 'avisos_mapfre', 'workapp_nominas', 'workapp_jornadas'];
+      const tables = ['clientes', 'tareas_estandar', 'tareas_programadas', 'aquapp_muestras', 'aquapp_tratamientos', 'aquapp_plagas', 'avisomap_avisos', 'workapp_nominas', 'workapp_jornadas', 'productos'];
       let csvContent = "";
       
       for (const table of tables) {
