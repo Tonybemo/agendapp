@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, X, Droplet, Bug, CalendarCheck, Info, FlaskConical, Building2, ThermometerSun, Waves, Zap, Box, Clock } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, X, Droplet, Bug, CalendarCheck, Info, FlaskConical, Building2, ThermometerSun, Waves, Zap, Box, Clock, Phone, MapPin, Navigation } from 'lucide-react';
 import './Calendario.css';
 import { supabase } from '../lib/supabase';
 
@@ -321,6 +321,10 @@ const Calendario = () => {
                                   <span>•</span>
                                   <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><CalendarIcon size={14}/> {item.fecha ? item.fecha.split('T')[0] : '-'}</span>
                                 </div>
+
+                                <div className="sample-location" style={{ background: '#f8fafc', padding: '8px 10px', borderRadius: '8px', fontWeight: '700', color: '#1e293b', marginBottom: '12px', fontSize: '0.9rem' }}>
+                                  {item.descripcion || 'Sin descripción'}
+                                </div>
                                 
                                 {item.tipo_muestra === 'Torre' ? (
                                   <div className="parameters-grid" style={{marginTop: '12px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px'}}>
@@ -412,9 +416,14 @@ const Calendario = () => {
 
                             {isAviso && (
                               <div style={{border: '1px solid #e2e8f0', borderRadius: '16px', padding: '16px', marginBottom: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)', background: 'white'}}>
-                                <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px'}}>
-                                  <div style={{padding: '8px', borderRadius: '12px', background: '#dcfce7', color: '#22c55e'}}><Bug size={20}/></div>
-                                  <h4 style={{margin: 0, fontSize: '1.2rem', color: '#1e293b', fontWeight: '800'}}>Aviso Plagas</h4>
+                                <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px'}}>
+                                  <h4 style={{margin: 0, fontSize: '1.2rem', color: '#1e293b', fontWeight: '800'}}>
+                                    {item.direccion}{item.portal ? `, ${item.portal}` : ''}
+                                  </h4>
+                                </div>
+                                <div style={{display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b', fontSize: '0.9rem', marginBottom: '12px'}}>
+                                  <MapPin size={14} color="#22c55e" />
+                                  <span style={{fontWeight: 700}}>{item.localidad || 'Localidad desconocida'}</span>
                                 </div>
                                 
                                 <div style={{display: 'flex', gap: '16px', color: '#64748b', fontSize: '0.85rem', marginBottom: '12px', fontWeight: '600'}}>
@@ -424,10 +433,19 @@ const Calendario = () => {
                                 </div>
 
                                 <div style={{display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap'}}>
-                                  {(Array.isArray(item.plagas) ? item.plagas : (item.plagas ? item.plagas.split(',') : [])).map((p, i) => (
-                                    <span key={i} style={{background: '#f1f5f9', color: '#475569', padding: '4px 10px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: '700'}}>{p.trim()}</span>
+                                  {(Array.isArray(item.plagas) ? item.plagas : (item.plagas ? String(item.plagas).split(',') : [])).map((p, i) => (
+                                    <span key={i} style={{background: '#f1f5f9', color: '#475569', padding: '4px 10px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px'}}>
+                                      <Bug size={14}/> {p.trim()}
+                                    </span>
                                   ))}
                                 </div>
+
+                                {item.contacto && (
+                                  <div style={{display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b', fontSize: '0.85rem', marginBottom: '12px'}}>
+                                    <Phone size={14} color="#64748b" />
+                                    <span>{item.contacto}</span>
+                                  </div>
+                                )}
 
                                 {item.observaciones && (
                                   <div style={{background: '#f8fafc', padding: '12px', borderRadius: '12px', fontSize: '0.9rem', color: '#475569', marginBottom: '16px'}}>
@@ -435,6 +453,12 @@ const Calendario = () => {
                                     {item.observaciones}
                                   </div>
                                 )}
+
+                                <div style={{marginBottom: '12px'}}>
+                                  <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((item.direccion || '') + ' ' + (item.portal || '') + ', ' + (item.localidad || ''))}`, '_blank')} style={{display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: '#f8fafc', color: '#64748b', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 'bold', cursor: 'pointer'}}>
+                                    <Navigation size={14}/> Ruta GPS
+                                  </button>
+                                </div>
 
                                 {isAdmin && (
                                   <div className="admin-only" style={{display: 'flex', gap: '12px'}}>
