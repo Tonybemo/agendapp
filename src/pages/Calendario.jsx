@@ -306,14 +306,14 @@ const Calendario = () => {
                               <div className="sample-card" style={{border: '1px solid #e2e8f0', borderRadius: '12px', padding: '12px', marginBottom: '12px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', background: 'white'}}>
                                 <div className="sample-header" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px'}}>
                                   <div className="sample-title-badge" style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-                                    <h4 style={{margin: 0, fontSize: '1.1rem', color: '#1e293b', fontWeight: '800'}}>Muestra {item.identificador || ''}</h4>
+                                    <h4 style={{margin: 0, fontSize: '1.1rem', color: '#1e293b', fontWeight: '800'}}>{item.numero_muestra || 'Muestra'}</h4>
                                     {item.tipo_muestra && (
                                       <span className="badge-tipo" style={{ backgroundColor: item.tipo_muestra === 'Torre' ? '#ffedd5' : '#fef08a', color: item.tipo_muestra === 'Torre' ? '#c2410c' : '#a16207', display: 'flex', alignItems: 'center', gap: '4px', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: '700' }}>
                                         <Droplet size={12}/> {item.tipo_muestra}
                                       </span>
                                     )}
                                   </div>
-                                  {item.identificador && <span className="sample-id" style={{fontSize: '0.8rem', color: '#64748b', fontWeight: 'bold', background: '#f1f5f9', padding: '2px 8px', borderRadius: '12px'}}>{item.identificador}</span>}
+                                  <span className="sample-id" style={{fontSize: '0.8rem', color: '#64748b', fontWeight: 'bold', background: '#f1f5f9', padding: '4px 10px', borderRadius: '12px'}}>{item.cod_envase || 'Sin Cód.'}</span>
                                 </div>
                                 
                                 <div className="sample-meta" style={{display: 'flex', gap: '12px', color: '#64748b', fontSize: '0.8rem', marginBottom: '12px', fontWeight: '600'}}>

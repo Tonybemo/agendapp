@@ -130,6 +130,9 @@ const Workapp = () => {
     if (data) {
       setNominas(data);
     }
+    if (error) {
+      console.error("Error fetching nominas:", error);
+    }
     setLoadingNominas(false);
   };
 
@@ -695,8 +698,8 @@ const Workapp = () => {
           >
             <option value="all" style={{color: '#0f172a'}}>Todos</option>
             {[...new Set([new Date().getFullYear().toString(), ...nominas.map(n => {
-                const parts = (n.mes || '').split('-');
-                return parts[0] || '';
+                const match = (n.mes || '').match(/\d{4}/);
+                return match ? match[0] : '';
             })])].filter(Boolean).sort().reverse().map(y => (
                 <option key={y} value={y} style={{color: '#0f172a'}}>{y}</option>
             ))}
