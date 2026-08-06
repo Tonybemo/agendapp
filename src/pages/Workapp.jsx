@@ -73,6 +73,8 @@ const Workapp = () => {
   const [nominas, setNominas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingNominas, setLoadingNominas] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
+  
   const [totalRegistros, setTotalRegistros] = useState(0);
 
   // Accordion
@@ -122,16 +124,23 @@ const Workapp = () => {
 
   const fetchNominas = async () => {
     setLoadingNominas(true);
-    const { data, error } = await supabase
-      .from('workapp_nominas')
-      .select('*')
-      .order('created_at', { ascending: false });
-    
-    if (data) {
-      setNominas(data);
-    }
-    if (error) {
-      console.error("Error fetching nominas:", error);
+    setFetchError(null);
+    try {
+      const { data, error } = await supabase
+        .from('workapp_nominas')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (data) {
+        setNominas(data);
+      }
+      if (error) {
+        console.error("Error fetching nominas:", error);
+        setFetchError(error.message || JSON.stringify(error));
+      }
+    } catch (err) {
+      console.error("Exception fetching nominas:", err);
+      setFetchError(err.message || 'Error desconocido');
     }
     setLoadingNominas(false);
   };
@@ -709,6 +718,12 @@ const Workapp = () => {
       </div>
 
       <div className="wa-record-list" style={{marginTop: 0}}>
+        {fetchError && (
+          <div style={{background: '#fef2f2', border: '1px solid #ef4444', color: '#b91c1c', padding: '16px', borderRadius: '12px', textAlign: 'center', fontWeight: 'bold', marginBottom: '16px'}}>
+            Error de conexión: {fetchError}
+            <br/><small>Por favor, haz una captura de este error.</small>
+          </div>
+        )}
         {loadingNominas ? (
           <div style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>Cargando nóminas...</div>
         ) : (() => {
