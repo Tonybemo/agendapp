@@ -155,8 +155,8 @@ const Aquapp = () => {
 
   const fetchClientes = async () => {
     const { data, error } = await supabase.from('clientes').select('*').order('name');
-    const { data: muestras } = await supabase.from('aquapp_muestras').select('cliente_id, fecha').order('fecha', { ascending: false });
-    const { data: tratamientos } = await supabase.from('aquapp_tratamientos').select('cliente_id, fecha').order('fecha', { ascending: false });
+    const { data: muestras } = await supabase.from('aquapp_muestras').select('cliente_id, fecha').order('fecha', { ascending: false }).limit(50000);
+    const { data: tratamientos } = await supabase.from('aquapp_tratamientos').select('cliente_id, fecha').order('fecha', { ascending: false }).limit(50000);
     
     if (data) {
       const latestDates = {};

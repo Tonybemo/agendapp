@@ -170,9 +170,18 @@ const Tareasapp = () => {
   const toggleTask = (tareaId, taskId) => {
     const tarea = tareas.find(t => t.id === tareaId);
     if (!tarea) return;
+      
+    let defaultDate = 'Hoy';
+    if (tarea.date) {
+      const parts = tarea.date.split('-');
+      if (parts.length === 3) {
+        defaultDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+      }
+    }
+
     const newTasks = tarea.tasks.map(t => {
       if (t.id === taskId) {
-        if (t.status === 'pending') return { ...t, status: 'completed', date: 'Hoy' };
+        if (t.status === 'pending') return { ...t, status: 'completed', date: defaultDate };
         if (t.status === 'completed') return { ...t, status: 'skipped', date: null };
         return { ...t, status: 'pending', date: null };
       }
