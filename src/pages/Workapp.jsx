@@ -74,6 +74,7 @@ const Workapp = () => {
   const [loading, setLoading] = useState(true);
   const [loadingNominas, setLoadingNominas] = useState(true);
   const [fetchError, setFetchError] = useState(null);
+  const [clientesGlobales, setClientesGlobales] = useState([]);
   
   const [totalRegistros, setTotalRegistros] = useState(0);
 
@@ -146,8 +147,14 @@ const Workapp = () => {
   };
 
   useEffect(() => {
+    const fetchClientes = async () => {
+      const { data } = await supabase.from('clientes').select('id, name').order('name');
+      if (data) setClientesGlobales(data);
+    };
+
     fetchJornadas();
     fetchNominas();
+    fetchClientes();
     const handleRefresh = () => {
       fetchJornadas();
       fetchNominas();
@@ -978,21 +985,32 @@ const Workapp = () => {
                       </span>
                     ))}
                   </div>
-                  <input 
-                    type="text" 
+                  <select 
                     className="wa-form-input" 
-                    placeholder="Escribe una parada y pulsa Enter..."
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        const val = e.target.value.trim();
-                        if (val) {
-                          setEditParadas(prev => [...prev, val]);
+                    onChange={(e) => {
+                      let val = e.target.value;
+                      if (val === '_custom_') {
+                        const manual = window.prompt("Introduce el nombre de la parada o cliente puntual:");
+                        if (manual && manual.trim()) {
+                          val = manual.trim();
+                        } else {
                           e.target.value = '';
+                          return;
                         }
                       }
+                      if (val && !editParadas.includes(val)) {
+                        setEditParadas(prev => [...prev, val]);
+                      }
+                      e.target.value = '';
                     }}
-                  />
+                    style={{cursor: 'pointer'}}
+                  >
+                    <option value="">+ Añadir nueva parada a la ruta...</option>
+                    <option value="_custom_" style={{fontWeight: 'bold', color: '#8b5cf6'}}>+ Escribir parada puntual...</option>
+                    {['Ir a por garrafas', 'Mantenimiento furgoneta', 'Almacén', ...clientesGlobales.map(c => c.name)].filter(o => !editParadas.includes(o)).map((opcion, i) => (
+                      <option key={i} value={opcion}>{opcion}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="wa-form-group">
                   <label>Archivo Adjunto (Albaranes/Notas)</label>

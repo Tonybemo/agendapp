@@ -84,16 +84,25 @@ const Tareasapp = () => {
     // Cargar tareas programadas filtradas por año
     const { data: tareasData } = await supabase.from('tareas_programadas').select('*, clientes(name)').eq('año', currentYear);
     if (tareasData) {
-      const mapped = tareasData.map(t => ({
-        id: t.id,
-        clientId: t.cliente_id,
-        clientName: t.clientes?.name || 'Cliente Borrado',
-        month: t.mes,
-        año: t.año,
-        frecuencia: t.frecuencia,
-        tasks: t.tareas_json,
-        notas: t.notas || ''
-      }));
+      const mapped = tareasData.map(t => {
+        let cName = t.clientes?.name || 'Cliente Borrado';
+        let frec = t.frecuencia;
+        if (frec && (frec.startsWith('puntual:') || frec.startsWith('mensual:') || frec.startsWith('semanal:'))) {
+          const parts = frec.split(':');
+          frec = parts[0];
+          cName = parts.slice(1).join(':').trim();
+        }
+        return {
+          id: t.id,
+          clientId: t.cliente_id,
+          clientName: cName,
+          month: t.mes,
+          año: t.año,
+          frecuencia: frec,
+          tasks: t.tareas_json,
+          notas: t.notas || ''
+        };
+      });
       setTareas(mapped);
     }
     setLoading(false);
@@ -132,21 +141,23 @@ const Tareasapp = () => {
     };
 
     let toInsert = [];
+    const isCustom = newClientData.id === '_custom_';
+    const cid = isCustom ? null : newClientData.id;
 
     if (newClientData.frecuencia === 'puntual') {
       toInsert.push({
-        cliente_id: newClientData.id,
+        cliente_id: cid,
         mes: newClientData.month,
         año: currentYear,
-        frecuencia: 'puntual',
+        frecuencia: isCustom ? `puntual: ${newClientData.name}` : 'puntual',
         tareas_json: generateTasksForMonth('puntual', newClientData.month)
       });
     } else {
       toInsert = months.map(m => ({
-        cliente_id: newClientData.id,
+        cliente_id: cid,
         mes: m.id,
         año: currentYear,
-        frecuencia: newClientData.frecuencia,
+        frecuencia: isCustom ? `${newClientData.frecuencia}: ${newClientData.name}` : newClientData.frecuencia,
         tareas_json: generateTasksForMonth(newClientData.frecuencia, m.id)
       }));
     }
@@ -503,14 +514,33 @@ const Tareasapp = () => {
                 <select 
                   value={newClientData.id}
                   onChange={(e) => {
-                    const client = clientesGlobales.find(c => c.id === e.target.value);
-                    setNewClientData({...newClientData, id: e.target.value, name: client ? client.name : ''});
+                    let val = e.target.value;
+                    let cName = '';
+                    if (val === '_custom_') {
+                      const manual = window.prompt("Introduce el nombre del cliente puntual:");
+                      if (manual && manual.trim()) {
+                        val = '_custom_';
+                        cName = manual.trim();
+                      } else {
+                        val = '';
+                      }
+                    } else if (val) {
+                      const client = clientesGlobales.find(c => c.id === val);
+                      cName = client ? client.name : '';
+                    }
+                    setNewClientData({...newClientData, id: val, name: cName});
                   }}
                   style={{width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #cbd5e1', outline: 'none', background: 'white'}}
                 >
                   <option value="">Seleccionar cliente...</option>
+                  <option value="_custom_" style={{fontWeight: 'bold', color: '#8b5cf6'}}>+ Escribir cliente puntual...</option>
                   {clientesGlobales.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
+                {newClientData.id === '_custom_' && (
+                  <div style={{marginTop: '8px', padding: '8px', background: '#f1f5f9', borderRadius: '8px', fontSize: '0.85rem', color: '#475569'}}>
+                    <span style={{fontWeight: 'bold'}}>Puntual:</span> {newClientData.name}
+                  </div>
+                )}
               </div>
 
               {/* 2. TAREAS (collapsible) */}
