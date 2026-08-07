@@ -263,11 +263,12 @@ const Tareasapp = () => {
   
   // Stats calculations based ONLY on current month
   const totalActuaciones = tareasDelMes.reduce((acc, t) => acc + t.tasks.length, 0);
+  const actuacionesCompletadas = tareasDelMes.reduce((acc, t) => acc + getProgressInfo(t).completedOrSkipped, 0);
   const totalClientes = tareasDelMes.length;
   
-  const completadosCount = tareasDelMes.filter(t => getProgressInfo(t).percentage === 100).length;
-  const pendientesCount = totalClientes - completadosCount;
-  const globalProgress = totalClientes === 0 ? 0 : Math.round((completadosCount / totalClientes) * 100);
+  const completadosCount = actuacionesCompletadas;
+  const pendientesCount = totalActuaciones - actuacionesCompletadas;
+  const globalProgress = totalActuaciones === 0 ? 0 : Math.round((actuacionesCompletadas / totalActuaciones) * 100);
 
   // Apply visual filter and search
   const currentTareas = tareasDelMes.filter(t => {
@@ -309,9 +310,9 @@ const Tareasapp = () => {
           <p className="section-label">MESES</p>
           {months.map(m => {
             const tareasDelMesIter = tareas.filter(t => t.month === m.id);
-            const totalC = tareasDelMesIter.length;
-            const completadosC = tareasDelMesIter.filter(t => getProgressInfo(t).percentage === 100).length;
-            const progressStr = totalC === 0 ? '0%' : Math.round((completadosC / totalC) * 100) + '%';
+            const totalActuacionesMes = tareasDelMesIter.reduce((acc, t) => acc + t.tasks.length, 0);
+            const actuacionesCompletadasMes = tareasDelMesIter.reduce((acc, t) => acc + getProgressInfo(t).completedOrSkipped, 0);
+            const progressStr = totalActuacionesMes === 0 ? '0%' : Math.round((actuacionesCompletadasMes / totalActuacionesMes) * 100) + '%';
             
             return (
               <div 
