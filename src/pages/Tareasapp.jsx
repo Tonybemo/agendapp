@@ -171,12 +171,16 @@ const Tareasapp = () => {
     const tarea = tareas.find(t => t.id === tareaId);
     if (!tarea) return;
       
-    let defaultDate = 'Hoy';
+    let defaultDate;
     if (tarea.date) {
       const parts = tarea.date.split('-');
       if (parts.length === 3) {
         defaultDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
       }
+    }
+    if (!defaultDate) {
+      const today = new Date();
+      defaultDate = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
     }
 
     const newTasks = tarea.tasks.map(t => {

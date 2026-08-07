@@ -25,6 +25,7 @@ const UniversalForm = () => {
   const [tipoTratamiento, setTipoTratamiento] = useState('Hipercloracion'); 
   const [motivoTrat, setMotivoTrat] = useState('Prevencion');
   const [selectedClienteId, setSelectedClienteId] = useState('');
+  const [customClienteName, setCustomClienteName] = useState('');
   const [sugerenciaMuestra, setSugerenciaMuestra] = useState('Muestra 1');
   const [selectedFecha, setSelectedFecha] = useState(() => {
     const d = new Date();
@@ -59,6 +60,7 @@ const UniversalForm = () => {
   const [localidadQuery, setLocalidadQuery] = useState('');
   const [addressSuggestions, setAddressSuggestions] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [avisoFileName, setAvisoFileName] = useState('');
   const [jornadaParadas, setJornadaParadas] = useState([]);
   
@@ -116,10 +118,28 @@ const UniversalForm = () => {
   const [clientesGlobales, setClientesGlobales] = useState([]);
   const [tareasGlobales, setTareasGlobales] = useState([]);
 
+  const handleClienteChange = (e) => {
+    if (e.target.value === '_custom_') {
+      const manual = window.prompt("Introduce el nombre del cliente puntual:");
+      if (manual && manual.trim()) {
+        setSelectedClienteId('_custom_');
+        setCustomClienteName(manual.trim());
+      } else {
+        setSelectedClienteId('');
+      }
+    } else {
+      setSelectedClienteId(e.target.value);
+      setCustomClienteName('');
+    }
+  };
+
   const handleGuardarJornada = async (e) => {
     e.preventDefault();
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData);
+    if (isSaving) return;
+    setIsSaving(true);
+    try {
+      const formData = new FormData(e.target);
+      const data = Object.fromEntries(formData);
     
     // Calcular horas reales
     const inicio = data.hora_inicio || "07:00";
@@ -188,12 +208,21 @@ const UniversalForm = () => {
       console.error(error);
       alert("Error al guardar jornada.");
     }
+    } catch (err) {
+      console.error(err);
+      alert("Error inesperado al guardar.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleGuardarProducto = async (e) => {
     e.preventDefault();
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData);
+    if (isSaving) return;
+    setIsSaving(true);
+    try {
+      const formData = new FormData(e.target);
+      const data = Object.fromEntries(formData);
     
     // Mapear el nombre de la categoria a ID real (insecticidas, rodenticidas, biocidas)
     const catMap = {
@@ -221,17 +250,27 @@ const UniversalForm = () => {
 
     if (!error) {
       window.dispatchEvent(new Event('refresh-catalogo'));
+      alert("✅ Producto guardado");
       handleClose();
     } else {
       console.error("Error guardando producto:", error);
       alert("Error de Supabase: " + (error.message || JSON.stringify(error)));
     }
+    } catch (err) {
+      console.error(err);
+      alert("Error inesperado al guardar.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleGuardarAviso = async (e) => {
     e.preventDefault();
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData);
+    if (isSaving) return;
+    setIsSaving(true);
+    try {
+      const formData = new FormData(e.target);
+      const data = Object.fromEntries(formData);
     
     // Unir plagas de los botones con el texto extra
     let todasLasPlagas = [...avisoPlagas];
@@ -287,6 +326,12 @@ const UniversalForm = () => {
       console.error(error);
       alert("Error guardando aviso: " + error.message);
     }
+    } catch (err) {
+      console.error(err);
+      alert("Error inesperado al guardar.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // Helper para convertir fecha dd/mm/yyyy -> yyyy-mm-dd (para inputs type=date)
@@ -330,8 +375,11 @@ const UniversalForm = () => {
 
   const handleGuardarMuestra = async (e) => {
     e.preventDefault();
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData);
+    if (isSaving) return;
+    setIsSaving(true);
+    try {
+      const formData = new FormData(e.target);
+      const data = Object.fromEntries(formData);
     
     const clienteId = data.cliente_id;
     let clienteNombre = "";
@@ -385,12 +433,21 @@ const UniversalForm = () => {
       console.error(error);
       alert("Error al guardar muestra");
     }
+    } catch (err) {
+      console.error(err);
+      alert("Error inesperado al guardar.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleGuardarTratamiento = async (e) => {
     e.preventDefault();
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData);
+    if (isSaving) return;
+    setIsSaving(true);
+    try {
+      const formData = new FormData(e.target);
+      const data = Object.fromEntries(formData);
     
     const clienteId = data.cliente_id;
     let clienteNombre = "";
@@ -430,12 +487,21 @@ const UniversalForm = () => {
       console.error(error);
       alert("Error al guardar tratamiento");
     }
+    } catch (err) {
+      console.error(err);
+      alert("Error inesperado al guardar.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleGuardarPlaga = async (e) => {
     e.preventDefault();
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData);
+    if (isSaving) return;
+    setIsSaving(true);
+    try {
+      const formData = new FormData(e.target);
+      const data = Object.fromEntries(formData);
     
     const clienteId = data.cliente_id;
     let clienteNombre = "";
@@ -472,6 +538,12 @@ const UniversalForm = () => {
     } else {
       console.error(error);
       alert("Error al guardar aviso de plaga");
+    }
+    } catch (err) {
+      console.error(err);
+      alert("Error inesperado al guardar.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -636,7 +708,17 @@ const UniversalForm = () => {
     const typeInfo = formTypes.find(t => t.id === 'jornada');
 
     const handleAddParada = (e) => {
-      const val = e.target.value;
+      let val = e.target.value;
+      if (val === '_custom_') {
+        const manual = window.prompt("Introduce el nombre de la parada o cliente puntual:");
+        if (manual && manual.trim()) {
+          val = manual.trim();
+        } else {
+          e.target.value = '';
+          return;
+        }
+      }
+      
       if (val && !jornadaParadas.includes(val)) {
         setJornadaParadas(prev => [...prev, val]);
       }
@@ -684,6 +766,7 @@ const UniversalForm = () => {
           </div>
           <select className="uf-select-parada" onChange={handleAddParada}>
             <option value="">+ Añadir nueva parada a la ruta...</option>
+            <option value="_custom_" style={{fontWeight: 'bold', color: '#8b5cf6'}}>+ Escribir parada puntual...</option>
             {opcionesRuta.filter(o => !jornadaParadas.includes(o)).map((opcion, i) => (
               <option key={i} value={opcion}>{opcion}</option>
             ))}
@@ -710,8 +793,8 @@ const UniversalForm = () => {
           </div>
         </div>
 
-        <button type="submit" className="uf-btn-save" style={{ background: 'linear-gradient(135deg, #8b5cf6, #ec4899)' }}>
-          <UploadCloud size={20} /> Guardar Jornada
+        <button type="submit" disabled={isSaving} className="uf-btn-save" style={{ background: 'linear-gradient(135deg, #8b5cf6, #ec4899)' }}>
+          <UploadCloud size={20} /> {isSaving ? 'Guardando...' : 'Guardar Jornada'}
         </button>
       </form>
     );
@@ -881,11 +964,17 @@ const UniversalForm = () => {
                 name="cliente_id" 
                 className="uf-select-basic"
                 value={selectedClienteId}
-                onChange={(e) => setSelectedClienteId(e.target.value)}
+                onChange={handleClienteChange}
               >
                 <option value="">Seleccionar cliente...</option>
+                <option value="_custom_" style={{fontWeight: 'bold', color: '#8b5cf6'}}>+ Escribir cliente puntual...</option>
                 {clientesGlobales.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
+              {selectedClienteId === '_custom_' && (
+                <div style={{marginTop: '8px', padding: '8px', background: '#f1f5f9', borderRadius: '8px', fontSize: '0.85rem', color: '#475569'}}>
+                  <span style={{fontWeight: 'bold'}}>Puntual:</span> {customClienteName}
+                </div>
+              )}
             </div>
 
             <div className="uf-form-row">
@@ -1010,10 +1099,16 @@ const UniversalForm = () => {
           <form className="uf-form-content animate-fade-in" onSubmit={handleGuardarTratamiento}>
             <div className="uf-form-group">
               <label>CLIENTE</label>
-              <select name="cliente_id" className="uf-select-basic" value={selectedClienteId} onChange={(e) => setSelectedClienteId(e.target.value)}>
+              <select name="cliente_id" className="uf-select-basic" value={selectedClienteId} onChange={handleClienteChange}>
                 <option value="">Seleccionar cliente...</option>
+                <option value="_custom_" style={{fontWeight: 'bold', color: '#8b5cf6'}}>+ Escribir cliente puntual...</option>
                 {clientesGlobales.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
+              {selectedClienteId === '_custom_' && (
+                <div style={{marginTop: '8px', padding: '8px', background: '#f1f5f9', borderRadius: '8px', fontSize: '0.85rem', color: '#475569'}}>
+                  <span style={{fontWeight: 'bold'}}>Puntual:</span> {customClienteName}
+                </div>
+              )}
             </div>
 
             <div className="uf-form-row">
@@ -1071,10 +1166,16 @@ const UniversalForm = () => {
           <form className="uf-subform animate-fade-in" onSubmit={handleGuardarPlaga}>
             <div className="uf-form-group">
               <label>CLIENTE *</label>
-              <select name="cliente_id" className="uf-select-basic" required value={selectedClienteId} onChange={(e) => setSelectedClienteId(e.target.value)}>
+              <select name="cliente_id" className="uf-select-basic" required value={selectedClienteId} onChange={handleClienteChange}>
                 <option value="">Seleccionar cliente...</option>
+                <option value="_custom_" style={{fontWeight: 'bold', color: '#8b5cf6'}}>+ Escribir cliente puntual...</option>
                 {clientesGlobales.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
+              {selectedClienteId === '_custom_' && (
+                <div style={{marginTop: '8px', padding: '8px', background: '#f1f5f9', borderRadius: '8px', fontSize: '0.85rem', color: '#475569'}}>
+                  <span style={{fontWeight: 'bold'}}>Puntual:</span> {customClienteName}
+                </div>
+              )}
             </div>
 
             <div className="uf-form-row">
