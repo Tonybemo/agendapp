@@ -469,7 +469,9 @@ const UniversalForm = () => {
       motivo: motivoTrat,
       fecha: fechaGuardar,
       hora: data.hora,
-      notas: data.notas
+      notas: data.notas,
+      recordatorio: data.recordatorio === 'on',
+      recordatorio_dias: parseInt(data.recordatorio_dias) || 15
     };
 
     let error;

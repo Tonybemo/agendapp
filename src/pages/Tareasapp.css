@@ -340,7 +340,7 @@
 .taskflow-grid {
   padding: 32px;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 24px;
   overflow-y: auto;
 }
@@ -555,6 +555,24 @@
     overflow-x: auto;
   }
   .taskflow-grid {
-    padding: 16px;
+    padding: 8px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .tf-card {
+    border-radius: 10px;
+  }
+  .tf-card-header {
+    padding: 10px 12px;
+  }
+  .tf-card-header h3 {
+    font-size: 0.8rem;
+  }
+  .tf-task-row {
+    padding: 6px 12px;
+    font-size: 0.78rem;
+  }
+  .tf-card-footer {
+    padding: 8px 12px;
   }
 }

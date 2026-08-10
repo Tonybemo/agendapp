@@ -170,7 +170,7 @@ const Catalogo = () => {
                   <div className="product-detail-badges">
                     <span className="badge-ins">{selectedProduct.badge}</span>
                     <span className="product-detail-badge">Registro: {selectedProduct.registro}</span>
-                    <span className="product-detail-badge">Lote: {selectedProduct.lote}</span>
+                    <span className="product-detail-badge" style={{color: '#2563eb', borderColor: '#93c5fd', background: 'rgba(37, 99, 235, 0.08)'}}>Lote: {selectedProduct.lote}</span>
                   </div>
                 </div>
               </div>
@@ -252,7 +252,7 @@ const Catalogo = () => {
                   <h3>{product.name}</h3>
                   
                   <div style={{display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '16px', flex: 1}}>
-                    <span style={{fontSize: '0.8rem', color: '#64748b'}}>Lote: <strong>{product.lote}</strong></span>
+                    <span style={{fontSize: '0.8rem', color: '#2563eb', fontWeight: '700'}}>Lote: <strong>{product.lote}</strong></span>
                     <span style={{fontSize: '0.8rem', color: '#64748b'}}>Nº Reg: <strong>{product.registro}</strong></span>
                   </div>
 

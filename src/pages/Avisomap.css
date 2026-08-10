@@ -265,7 +265,7 @@
 
 .avisos-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 24px;
   padding-left: 24px;
   margin-bottom: 24px;
@@ -608,8 +608,24 @@ input[type="text"]:focus, textarea:focus {
 /* Mobile Adjustments */
 @media (max-width: 768px) {
   .avisos-grid {
-    grid-template-columns: 1fr;
-    padding-left: 0;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  .aviso-map-card {
+    padding: 14px;
+    border-radius: 14px;
+  }
+  .aviso-map-card h4 {
+    font-size: 0.82rem;
+  }
+  .aviso-loc, .aviso-datetime {
+    font-size: 0.75rem;
+  }
+  .aviso-card-footer {
+    flex-direction: column;
+    gap: 8px;
   }
   .dropdowns {
     flex-direction: column;

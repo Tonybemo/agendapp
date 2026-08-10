@@ -181,28 +181,19 @@ const Tareasapp = () => {
   const toggleTask = (tareaId, taskId) => {
     const tarea = tareas.find(t => t.id === tareaId);
     if (!tarea) return;
-      
-    let defaultDate;
-    if (tarea.date) {
-      const parts = tarea.date.split('-');
-      if (parts.length === 3) {
-        defaultDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
-      }
-    }
-    if (!defaultDate) {
-      const today = new Date();
-      defaultDate = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
-    }
+
+    const today = new Date();
+    const todayStr = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
 
     const newTasks = tarea.tasks.map(t => {
       if (t.id === taskId) {
-        if (t.status === 'pending') return { ...t, status: 'completed', date: defaultDate };
+        if (t.status === 'pending') return { ...t, status: 'completed', date: todayStr };
         if (t.status === 'completed') return { ...t, status: 'skipped', date: null };
         return { ...t, status: 'pending', date: null };
       }
       return t;
     });
-    setTareas(prev => prev.map(t => t.id === tareaId ? { ...t, tasks: newTasks } : t)); // optimista
+    setTareas(prev => prev.map(t => t.id === tareaId ? { ...t, tasks: newTasks } : t));
     updateTaskInSupabase(tareaId, newTasks);
   };
 
@@ -422,7 +413,7 @@ const Tareasapp = () => {
                     </p>
                   </div>
                   <div className="tf-card-actions">
-                    <MessageSquare size={16} color={tarea.notas ? "#10b981" : "#cbd5e1"} style={{cursor: 'pointer'}} onClick={() => addNote(tarea.id)}/>
+                    <MessageSquare size={16} color={tarea.notas ? "#ef4444" : "#cbd5e1"} style={{cursor: 'pointer'}} onClick={() => addNote(tarea.id)}/>
                     <MoreVertical size={16} color="#cbd5e1" style={{cursor: 'pointer'}} onClick={() => deleteCard(tarea.id)}/>
                   </div>
                 </div>

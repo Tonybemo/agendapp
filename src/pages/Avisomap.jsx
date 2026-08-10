@@ -24,8 +24,16 @@ const plagaColors = {
 const Avisomap = () => {
   const { isAdmin } = useAuth();
   const [activeTab, setActiveTab] = useState('historial');
-  const [expandedYears, setExpandedYears] = useState({ '2026': true });
-  const [expandedMonths, setExpandedMonths] = useState({ '2026-Julio': true });
+  const [expandedYears, setExpandedYears] = useState(() => {
+    const year = new Date().getFullYear().toString();
+    return { [year]: true };
+  });
+  const [expandedMonths, setExpandedMonths] = useState(() => {
+    const now = new Date();
+    const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    const key = `${now.getFullYear()}-${monthNames[now.getMonth()]}`;
+    return { [key]: true };
+  });
   
   // Data State
   const [avisosData, setAvisosData] = useState({ total: 0, years: [] });

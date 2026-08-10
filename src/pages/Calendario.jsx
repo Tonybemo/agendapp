@@ -109,14 +109,22 @@ const Calendario = () => {
     }
 
     // Tareas completadas
-    const { data: tareasData } = await supabase.from('tareas_programadas').select('id, tareas_json, clientes(name)');
+    const { data: tareasData } = await supabase.from('tareas_programadas').select('id, tareas_json, frecuencia, clientes(name)');
     if (tareasData) {
       tareasData.forEach(row => {
         if (row.tareas_json && Array.isArray(row.tareas_json)) {
           row.tareas_json.forEach(task => {
             if (task.status === 'completed') {
               const d = normalizeDate(task.date);
-              if (d) allRaw.push({ id: task.id, date: d, client: row.clientes?.name || 'Tarea', actKey: 'tarea', extra: task.name, rawItem: task });
+              let clientName = row.clientes?.name;
+              if (!clientName && row.frecuencia) {
+                const frec = row.frecuencia;
+                if (frec.includes(':')) {
+                  clientName = frec.split(':').slice(1).join(':').trim();
+                }
+              }
+              if (!clientName) clientName = 'Tarea';
+              if (d) allRaw.push({ id: task.id, date: d, client: clientName, actKey: 'tarea', extra: task.name, rawItem: task });
             }
           });
         }
