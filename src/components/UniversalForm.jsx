@@ -562,11 +562,27 @@ const UniversalForm = () => {
 
   useEffect(() => {
     const fetchGlobalData = async () => {
+      if (!navigator.onLine) {
+        // Modo offline: cargar desde caché
+        const cachedClientes = localStorage.getItem('offline_cache_clientes');
+        const cachedTareas = localStorage.getItem('offline_cache_tareas');
+        if (cachedClientes) setClientesGlobales(JSON.parse(cachedClientes));
+        if (cachedTareas) setTareasGlobales(JSON.parse(cachedTareas));
+        return;
+      }
+
+      // Modo online: fetch y guardar en caché
       const { data: clientesData } = await supabase.from('clientes').select('id, name').order('name');
       const { data: tareasData } = await supabase.from('tareas_estandar').select('id, name').order('name');
       
-      if (clientesData) setClientesGlobales(clientesData);
-      if (tareasData) setTareasGlobales(tareasData);
+      if (clientesData) {
+        setClientesGlobales(clientesData);
+        localStorage.setItem('offline_cache_clientes', JSON.stringify(clientesData));
+      }
+      if (tareasData) {
+        setTareasGlobales(tareasData);
+        localStorage.setItem('offline_cache_tareas', JSON.stringify(tareasData));
+      }
     };
     
     if (isOpen) {
