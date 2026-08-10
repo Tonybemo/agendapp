@@ -418,6 +418,17 @@ const UniversalForm = () => {
       mat_a_4170: data.mat_a_4170
     };
 
+    // OFFLINE CHECK HERE
+    if (!navigator.onLine && !editingItem) {
+      const queue = JSON.parse(localStorage.getItem('offline_muestras_queue') || '[]');
+      queue.push(record);
+      localStorage.setItem('offline_muestras_queue', JSON.stringify(queue));
+      alert("⚠️ Sin conexión a Internet.\nLa muestra se ha guardado en el móvil y se subirá automáticamente cuando recuperes la cobertura.");
+      handleClose();
+      setIsSaving(false);
+      return;
+    }
+
     let error;
     if (editingItem && editingItem.editType === 'muestra') {
       ({ error } = await supabase.from('aquapp_muestras').update(record).eq('id', editingItem.id));
