@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, CalendarCheck, Droplet, MapPin, BookOpen, Clock, Menu, X, BarChart2, Calendar as CalendarIcon, Database, ArrowLeft, LogOut, LogIn, Bell } from 'lucide-react';
+import { LayoutDashboard, CalendarCheck, Droplet, MapPin, BookOpen, Clock, Menu, X, BarChart2, Calendar as CalendarIcon, Database, ArrowLeft, LogOut, LogIn, Bell, CheckCircle2 } from 'lucide-react';
 import UniversalForm from './UniversalForm';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -9,8 +9,9 @@ import './Layout.css';
 const Layout = ({ children }) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [notifications, setNotifications] = useState([]);
+  const [allNotifications, setAllNotifications] = useState([]);
   const [showNotifPanel, setShowNotifPanel] = useState(false);
+  const [showResueltos, setShowResueltos] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { isAdmin, signOut } = useAuth();
@@ -26,36 +27,55 @@ const Layout = ({ children }) => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const parseFecha = (f) => {
+    if (!f) return null;
+    if (f.includes('/')) {
+      const parts = f.split('/');
+      return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+    return f;
+  };
+
+  const fetchNotifications = async () => {
+    const { data } = await supabase
+      .from('aquapp_tratamientos')
+      .select('*')
+      .eq('recordatorio', true);
+    
+    if (data) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const due = data.filter(t => {
+        if (!t.fecha) return false;
+        const f = parseFecha(t.fecha);
+        const treatDate = new Date(f);
+        const dias = t.recordatorio_dias || 15;
+        const dueDate = new Date(treatDate);
+        dueDate.setDate(dueDate.getDate() + dias);
+        return dueDate <= today;
+      });
+      setAllNotifications(due);
+    }
+  };
+
   useEffect(() => {
-    const fetchNotifications = async () => {
-      const { data } = await supabase
-        .from('aquapp_tratamientos')
-        .select('*')
-        .eq('recordatorio', true);
-      
-      if (data) {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const pending = data.filter(t => {
-          if (!t.fecha) return false;
-          let f = t.fecha;
-          if (f.includes('/')) {
-            const parts = f.split('/');
-            f = `${parts[2]}-${parts[1]}-${parts[0]}`;
-          }
-          const treatDate = new Date(f);
-          const dias = t.recordatorio_dias || 15;
-          const dueDate = new Date(treatDate);
-          dueDate.setDate(dueDate.getDate() + dias);
-          return dueDate <= today;
-        });
-        setNotifications(pending);
-      }
-    };
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 60000);
     return () => clearInterval(interval);
   }, []);
+
+  const pendingNotifications = allNotifications.filter(n => !n.muestra_recogida);
+  const resolvedNotifications = allNotifications.filter(n => n.muestra_recogida);
+
+  const handleMarkCollected = async (id) => {
+    await supabase.from('aquapp_tratamientos').update({ muestra_recogida: true }).eq('id', id);
+    setAllNotifications(prev => prev.map(n => n.id === id ? { ...n, muestra_recogida: true } : n));
+  };
+
+  const handleUnmarkCollected = async (id) => {
+    await supabase.from('aquapp_tratamientos').update({ muestra_recogida: false }).eq('id', id);
+    setAllNotifications(prev => prev.map(n => n.id === id ? { ...n, muestra_recogida: false } : n));
+  };
 
   const navItems = [
     { path: '/', label: 'Inicio', icon: <LayoutDashboard size={20} />, public: true },
@@ -71,13 +91,82 @@ const Layout = ({ children }) => {
 
   const visibleNavItems = isAdmin ? navItems : navItems.filter(item => item.public);
 
-  // Mobile Bottom Nav items (just a few core ones)
   const bottomNavItems = [
     { path: '/', label: 'Inicio', icon: <LayoutDashboard size={24} /> },
     { path: '/calendario', label: 'Calendario', icon: <CalendarIcon size={24} /> },
   ];
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+
+  const BellButton = ({ size = 22 }) => (
+    <button 
+      onClick={() => setShowNotifPanel(!showNotifPanel)}
+      style={{background: 'none', border: 'none', cursor: 'pointer', padding: '8px', position: 'relative'}}
+    >
+      <Bell size={size} color={pendingNotifications.length > 0 ? '#ef4444' : '#64748b'} />
+      {pendingNotifications.length > 0 && (
+        <span style={{
+          position: 'absolute', top: '0px', right: '0px',
+          background: '#ef4444', color: 'white', borderRadius: '999px',
+          fontSize: '0.6rem', fontWeight: '800', minWidth: '18px', height: '18px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: '0 4px', lineHeight: 1
+        }}>{pendingNotifications.length}</span>
+      )}
+    </button>
+  );
+
+  const renderNotifCard = (n, isPending) => {
+    const f = parseFecha(n.fecha);
+    const treatDate = new Date(f);
+    const dueDate = new Date(treatDate);
+    dueDate.setDate(dueDate.getDate() + (n.recordatorio_dias || 15));
+    const diasPasados = Math.floor((new Date() - dueDate) / (1000 * 60 * 60 * 24));
+
+    return (
+      <div key={n.id} style={{
+        padding: '14px 16px', borderRadius: '14px',
+        background: isPending ? '#fef2f2' : '#f0fdf4',
+        border: `1px solid ${isPending ? '#fecaca' : '#bbf7d0'}`,
+        borderLeft: `4px solid ${isPending ? '#ef4444' : '#22c55e'}`,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px'
+      }}>
+        <div style={{flex: 1, minWidth: 0}}>
+          <div style={{fontWeight: '700', color: '#0f172a', marginBottom: '2px', fontSize: '0.92rem'}}>
+            {n.cliente_nombre || 'Cliente'}
+          </div>
+          <div style={{fontSize: '0.78rem', color: '#475569'}}>
+            {n.tipo_tratamiento} · Hace {diasPasados} día{diasPasados !== 1 ? 's' : ''}
+          </div>
+        </div>
+        {isPending ? (
+          <button 
+            onClick={() => handleMarkCollected(n.id)}
+            style={{
+              background: '#22c55e', color: 'white', border: 'none', borderRadius: '10px',
+              padding: '8px 14px', cursor: 'pointer', fontWeight: '700', fontSize: '0.78rem',
+              display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', flexShrink: 0
+            }}
+          >
+            <CheckCircle2 size={16} /> Listo
+          </button>
+        ) : (
+          <button 
+            onClick={() => handleUnmarkCollected(n.id)}
+            style={{
+              background: 'none', border: '1px solid #d1d5db', borderRadius: '999px',
+              width: '32px', height: '32px', cursor: 'pointer', display: 'flex',
+              alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#94a3b8',
+              fontSize: '0.85rem'
+            }}
+            title="Desmarcar"
+          >
+            ↺
+          </button>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="layout-container">
@@ -95,25 +184,8 @@ const Layout = ({ children }) => {
             </div>
           )}
           
-          <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-            <div style={{position: 'relative'}}>
-              <button 
-                className="notif-bell-btn"
-                onClick={() => setShowNotifPanel(!showNotifPanel)}
-                style={{background: 'none', border: 'none', cursor: 'pointer', padding: '8px', position: 'relative'}}
-              >
-                <Bell size={22} color="#64748b" />
-                {notifications.length > 0 && (
-                  <span style={{
-                    position: 'absolute', top: '2px', right: '2px',
-                    background: '#ef4444', color: 'white', borderRadius: '999px',
-                    fontSize: '0.65rem', fontWeight: '800', minWidth: '18px', height: '18px',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    padding: '0 4px', lineHeight: 1
-                  }}>{notifications.length}</span>
-                )}
-              </button>
-            </div>
+          <div style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
+            <BellButton size={22} />
             <button className="menu-btn" onClick={toggleSidebar}>
               {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -127,6 +199,9 @@ const Layout = ({ children }) => {
           <div className="sidebar-header">
             <div className="logo-icon">A</div>
             <h2>Agendapp</h2>
+            <div style={{marginLeft: 'auto'}}>
+              <BellButton size={20} />
+            </div>
           </div>
         )}
         <nav className="sidebar-nav">
@@ -162,33 +237,6 @@ const Layout = ({ children }) => {
             </button>
           )}
         </div>
-        
-        <div style={{padding: '16px', borderTop: '1px solid rgba(255,255,255,0.1)'}}>
-          <button 
-            onClick={() => setShowNotifPanel(!showNotifPanel)}
-            style={{
-              width: '100%', display: 'flex', alignItems: 'center', gap: '12px',
-              background: notifications.length > 0 ? 'rgba(239, 68, 68, 0.1)' : 'transparent',
-              border: 'none', borderRadius: '12px', padding: '12px',
-              cursor: 'pointer', color: notifications.length > 0 ? '#ef4444' : '#94a3b8',
-              fontSize: '0.9rem', fontWeight: '600', transition: 'all 0.2s'
-            }}
-          >
-            <div style={{position: 'relative'}}>
-              <Bell size={20} />
-              {notifications.length > 0 && (
-                <span style={{
-                  position: 'absolute', top: '-4px', right: '-6px',
-                  background: '#ef4444', color: 'white', borderRadius: '999px',
-                  fontSize: '0.6rem', fontWeight: '800', minWidth: '16px', height: '16px',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  padding: '0 3px'
-                }}>{notifications.length}</span>
-              )}
-            </div>
-            <span>Recordatorios</span>
-          </button>
-        </div>
       </aside>
 
       {/* Main Content Area */}
@@ -223,6 +271,7 @@ const Layout = ({ children }) => {
       {isAdmin && <UniversalForm />}
       {!isAdmin && <style>{`.admin-only { display: none !important; }`}</style>}
 
+      {/* Panel de Notificaciones */}
       {showNotifPanel && (
         <div style={{
           position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
@@ -236,45 +285,40 @@ const Layout = ({ children }) => {
             boxShadow: '0 20px 60px rgba(0,0,0,0.15)'
           }} onClick={e => e.stopPropagation()}>
             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'}}>
-              <h2 style={{fontSize: '1.2rem', fontWeight: '800', color: '#0f172a'}}>🔔 Recordatorios de Muestras</h2>
+              <h2 style={{fontSize: '1.2rem', fontWeight: '800', color: '#0f172a'}}>🔔 Avisos de Muestra</h2>
               <button onClick={() => setShowNotifPanel(false)} style={{background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#94a3b8'}}>&times;</button>
             </div>
-            {notifications.length === 0 ? (
-              <div style={{textAlign: 'center', padding: '40px 20px', color: '#94a3b8'}}>
-                <Bell size={40} style={{marginBottom: '12px', opacity: 0.4}} />
-                <p style={{fontWeight: '600'}}>No hay recordatorios pendientes</p>
-                <p style={{fontSize: '0.85rem'}}>Cuando un tratamiento cumpla el plazo de muestras, aparecerá aquí.</p>
+
+            {/* Pendientes */}
+            {pendingNotifications.length === 0 ? (
+              <div style={{textAlign: 'center', padding: '24px 16px', color: '#22c55e', background: '#f0fdf4', borderRadius: '12px', marginBottom: '16px'}}>
+                <p style={{fontWeight: '700', fontSize: '0.95rem', margin: 0}}>Sin pendientes.</p>
               </div>
             ) : (
-              <div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
-                {notifications.map((n, i) => {
-                  let f = n.fecha;
-                  if (f && f.includes('/')) {
-                    const parts = f.split('/');
-                    f = `${parts[2]}-${parts[1]}-${parts[0]}`;
-                  }
-                  const treatDate = new Date(f);
-                  const dueDate = new Date(treatDate);
-                  dueDate.setDate(dueDate.getDate() + (n.recordatorio_dias || 15));
-                  const diasPasados = Math.floor((new Date() - dueDate) / (1000 * 60 * 60 * 24));
-                  return (
-                    <div key={n.id || i} style={{
-                      padding: '16px', borderRadius: '14px',
-                      background: '#fef2f2', border: '1px solid #fecaca',
-                      borderLeft: '4px solid #ef4444'
-                    }}>
-                      <div style={{fontWeight: '700', color: '#0f172a', marginBottom: '4px'}}>
-                        {n.cliente_nombre || 'Cliente'}
-                      </div>
-                      <div style={{fontSize: '0.82rem', color: '#475569', marginBottom: '6px'}}>
-                        Tratamiento: <strong>{n.tipo_tratamiento}</strong> — {n.fecha}
-                      </div>
-                      <div style={{fontSize: '0.78rem', color: '#ef4444', fontWeight: '700'}}>
-                        ⚠️ Muestra pendiente desde hace {diasPasados} día{diasPasados !== 1 ? 's' : ''}
-                      </div>
-                    </div>
-                  );
-                })}
+              <div style={{display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px'}}>
+                {pendingNotifications.map(n => renderNotifCard(n, true))}
+              </div>
+            )}
+
+            {/* Resueltos */}
+            {resolvedNotifications.length > 0 && (
+              <div>
+                <button 
+                  onClick={() => setShowResueltos(!showResueltos)}
+                  style={{
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    color: '#64748b', fontSize: '0.85rem', fontWeight: '600',
+                    display: 'flex', alignItems: 'center', gap: '6px',
+                    padding: '8px 0', width: '100%'
+                  }}
+                >
+                  {showResueltos ? '▾' : '▸'} {showResueltos ? 'Ocultar' : 'Mostrar'} resueltos ({resolvedNotifications.length})
+                </button>
+                {showResueltos && (
+                  <div style={{display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px'}}>
+                    {resolvedNotifications.map(n => renderNotifCard(n, false))}
+                  </div>
+                )}
               </div>
             )}
           </div>

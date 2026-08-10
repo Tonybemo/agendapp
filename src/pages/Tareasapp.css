@@ -556,23 +556,41 @@
   }
   .taskflow-grid {
     padding: 8px;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    overflow-x: hidden;
   }
   .tf-card {
     border-radius: 10px;
+    overflow: hidden;
+    min-width: 0;
   }
   .tf-card-header {
-    padding: 10px 12px;
+    padding: 8px 10px;
   }
   .tf-card-header h3 {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .tf-task-row {
-    padding: 6px 12px;
-    font-size: 0.78rem;
+    padding: 5px 10px;
+    font-size: 0.72rem;
+  }
+  .tf-task-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .tf-card-footer {
-    padding: 8px 12px;
+    padding: 6px 10px;
+    font-size: 0.72rem;
+  }
+  .check-icon {
+    flex-shrink: 0;
+  }
+  .empty-circle {
+    flex-shrink: 0;
   }
 }
