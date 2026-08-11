@@ -24,16 +24,16 @@ const Catalogo = () => {
     e.preventDefault();
     setIsSavingProduct(true);
     const { error } = await supabase.from('productos').update({
-      name: editingProduct.name,
+      nombre: editingProduct.name,
       badge: editingProduct.badge,
       registro: editingProduct.registro,
       lote: editingProduct.lote,
-      materiaActiva: editingProduct.materiaActiva,
-      plagaDiana: editingProduct.plagaDiana,
-      metodoAplicacion: editingProduct.metodoAplicacion,
+      materia_activa: editingProduct.materiaActiva,
+      plaga_diana: editingProduct.plagaDiana,
+      metodo_aplicacion: editingProduct.metodoAplicacion,
       caducidad: editingProduct.caducidad,
-      plazoSeguridad: editingProduct.plazoSeguridad,
-      hasWarning: editingProduct.hasWarning
+      plazo_seguridad: editingProduct.plazoSeguridad,
+      has_warning: editingProduct.hasWarning
     }).eq('id', editingProduct.id);
     
     setIsSavingProduct(false);
