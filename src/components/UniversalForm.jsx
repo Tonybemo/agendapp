@@ -739,7 +739,7 @@ const UniversalForm = () => {
 
   // Auto-fetch paradas del día seleccionado
   useEffect(() => {
-    if (activeForm !== 'jornada' || !jornadaFecha) return;
+    if (selectedType !== 'jornada' || !jornadaFecha) return;
     
     const fetchParadasDelDia = async () => {
       // Convertir YYYY-MM-DD a DD/MM/YYYY para buscar en Supabase
@@ -797,7 +797,7 @@ const UniversalForm = () => {
     };
     
     fetchParadasDelDia();
-  }, [activeForm, jornadaFecha]);
+  }, [selectedType, jornadaFecha]);
 
   const renderJornadaForm = () => {
     const opcionesRuta = [...clientesGlobales.map(c => c.name), 'Ir a por garrafas', 'Mantenimiento furgoneta', 'Almacén'];
