@@ -343,12 +343,12 @@ const Tareasapp = () => {
             <div className="global-progress">
               <div className="progress-texts">
                 <span className="prog-label">Progreso Mensual</span>
-                <span className="prog-value-green">{globalProgress}% Clientes</span>
+                <span className="prog-value-green">{globalProgress}%</span>
               </div>
               <div className="progress-bar-bg">
                 <div className="progress-bar-fill" style={{width: `${globalProgress}%`}}></div>
               </div>
-              <p className="prog-subtext">{completadosCount} de {totalClientes} completados al 100%</p>
+              <p className="prog-subtext">{completadosCount} de {totalActuaciones} actuaciones completadas</p>
             </div>
             <div className="big-percentage">{globalProgress}%</div>
           </div>
@@ -371,7 +371,7 @@ const Tareasapp = () => {
               className={`pill-btn ${filter === 'Todos' ? 'active' : ''}`}
               onClick={() => setFilter('Todos')}
             >
-              Todos ({totalClientes})
+              Todos ({totalActuaciones})
             </button>
             <button 
               className={`pill-btn ${filter === 'Pendientes' ? 'active' : ''}`}
