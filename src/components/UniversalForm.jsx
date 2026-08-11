@@ -772,7 +772,7 @@ const UniversalForm = () => {
       // 4. Tareas completadas ese día (fecha dentro de tareas_json)
       const { data: tareasData } = await supabase
         .from('tareas_programadas')
-        .select('tareas_json, clientes(name)');
+        .select('tareas_json, frecuencia, clientes(name)');
       if (tareasData) {
         tareasData.forEach(tp => {
           let tareas = tp.tareas_json;
@@ -781,8 +781,15 @@ const UniversalForm = () => {
           }
           if (Array.isArray(tareas)) {
             const hasCompletedToday = tareas.some(t => t.status === 'completed' && t.date === fechaES);
-            if (hasCompletedToday && tp.clientes?.name) {
-              nombres.add(tp.clientes.name);
+            if (hasCompletedToday) {
+              // Cliente puntual: nombre en frecuencia (formato "puntual: NombreCliente")
+              if (tp.frecuencia && tp.frecuencia.includes(':')) {
+                const nombrePuntual = tp.frecuencia.split(':').slice(1).join(':').trim();
+                if (nombrePuntual) nombres.add(nombrePuntual);
+              } else if (tp.clientes?.name) {
+                // Cliente normal del gestor global
+                nombres.add(tp.clientes.name);
+              }
             }
           }
         });
