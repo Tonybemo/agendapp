@@ -769,6 +769,16 @@ const UniversalForm = () => {
         .eq('fecha', fechaES);
       if (plagas) plagas.forEach(p => { if (p.cliente_nombre) nombres.add(p.cliente_nombre); });
       
+      // 4. Avisos Mapfre del día (fecha en formato YYYY-MM-DD)
+      const { data: avisos } = await supabase
+        .from('avisomap_avisos')
+        .select('localidad, fecha')
+        .eq('fecha', jornadaFecha);
+      if (avisos) avisos.forEach(a => {
+        const localidad = a.localidad ? a.localidad.trim() : 'Sin localidad';
+        nombres.add(`Aviso Mapfre ${localidad}`);
+      });
+      
       // 4. Tareas completadas ese día (fecha dentro de tareas_json)
       const { data: tareasData } = await supabase
         .from('tareas_programadas')
