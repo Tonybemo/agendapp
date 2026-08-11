@@ -63,6 +63,10 @@ const UniversalForm = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [avisoFileName, setAvisoFileName] = useState('');
   const [jornadaParadas, setJornadaParadas] = useState([]);
+  const [jornadaFecha, setJornadaFecha] = useState(() => {
+    const d = new Date();
+    return d.toISOString().split('T')[0];
+  });
   
   const searchAddress = (query) => {
     setAddressQuery(query);
@@ -371,6 +375,7 @@ const UniversalForm = () => {
     setAddressSuggestions([]);
     setAvisoFileName('');
     setJornadaParadas([]);
+    setJornadaFecha(new Date().toISOString().split('T')[0]);
   };
 
   const handleGuardarMuestra = async (e) => {
@@ -732,6 +737,68 @@ const UniversalForm = () => {
       </div>
   );
 
+  // Auto-fetch paradas del día seleccionado
+  useEffect(() => {
+    if (activeForm !== 'jornada' || !jornadaFecha) return;
+    
+    const fetchParadasDelDia = async () => {
+      // Convertir YYYY-MM-DD a DD/MM/YYYY para buscar en Supabase
+      const [y, m, d] = jornadaFecha.split('-');
+      const fechaES = `${d}/${m}/${y}`;
+      
+      const nombres = new Set();
+      
+      // 1. Tratamientos del día
+      const { data: tratamientos } = await supabase
+        .from('aquapp_tratamientos')
+        .select('cliente_nombre')
+        .eq('fecha', fechaES);
+      if (tratamientos) tratamientos.forEach(t => { if (t.cliente_nombre) nombres.add(t.cliente_nombre); });
+      
+      // 2. Muestras del día
+      const { data: muestras } = await supabase
+        .from('aquapp_muestras')
+        .select('cliente_nombre')
+        .eq('fecha', fechaES);
+      if (muestras) muestras.forEach(m => { if (m.cliente_nombre) nombres.add(m.cliente_nombre); });
+      
+      // 3. Plagas del día
+      const { data: plagas } = await supabase
+        .from('aquapp_plagas')
+        .select('cliente_nombre')
+        .eq('fecha', fechaES);
+      if (plagas) plagas.forEach(p => { if (p.cliente_nombre) nombres.add(p.cliente_nombre); });
+      
+      // 4. Tareas completadas ese día (fecha dentro de tareas_json)
+      const { data: tareasData } = await supabase
+        .from('tareas_programadas')
+        .select('tareas_json, clientes(name)');
+      if (tareasData) {
+        tareasData.forEach(tp => {
+          let tareas = tp.tareas_json;
+          if (typeof tareas === 'string') {
+            try { tareas = JSON.parse(tareas); } catch(e) { return; }
+          }
+          if (Array.isArray(tareas)) {
+            const hasCompletedToday = tareas.some(t => t.status === 'completed' && t.date === fechaES);
+            if (hasCompletedToday && tp.clientes?.name) {
+              nombres.add(tp.clientes.name);
+            }
+          }
+        });
+      }
+      
+      if (nombres.size > 0) {
+        setJornadaParadas(prev => {
+          const combined = new Set([...nombres, ...prev]);
+          return [...combined];
+        });
+      }
+    };
+    
+    fetchParadasDelDia();
+  }, [activeForm, jornadaFecha]);
+
   const renderJornadaForm = () => {
     const opcionesRuta = [...clientesGlobales.map(c => c.name), 'Ir a por garrafas', 'Mantenimiento furgoneta', 'Almacén'];
     const typeInfo = formTypes.find(t => t.id === 'jornada');
@@ -762,7 +829,7 @@ const UniversalForm = () => {
       <form className="uf-form-content" onSubmit={handleGuardarJornada}>
         <div className="uf-form-group">
           <label>Fecha</label>
-          <input type="date" name="fecha" className="uf-input-basic" defaultValue={getHoyInput()} required />
+          <input type="date" name="fecha" className="uf-input-basic" value={jornadaFecha} onChange={(e) => { setJornadaFecha(e.target.value); setJornadaParadas([]); }} required />
         </div>
 
         <div className="uf-form-row">
