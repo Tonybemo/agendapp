@@ -36,24 +36,57 @@ const Dashboard = () => {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  const parseDateForSort = (fechaStr) => {
+    if (!fechaStr) return new Date(0);
+    if (fechaStr.includes('T')) return new Date(fechaStr);
+    if (fechaStr.includes('/')) {
+      const [d,m,y] = fechaStr.split('/');
+      return new Date(y, m-1, d);
+    }
+    return new Date(fechaStr);
+  };
+
+  const formatDatePretty = (fechaStr) => {
+    if (!fechaStr) return '';
+    const d = parseDateForSort(fechaStr);
+    if (isNaN(d.getTime())) return fechaStr;
+    return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+  };
+
   const handleSelectClient = async (cliente) => {
     setSelectedClient(cliente);
     setSearchQuery('');
     setSearchResults([]);
     setLoadingDetails(true);
     
-    const currentYear = new Date().getFullYear().toString();
-    
-    const [muestrasRes, tratRes, tareasRes] = await Promise.all([
-      supabase.from('aquapp_muestras').select('*').eq('cliente_id', cliente.id).order('fecha', { ascending: false }).limit(3),
-      supabase.from('aquapp_tratamientos').select('*').eq('cliente_id', cliente.id).order('fecha', { ascending: false }).limit(3),
-      supabase.from('tareas_programadas').select('*').eq('cliente_id', cliente.id).eq('año', currentYear)
+    const [muestrasRes, tratRes] = await Promise.all([
+      supabase.from('aquapp_muestras').select('fecha').eq('cliente_id', cliente.id),
+      supabase.from('aquapp_tratamientos').select('*').eq('cliente_id', cliente.id).order('fecha', { ascending: false }).limit(3)
     ]);
     
+    let resumenMuestras = [];
+    if (muestrasRes.data) {
+      const mesesNombres = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+      const conteoMap = new Map();
+      
+      muestrasRes.data.forEach(m => {
+        const d = parseDateForSort(m.fecha);
+        if (!isNaN(d.getTime())) {
+          const sortKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+          const label = `${mesesNombres[d.getMonth()]} ${d.getFullYear()}`;
+          if (!conteoMap.has(sortKey)) {
+            conteoMap.set(sortKey, { label, count: 0, sortKey });
+          }
+          conteoMap.get(sortKey).count++;
+        }
+      });
+      
+      resumenMuestras = Array.from(conteoMap.values()).sort((a, b) => b.sortKey.localeCompare(a.sortKey));
+    }
+
     setClientDetails({
-      muestras: muestrasRes.data || [],
-      tratamientos: tratRes.data || [],
-      tareas: tareasRes.data || []
+      muestrasResumen: resumenMuestras,
+      tratamientos: tratRes.data || []
     });
     setLoadingDetails(false);
   };
@@ -268,36 +301,25 @@ const Dashboard = () => {
                       <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
                         {clientDetails.tratamientos.map(t => (
                           <div key={t.id} style={{background: '#f8fafc', padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: '0.9rem'}}>
-                            <strong>{t.fecha}</strong> - {t.tipo_tratamiento}
+                            <strong>{formatDatePretty(t.fecha)}</strong> - {t.tipo_tratamiento.replace(/_/g, ' ')}
                           </div>
                         ))}
                       </div>
                     )}
                   </div>
                   
-                  {/* Muestras */}
+                  {/* Muestras (Resumen) */}
                   <div>
-                    <h3 style={{fontSize: '1rem', fontWeight: 700, color: '#334155', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px'}}><Droplet size={16} color="#10b981"/> Últimas Muestras</h3>
-                    {clientDetails.muestras.length === 0 ? <p style={{color: '#94a3b8', fontSize: '0.9rem', margin: 0}}>No hay muestras recientes.</p> : (
+                    <h3 style={{fontSize: '1rem', fontWeight: 700, color: '#334155', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px'}}><Droplet size={16} color="#10b981"/> Resumen de Muestras</h3>
+                    {clientDetails.muestrasResumen.length === 0 ? <p style={{color: '#94a3b8', fontSize: '0.9rem', margin: 0}}>No hay muestras registradas.</p> : (
                       <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
-                        {clientDetails.muestras.map(m => (
-                          <div key={m.id} style={{background: '#f8fafc', padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: '0.9rem'}}>
-                            <strong>{m.fecha}</strong> - {m.tipo_muestra} (Envase: {m.cod_envase || 'N/A'})
+                        {clientDetails.muestrasResumen.map((m, idx) => (
+                          <div key={idx} style={{background: '#f8fafc', padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: '0.9rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                            <strong style={{textTransform: 'capitalize'}}>{m.label}</strong>
+                            <span style={{background: '#d1fae5', color: '#047857', padding: '4px 10px', borderRadius: '20px', fontWeight: 'bold'}}>
+                              {m.count} {m.count === 1 ? 'muestra' : 'muestras'}
+                            </span>
                           </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Tareas */}
-                  <div>
-                    <h3 style={{fontSize: '1rem', fontWeight: 700, color: '#334155', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px'}}><CalendarCheck size={16} color="#f59e0b"/> Tareas Asignadas ({new Date().getFullYear()})</h3>
-                    {clientDetails.tareas.length === 0 ? <p style={{color: '#94a3b8', fontSize: '0.9rem', margin: 0}}>No tiene tareas programadas este año.</p> : (
-                      <div style={{display: 'flex', flexWrap: 'wrap', gap: '8px'}}>
-                        {clientDetails.tareas.map(t => (
-                          <span key={t.id} style={{background: '#fffbeb', color: '#b45309', padding: '6px 12px', borderRadius: '999px', fontSize: '0.8rem', fontWeight: 600, border: '1px solid #fde68a'}}>
-                            {t.mes}
-                          </span>
                         ))}
                       </div>
                     )}
