@@ -15,6 +15,7 @@ const Dashboard = () => {
   const [selectedClient, setSelectedClient] = useState(null);
   const [clientDetails, setClientDetails] = useState(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
+  const [expandedYears, setExpandedYears] = useState({});
 
   useEffect(() => {
     const searchClientes = async () => {
@@ -72,17 +73,30 @@ const Dashboard = () => {
       muestrasRes.data.forEach(m => {
         const d = parseDateForSort(m.fecha);
         if (!isNaN(d.getTime())) {
-          const sortKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-          const label = `${mesesNombres[d.getMonth()]} ${d.getFullYear()}`;
-          if (!conteoMap.has(sortKey)) {
-            conteoMap.set(sortKey, { label, count: 0, sortKey });
+          const year = d.getFullYear().toString();
+          const sortKey = `${year}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+          const label = mesesNombres[d.getMonth()];
+          
+          if (!conteoMap.has(year)) {
+            conteoMap.set(year, new Map());
           }
-          conteoMap.get(sortKey).count++;
+          
+          const yearMap = conteoMap.get(year);
+          if (!yearMap.has(sortKey)) {
+            yearMap.set(sortKey, { label, count: 0, sortKey });
+          }
+          yearMap.get(sortKey).count++;
         }
       });
       
-      resumenMuestras = Array.from(conteoMap.values()).sort((a, b) => b.sortKey.localeCompare(a.sortKey));
+      const yearsSorted = Array.from(conteoMap.keys()).sort((a, b) => b.localeCompare(a));
+      resumenMuestras = yearsSorted.map(year => {
+        const months = Array.from(conteoMap.get(year).values()).sort((a, b) => b.sortKey.localeCompare(a.sortKey));
+        return { year, months };
+      });
     }
+
+    setExpandedYears({});
 
     setClientDetails({
       muestrasResumen: resumenMuestras,
@@ -313,14 +327,39 @@ const Dashboard = () => {
                     <h3 style={{fontSize: '1rem', fontWeight: 700, color: '#334155', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px'}}><Droplet size={16} color="#10b981"/> Resumen de Muestras</h3>
                     {clientDetails.muestrasResumen.length === 0 ? <p style={{color: '#94a3b8', fontSize: '0.9rem', margin: 0}}>No hay muestras registradas.</p> : (
                       <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
-                        {clientDetails.muestrasResumen.map((m, idx) => (
-                          <div key={idx} style={{background: '#f8fafc', padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: '0.9rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                            <strong style={{textTransform: 'capitalize'}}>{m.label}</strong>
-                            <span style={{background: '#d1fae5', color: '#047857', padding: '4px 10px', borderRadius: '20px', fontWeight: 'bold'}}>
-                              {m.count} {m.count === 1 ? 'muestra' : 'muestras'}
-                            </span>
-                          </div>
-                        ))}
+                        {clientDetails.muestrasResumen.map((yearGroup) => {
+                          const isExpanded = expandedYears[yearGroup.year];
+                          return (
+                            <div key={yearGroup.year} style={{background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden'}}>
+                              <div 
+                                onClick={() => setExpandedYears(prev => ({...prev, [yearGroup.year]: !prev[yearGroup.year]}))}
+                                style={{
+                                  padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                  cursor: 'pointer', background: isExpanded ? '#f1f5f9' : 'transparent', transition: 'background 0.2s'
+                                }}
+                              >
+                                <strong style={{color: '#0f172a'}}>Año {yearGroup.year}</strong>
+                                <span style={{display: 'flex', alignItems: 'center', gap: '8px', color: '#64748b', fontSize: '0.9rem', fontWeight: 'bold'}}>
+                                  {yearGroup.months.reduce((acc, curr) => acc + curr.count, 0)} muestras
+                                  <ChevronRight size={18} style={{transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s'}} />
+                                </span>
+                              </div>
+                              
+                              {isExpanded && (
+                                <div style={{padding: '0 16px 12px 16px', display: 'flex', flexDirection: 'column', gap: '8px'}}>
+                                  {yearGroup.months.map((m, idx) => (
+                                    <div key={idx} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderTop: idx === 0 ? 'none' : '1px solid #e2e8f0'}}>
+                                      <span style={{textTransform: 'capitalize', color: '#475569'}}>{m.label}</span>
+                                      <span style={{background: '#d1fae5', color: '#047857', padding: '4px 10px', borderRadius: '20px', fontWeight: 'bold', fontSize: '0.85rem'}}>
+                                        {m.count} {m.count === 1 ? 'muestra' : 'muestras'}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
