@@ -524,7 +524,7 @@ const Workapp = () => {
     <header className="workapp-header">
       <div className="wa-logo-container">
         <div className="wa-logo-icon">
-          <Briefcase size={20} color="white" />
+          <Briefcase size={20} color="var(--bg-card)" />
         </div>
         <div className="wa-logo-text">
           <h1>WorkApp <span className="wa-version">v1.3</span></h1>
@@ -546,7 +546,7 @@ const Workapp = () => {
         </div>
 
         <div className="wa-search-box">
-          <SearchIcon size={18} color="#8b5cf6" />
+          <SearchIcon size={18} color="var(--accent-estadisticas)" />
           <input 
             type="text" 
             placeholder="Buscar por ruta o matrícula..." 
@@ -558,9 +558,9 @@ const Workapp = () => {
 
 
         {loading ? (
-          <div style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>Cargando jornadas...</div>
+          <div style={{textAlign: 'center', padding: '40px', color: 'var(--text-muted)'}}>Cargando jornadas...</div>
         ) : grouped.length === 0 ? (
-          <div style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>
+          <div style={{textAlign: 'center', padding: '40px', color: 'var(--text-muted)'}}>
             {searchQuery ? 'No se encontraron resultados.' : 'Aún no hay jornadas registradas. Pulsa el botón + para crear la primera.'}
           </div>
         ) : (
@@ -647,7 +647,7 @@ const Workapp = () => {
                                   <div className="wa-card-actions">
                                     {reg.adjunto && (
                                       <a href={reg.adjunto} target="_blank" rel="noopener noreferrer" className="wa-action-btn" style={{display:'flex',alignItems:'center',justifyContent:'center'}}>
-                                        <Paperclip size={16} color="#8b5cf6" />
+                                        <Paperclip size={16} color="var(--accent-estadisticas)" />
                                       </a>
                                     )}
                                     <button className="wa-action-btn" onClick={() => handleOpenEdit(reg)}>
@@ -700,24 +700,24 @@ const Workapp = () => {
       </div>
 
       <div style={{display: 'inline-block', marginBottom: '24px'}}>
-        <div className="wa-date-pill" style={{display: 'flex', alignItems: 'center', gap: '8px', background: '#6d28d9', color: 'white', position: 'relative'}}>
+        <div className="wa-date-pill" style={{display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--accent-estadisticas)', color: 'var(--bg-card)', position: 'relative'}}>
           <Calendar size={16} />
           <select
             value={nominaYearFilter}
             onChange={(e) => setNominaYearFilter(e.target.value)}
             style={{
               appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none',
-              background: 'transparent', border: 'none', color: 'white',
+              background: 'transparent', border: 'none', color: 'var(--bg-card)',
               fontWeight: 800, fontSize: '1rem', cursor: 'pointer', outline: 'none',
               paddingRight: '20px'
             }}
           >
-            <option value="all" style={{color: '#0f172a'}}>Todos</option>
+            <option value="all" style={{color: 'var(--text-main)'}}>Todos</option>
             {[...new Set([new Date().getFullYear().toString(), ...nominas.map(n => {
                 const match = (n.mes || '').match(/\d{4}/);
                 return match ? match[0] : '';
             })])].filter(Boolean).sort().reverse().map(y => (
-                <option key={y} value={y} style={{color: '#0f172a'}}>{y}</option>
+                <option key={y} value={y} style={{color: 'var(--text-main)'}}>{y}</option>
             ))}
           </select>
           <ChevronDown size={16} style={{pointerEvents: 'none'}} />
@@ -726,13 +726,13 @@ const Workapp = () => {
 
       <div className="wa-record-list" style={{marginTop: 0}}>
         {fetchError && (
-          <div style={{background: '#fef2f2', border: '1px solid #ef4444', color: '#b91c1c', padding: '16px', borderRadius: '12px', textAlign: 'center', fontWeight: 'bold', marginBottom: '16px'}}>
+          <div style={{background: 'var(--color-error-light)', border: '1px solid var(--color-danger)', color: 'var(--color-danger)', padding: '16px', borderRadius: 'var(--radius-sm)', textAlign: 'center', fontWeight: 'bold', marginBottom: '16px'}}>
             Error de conexión: {fetchError}
             <br/><small>Por favor, haz una captura de este error.</small>
           </div>
         )}
         {loadingNominas ? (
-          <div style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>Cargando nóminas...</div>
+          <div style={{textAlign: 'center', padding: '40px', color: 'var(--text-muted)'}}>Cargando nóminas...</div>
         ) : (() => {
           const monthOrder = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
           let filteredNominas = nominaYearFilter === 'all' 
@@ -746,7 +746,7 @@ const Workapp = () => {
             return extractMonth(b.mes) - extractMonth(a.mes);
           });
           return filteredNominas.length === 0 ? (
-            <div style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>
+            <div style={{textAlign: 'center', padding: '40px', color: 'var(--text-muted)'}}>
               {nominas.length === 0 
                 ? 'Aún no hay nóminas registradas. Pulsa CUADRAR para añadir una.'
                 : `No hay nóminas para el año ${nominaYearFilter}.`}
@@ -849,18 +849,18 @@ const Workapp = () => {
                 {modalType === 'edit-jornada' && 'Editar Jornada'}
                 {modalType === 'file' && 'Archivo Adjunto'}
               </h2>
-              <button style={{background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#64748b'}} onClick={() => setModalType(null)}>&times;</button>
+              <button style={{background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: 'var(--text-muted)'}} onClick={() => setModalType(null)}>&times;</button>
             </div>
             
             {/* Cuadrar / Editar Nómina */}
             {(modalType === 'cuadrar' || modalType === 'edit-nomina') && (
               <div>
-                <p style={{fontSize: '0.85rem', color: '#475569', marginBottom: '24px'}}>Introduce el dinero exacto cobrado por horas extras y el día de cierre.</p>
+                <p style={{fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '24px'}}>Introduce el dinero exacto cobrado por horas extras y el día de cierre.</p>
                 
                 <div className="wa-form-group">
                   <label>Importe Extras Nómina (€)</label>
-                  <div style={{display: 'flex', alignItems: 'center', border: '1px solid #cbd5e1', borderRadius: '12px', padding: '0 16px', background: 'white'}}>
-                    <span style={{color: '#64748b', marginRight: '8px', fontSize: '1.2rem'}}>€</span>
+                  <div style={{display: 'flex', alignItems: 'center', border: '1px solid var(--border-input)', borderRadius: 'var(--radius-sm)', padding: '0 16px', background: 'var(--bg-card)'}}>
+                    <span style={{color: 'var(--text-muted)', marginRight: '8px', fontSize: '1.2rem'}}>€</span>
                     <input 
                       type="number" 
                       className="wa-form-input" 
@@ -884,16 +884,16 @@ const Workapp = () => {
 
                 <button 
                   onClick={calculateInicio}
-                  style={{width: '100%', padding: '16px', borderRadius: '12px', border: '2px solid #0f172a', background: 'white', color: '#4338ca', fontWeight: '800', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', marginBottom: '24px'}}
+                  style={{width: '100%', padding: '16px', borderRadius: 'var(--radius-sm)', border: '2px solid var(--text-main)', background: 'var(--bg-card)', color: '#4338ca', fontWeight: '800', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', marginBottom: '24px'}}
                 >
                   <Calendar size={20} /> CALCULAR INICIO
                 </button>
 
                 {prediccion && (
-                  <div style={{background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '12px', padding: '16px', textAlign: 'center', marginBottom: '24px'}}>
-                    <p style={{color: '#059669', fontWeight: '800', fontSize: '0.8rem', letterSpacing: '1px', margin: '0 0 8px 0'}}>RESULTADO PREDICCIÓN</p>
-                    <p style={{color: '#0f172a', fontWeight: '800', fontSize: '1.1rem', margin: '0 0 4px 0'}}>Inicio Estimado: <span style={{color: '#4338ca'}}>{prediccion.inicio_estimado}</span></p>
-                    <p style={{color: '#64748b', fontSize: '0.85rem', margin: 0}}>Suma interna: <strong>{prediccion.suma_interna}€</strong></p>
+                  <div style={{background: 'var(--color-success-light)', border: '1px solid var(--color-success-border)', borderRadius: 'var(--radius-sm)', padding: '16px', textAlign: 'center', marginBottom: '24px'}}>
+                    <p style={{color: 'var(--color-success)', fontWeight: '800', fontSize: '0.8rem', letterSpacing: '1px', margin: '0 0 8px 0'}}>RESULTADO PREDICCIÓN</p>
+                    <p style={{color: 'var(--text-main)', fontWeight: '800', fontSize: '1.1rem', margin: '0 0 4px 0'}}>Inicio Estimado: <span style={{color: '#4338ca'}}>{prediccion.inicio_estimado}</span></p>
+                    <p style={{color: 'var(--text-muted)', fontSize: '0.85rem', margin: 0}}>Suma interna: <strong>{prediccion.suma_interna}€</strong></p>
                   </div>
                 )}
 
@@ -904,7 +904,7 @@ const Workapp = () => {
 
                 <div style={{marginTop: '32px', marginBottom: '16px'}}>
                   <p style={{color: '#4338ca', fontWeight: '800', fontSize: '0.8rem', letterSpacing: '1px', margin: '0 0 4px 0'}}>DATOS EXTRA (OPCIONALES)</p>
-                  <p style={{color: '#64748b', fontSize: '0.8rem', margin: 0}}>Añade estos datos si quieres verlos de un vistazo en la lista.</p>
+                  <p style={{color: 'var(--text-muted)', fontSize: '0.8rem', margin: 0}}>Añade estos datos si quieres verlos de un vistazo en la lista.</p>
                 </div>
 
                 <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px'}}>
@@ -930,9 +930,9 @@ const Workapp = () => {
 
                 <div className="wa-form-group" style={{marginTop: '24px'}}>
                   <label>Adjuntar Nómina (Opcional)</label>
-                  <div style={{display: 'flex', alignItems: 'center', border: '1px solid #cbd5e1', borderRadius: '12px', padding: '12px', background: 'white', gap: '12px', position: 'relative', cursor: 'pointer'}}>
-                    <Paperclip size={20} color="#64748b" />
-                    <span style={{color: '#0f172a', fontWeight: '700', fontSize: '0.9rem'}}>{nominaAdjuntoFile ? nominaAdjuntoFile.name : (modalData?.adjunto ? "Cambiar archivo adjunto actual" : "Elegir archivo")}</span>
+                  <div style={{display: 'flex', alignItems: 'center', border: '1px solid var(--border-input)', borderRadius: 'var(--radius-sm)', padding: '12px', background: 'var(--bg-card)', gap: '12px', position: 'relative', cursor: 'pointer'}}>
+                    <Paperclip size={20} color="var(--text-muted)" />
+                    <span style={{color: 'var(--text-main)', fontWeight: '700', fontSize: '0.9rem'}}>{nominaAdjuntoFile ? nominaAdjuntoFile.name : (modalData?.adjunto ? "Cambiar archivo adjunto actual" : "Elegir archivo")}</span>
                     <input 
                       type="file" 
                       style={{opacity: 0, position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, cursor: 'pointer'}} 
@@ -948,7 +948,7 @@ const Workapp = () => {
                 <button 
                   onClick={handleSaveNomina}
                   disabled={isSaving}
-                  style={{width: '100%', padding: '16px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, #a855f7, #ec4899)', color: 'white', fontWeight: '800', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', marginTop: '24px'}}
+                  style={{width: '100%', padding: '16px', borderRadius: 'var(--radius-sm)', border: 'none', background: 'linear-gradient(135deg, var(--accent-estadisticas), var(--accent-workapp))', color: 'var(--text-on-primary)', fontWeight: '800', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', marginTop: '24px'}}
                 >
                   {isSaving ? 'GUARDANDO...' : 'GUARDAR NÓMINA Y ADJUNTO'}
                 </button>
@@ -1006,7 +1006,7 @@ const Workapp = () => {
                     style={{cursor: 'pointer'}}
                   >
                     <option value="">+ Añadir nueva parada a la ruta...</option>
-                    <option value="_custom_" style={{fontWeight: 'bold', color: '#8b5cf6'}}>+ Escribir parada puntual...</option>
+                    <option value="_custom_" style={{fontWeight: 'bold', color: 'var(--accent-estadisticas)'}}>+ Escribir parada puntual...</option>
                     {['Ir a por garrafas', 'Mantenimiento furgoneta', 'Almacén', ...clientesGlobales.map(c => c.name)].filter(o => !editParadas.includes(o)).map((opcion, i) => (
                       <option key={i} value={opcion}>{opcion}</option>
                     ))}
@@ -1014,9 +1014,9 @@ const Workapp = () => {
                 </div>
                 <div className="wa-form-group">
                   <label>Archivo Adjunto (Albaranes/Notas)</label>
-                  <div className="wa-form-input" style={{position: 'relative', cursor: 'pointer', padding: '12px', display: 'flex', alignItems: 'center', gap: '8px', background: 'white'}}>
-                    <Paperclip size={16} color="#64748b" />
-                    <strong style={{color: '#0f172a', fontWeight: '500'}}>{editAdjuntoFile ? editAdjuntoFile.name : (editForm.adjunto ? "Cambiar archivo adjunto actual" : "Elegir archivo")}</strong>
+                  <div className="wa-form-input" style={{position: 'relative', cursor: 'pointer', padding: '12px', display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-card)'}}>
+                    <Paperclip size={16} color="var(--text-muted)" />
+                    <strong style={{color: 'var(--text-main)', fontWeight: '500'}}>{editAdjuntoFile ? editAdjuntoFile.name : (editForm.adjunto ? "Cambiar archivo adjunto actual" : "Elegir archivo")}</strong>
                     <input 
                       type="file" 
                       style={{opacity: 0, position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, cursor: 'pointer'}} 
@@ -1039,8 +1039,8 @@ const Workapp = () => {
 
             {modalType === 'file' && (
               <div style={{textAlign: 'center', padding: '20px 0'}}>
-                <Paperclip size={48} color="#cbd5e1" style={{marginBottom: '16px'}} />
-                <p style={{color: '#64748b', fontSize: '1rem', fontWeight: '500'}}>Aún no hay ningún archivo subido o la conexión con la nube está pendiente.</p>
+                <Paperclip size={48} color="var(--text-faint)" style={{marginBottom: '16px'}} />
+                <p style={{color: 'var(--text-muted)', fontSize: '1rem', fontWeight: '500'}}>Aún no hay ningún archivo subido o la conexión con la nube está pendiente.</p>
                 <button className="wa-btn-save" style={{marginTop: '24px', display: 'inline-flex', alignItems: 'center', gap: '8px'}}>
                    <Plus size={18} /> Subir Documento
                 </button>
@@ -1057,25 +1057,25 @@ const Workapp = () => {
           <div className="wa-modal-content animate-fade-in" onClick={e => e.stopPropagation()} style={{maxHeight: '90vh', overflowY: 'auto'}}>
             <div className="wa-modal-header" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
               <h2>Configuración</h2>
-              <button style={{background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#64748b'}} onClick={() => setIsSettingsOpen(false)}>&times;</button>
+              <button style={{background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: 'var(--text-muted)'}} onClick={() => setIsSettingsOpen(false)}>&times;</button>
             </div>
             
             <div className="wa-form-group">
               <label>Tarifa Hora Extra (€/h)</label>
-              <div style={{display: 'flex', alignItems: 'center', border: '1px solid #cbd5e1', borderRadius: '12px', padding: '0 16px'}}>
-                <span style={{color: '#64748b', marginRight: '8px'}}>€</span>
+              <div style={{display: 'flex', alignItems: 'center', border: '1px solid var(--border-input)', borderRadius: 'var(--radius-sm)', padding: '0 16px'}}>
+                <span style={{color: 'var(--text-muted)', marginRight: '8px'}}>€</span>
                 <input 
                   type="number" 
                   value={tarifaHora} 
                   onChange={(e) => setTarifaHora(e.target.value)}
-                  style={{border: 'none', outline: 'none', width: '100%', fontSize: '1.2rem', color: '#0f172a', padding: '12px 0'}}
+                  style={{border: 'none', outline: 'none', width: '100%', fontSize: '1.2rem', color: 'var(--text-main)', padding: '12px 0'}}
                 />
               </div>
             </div>
 
             <button 
               onClick={() => setIsSettingsOpen(false)}
-              style={{width: '100%', background: 'linear-gradient(135deg, #a855f7, #ec4899)', color: 'white', border: 'none', padding: '16px', borderRadius: '12px', fontWeight: 'bold', fontSize: '1rem', cursor: 'pointer', marginTop: '32px'}}
+              style={{width: '100%', background: 'linear-gradient(135deg, var(--accent-estadisticas), var(--accent-workapp))', color: 'var(--text-on-primary)', border: 'none', padding: '16px', borderRadius: 'var(--radius-sm)', fontWeight: 'bold', fontSize: '1rem', cursor: 'pointer', marginTop: '32px'}}
             >
               ✓ GUARDAR AJUSTES
             </button>

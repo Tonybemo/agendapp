@@ -232,11 +232,11 @@ const Avisomap = () => {
                       <div key={monthData.month} className="month-section">
                         <div className="month-header" onClick={() => toggleMonth(yearData.year, monthData.month)}>
                           <div className="month-header-left">
-                            <Calendar size={16} color="#64748b" />
+                            <Calendar size={16} color="var(--text-muted)" />
                             <h3>{monthData.month}</h3>
                             <span className="month-count">({monthData.count} avisos)</span>
                           </div>
-                          {isMonthExpanded ? <ChevronDown size={16} color="#94a3b8"/> : <ChevronRight size={16} color="#94a3b8"/>}
+                          {isMonthExpanded ? <ChevronDown size={16} color="var(--text-faint)"/> : <ChevronRight size={16} color="var(--text-faint)"/>}
                         </div>
 
                         {isMonthExpanded && monthData.avisos && monthData.avisos.length > 0 && (
@@ -259,7 +259,7 @@ const Avisomap = () => {
                               <div key={aviso.id} className="aviso-map-card">
                                 <h4>{aviso.direccion}{aviso.portal ? `, ${aviso.portal}` : ''}</h4>
                                 <div className="aviso-loc">
-                                  <MapPin size={14} color="#22c55e" />
+                                  <MapPin size={14} color="var(--accent-avisomap)" />
                                   <span>{aviso.localidad}</span>
                                 </div>
                                 <div style={{position: 'absolute', top: '16px', right: '16px', display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'flex-end', maxWidth: '60%'}}>
@@ -277,13 +277,13 @@ const Avisomap = () => {
                                   <span><Clock size={14} /> {aviso.hora}</span>
                                 </div>
                                 {aviso.contacto && (
-                                  <div className="aviso-loc" style={{marginTop: '8px', color: '#64748b'}}>
-                                    <Phone size={14} color="#64748b" />
+                                  <div className="aviso-loc" style={{marginTop: '8px', color: 'var(--text-muted)'}}>
+                                    <Phone size={14} color="var(--text-muted)" />
                                     <span>{aviso.contacto}</span>
                                   </div>
                                 )}
                                 {aviso.comentarios && (
-                                  <div style={{marginTop: '12px', fontSize: '0.9rem', color: '#475569', backgroundColor: '#f8fafc', padding: '10px', borderRadius: '8px', borderLeft: '3px solid #cbd5e1', whiteSpace: 'pre-wrap'}}>
+                                  <div style={{marginTop: '12px', fontSize: '0.9rem', color: 'var(--text-secondary)', background: 'var(--bg-input)', padding: '10px', borderRadius: 'var(--radius-sm)', borderLeft: '3px solid #cbd5e1', whiteSpace: 'pre-wrap'}}>
                                     {aviso.comentarios}
                                   </div>
                                 )}
@@ -295,7 +295,7 @@ const Avisomap = () => {
                                         <Eye size={18} color="#0ea5e9" style={{cursor:'pointer'}} />
                                       </a>
                                     ) : (
-                                      <Eye size={18} color="#cbd5e1" style={{cursor:'not-allowed'}} />
+                                      <Eye size={18} color="var(--text-faint)" style={{cursor:'not-allowed'}} />
                                       )}
                                       {isAdmin && (
                                       <div className="admin-only" style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
@@ -334,7 +334,7 @@ const Avisomap = () => {
       <div className="stats-cards-container">
         <div className="stats-card">
           <div className="stats-card-title">
-            <Bug size={20} color="#22c55e" />
+            <Bug size={20} color="var(--accent-avisomap)" />
             <div>
               <h3>Tipo de Plaga</h3>
               <p>Toca una fila para filtrar</p>
@@ -344,7 +344,7 @@ const Avisomap = () => {
             {plagasStats.map(stat => (
               <div key={stat.name} className="stat-row">
                 <div className="stat-info">
-                  <span className="stat-name"><Bug size={14} color="#64748b"/> {stat.name}</span>
+                  <span className="stat-name"><Bug size={14} color="var(--text-muted)"/> {stat.name}</span>
                   <span className="stat-numbers">{stat.count} avisos</span>
                 </div>
               </div>
@@ -354,7 +354,7 @@ const Avisomap = () => {
 
         <div className="stats-card">
           <div className="stats-card-title">
-            <MapPin size={20} color="#22c55e" />
+            <MapPin size={20} color="var(--accent-avisomap)" />
             <div>
               <h3>Por Localidad</h3>
               <p>Toca una fila para filtrar</p>
@@ -385,7 +385,7 @@ const Avisomap = () => {
         </div>
         
         <div className="am-search">
-          <Search size={18} color="#94a3b8" />
+          <Search size={18} color="var(--text-faint)" />
           <input 
             type="text" 
             placeholder="Buscar por calle, localidad, plaga..." 
@@ -404,57 +404,57 @@ const Avisomap = () => {
 
       {editingAviso && (
         <div className="uf-overlay" onClick={() => setEditingAviso(null)} style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-          <div className="uf-modal animate-fade-in" onClick={e => e.stopPropagation()} style={{background: 'white', padding: '24px', borderRadius: '16px', width: '90%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto'}}>
+          <div className="uf-modal animate-fade-in" onClick={e => e.stopPropagation()} style={{background: 'var(--bg-card)', padding: '24px', borderRadius: 'var(--radius-md)', width: '90%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto'}}>
             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px'}}>
               <h2 style={{margin: 0}}>Editar Aviso</h2>
-              <XCircle size={24} color="#64748b" style={{cursor: 'pointer'}} onClick={() => setEditingAviso(null)} />
+              <XCircle size={24} color="var(--text-muted)" style={{cursor: 'pointer'}} onClick={() => setEditingAviso(null)} />
             </div>
             <form onSubmit={handleSaveEdit} style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
               <div style={{display: 'flex', gap: '12px'}}>
                 <div style={{flex: 2}}>
-                  <label style={{fontSize: '0.8rem', fontWeight: 700, color: '#64748b'}}>DIRECCIÓN</label>
-                  <input type="text" value={editingAviso.direccion || ''} onChange={e => setEditingAviso({...editingAviso, direccion: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1'}} required />
+                  <label style={{fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)'}}>DIRECCIÓN</label>
+                  <input type="text" value={editingAviso.direccion || ''} onChange={e => setEditingAviso({...editingAviso, direccion: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-input)'}} required />
                 </div>
                 <div style={{flex: 1}}>
-                  <label style={{fontSize: '0.8rem', fontWeight: 700, color: '#64748b'}}>PORTAL</label>
-                  <input type="text" value={editingAviso.portal || ''} onChange={e => setEditingAviso({...editingAviso, portal: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1'}} />
+                  <label style={{fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)'}}>PORTAL</label>
+                  <input type="text" value={editingAviso.portal || ''} onChange={e => setEditingAviso({...editingAviso, portal: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-input)'}} />
                 </div>
               </div>
               <div>
-                <label style={{fontSize: '0.8rem', fontWeight: 700, color: '#64748b'}}>LOCALIDAD</label>
-                <input type="text" value={editingAviso.localidad} onChange={e => setEditingAviso({...editingAviso, localidad: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1'}} required />
+                <label style={{fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)'}}>LOCALIDAD</label>
+                <input type="text" value={editingAviso.localidad} onChange={e => setEditingAviso({...editingAviso, localidad: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-input)'}} required />
               </div>
               <div style={{display: 'flex', gap: '12px'}}>
                 <div style={{flex: 1}}>
-                  <label style={{fontSize: '0.8rem', fontWeight: 700, color: '#64748b'}}>FECHA</label>
-                  <input type="date" value={editingAviso.fecha} onChange={e => setEditingAviso({...editingAviso, fecha: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1'}} required />
+                  <label style={{fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)'}}>FECHA</label>
+                  <input type="date" value={editingAviso.fecha} onChange={e => setEditingAviso({...editingAviso, fecha: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-input)'}} required />
                 </div>
                 <div style={{flex: 1}}>
-                  <label style={{fontSize: '0.8rem', fontWeight: 700, color: '#64748b'}}>HORA</label>
-                  <input type="time" value={editingAviso.hora} onChange={e => setEditingAviso({...editingAviso, hora: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1'}} required />
+                  <label style={{fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)'}}>HORA</label>
+                  <input type="time" value={editingAviso.hora} onChange={e => setEditingAviso({...editingAviso, hora: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-input)'}} required />
                 </div>
               </div>
               <div>
-                <label style={{fontSize: '0.8rem', fontWeight: 700, color: '#64748b'}}>CONTACTO</label>
-                <input type="text" value={editingAviso.contacto || ''} onChange={e => setEditingAviso({...editingAviso, contacto: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1'}} />
+                <label style={{fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)'}}>CONTACTO</label>
+                <input type="text" value={editingAviso.contacto || ''} onChange={e => setEditingAviso({...editingAviso, contacto: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-input)'}} />
               </div>
               <div>
-                <label style={{fontSize: '0.8rem', fontWeight: 700, color: '#64748b'}}>PLAGAS (Separadas por comas)</label>
-                <input type="text" value={editingAviso.plagasStr} onChange={e => setEditingAviso({...editingAviso, plagasStr: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1'}} required />
+                <label style={{fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)'}}>PLAGAS (Separadas por comas)</label>
+                <input type="text" value={editingAviso.plagasStr} onChange={e => setEditingAviso({...editingAviso, plagasStr: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-input)'}} required />
               </div>
               <div>
-                <label style={{fontSize: '0.8rem', fontWeight: 700, color: '#64748b'}}>NOTAS / COMENTARIOS</label>
-                <textarea value={editingAviso.comentarios || ''} onChange={e => setEditingAviso({...editingAviso, comentarios: e.target.value})} rows="3" style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1'}}></textarea>
+                <label style={{fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)'}}>NOTAS / COMENTARIOS</label>
+                <textarea value={editingAviso.comentarios || ''} onChange={e => setEditingAviso({...editingAviso, comentarios: e.target.value})} rows="3" style={{width: '100%', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-input)'}}></textarea>
               </div>
               <div>
-                <label style={{fontSize: '0.8rem', fontWeight: 700, color: '#64748b'}}>FOTO / ALBARÁN (Opcional)</label>
-                <div style={{position: 'relative', cursor: 'pointer', background: avisoFileName ? '#f0fdf4' : '#f8fafc', border: avisoFileName ? '2px dashed #22c55e' : '1px solid #cbd5e1', borderRadius: '8px', padding: '12px', display: 'flex', alignItems: 'center', gap: '8px'}}>
-                  <Camera size={16} color={avisoFileName ? "#22c55e" : "#64748b"} />
-                  <strong style={{color: avisoFileName ? "#15803d" : "#475569", fontSize: '0.9rem'}}>{avisoFileName || (editingAviso.adjunto ? 'Cambiar archivo adjunto' : 'Adjuntar archivo nuevo')}</strong>
+                <label style={{fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)'}}>FOTO / ALBARÁN (Opcional)</label>
+                <div style={{position: 'relative', cursor: 'pointer', background: avisoFileName ? 'var(--color-success-light)' : 'var(--bg-input)', border: avisoFileName ? '2px dashed var(--accent-avisomap)' : '1px solid var(--border-input)', borderRadius: 'var(--radius-sm)', padding: '12px', display: 'flex', alignItems: 'center', gap: '8px'}}>
+                  <Camera size={16} color={avisoFileName ? "var(--accent-avisomap)" : "var(--text-muted)"} />
+                  <strong style={{color: avisoFileName ? "#15803d" : "var(--text-secondary)", fontSize: '0.9rem'}}>{avisoFileName || (editingAviso.adjunto ? 'Cambiar archivo adjunto' : 'Adjuntar archivo nuevo')}</strong>
                   <input name="adjuntoEdit" type="file" onChange={(e) => setAvisoFileName(e.target.files[0]?.name || '')} style={{opacity: 0, position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, cursor: 'pointer'}} />
                 </div>
               </div>
-              <button type="submit" disabled={isUploading} style={{padding: '12px', background: 'linear-gradient(135deg, #10b981, #047857)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', marginTop: '8px', opacity: isUploading ? 0.7 : 1}}>
+              <button type="submit" disabled={isUploading} style={{padding: '12px', background: 'linear-gradient(135deg, var(--accent-avisomap), #047857)', color: 'var(--text-on-primary)', border: 'none', borderRadius: 'var(--radius-sm)', fontWeight: 600, cursor: 'pointer', marginTop: '8px', opacity: isUploading ? 0.7 : 1}}>
                 {isUploading ? 'Guardando...' : 'Guardar Cambios'}
               </button>
             </form>

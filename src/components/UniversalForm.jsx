@@ -698,10 +698,10 @@ const UniversalForm = () => {
   }, []);
 
   const formTypes = [
-    { id: 'muestra', title: 'Muestra de Agua', subtitle: 'Aquapp', icon: <Droplet size={28} color="#0284c7" />, bgColor: 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)' },
-    { id: 'aviso', title: 'Aviso de Plaga', subtitle: 'Avisomap', icon: <MapPin size={28} color="#16a34a" />, bgColor: 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)' },
-    { id: 'jornada', title: 'Fichar Jornada', subtitle: 'Workapp', icon: <Briefcase size={28} color="#7c3aed" />, bgColor: 'linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%)' },
-    { id: 'producto', title: 'Nuevo Producto', subtitle: 'Catálogo', icon: <BookOpen size={28} color="#ea580c" />, bgColor: 'linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%)' }
+    { id: 'muestra', title: 'Muestra de Agua', subtitle: 'Aquapp', icon: <Droplet size={28} color="var(--accent-aquapp)" />, bgColor: 'var(--color-info-light)' },
+    { id: 'aviso', title: 'Aviso de Plaga', subtitle: 'Avisomap', icon: <MapPin size={28} color="var(--accent-avisomap)" />, bgColor: 'var(--color-success-light)' },
+    { id: 'jornada', title: 'Fichar Jornada', subtitle: 'Workapp', icon: <Briefcase size={28} color="var(--accent-workapp)" />, bgColor: 'var(--bg-main)' },
+    { id: 'producto', title: 'Nuevo Producto', subtitle: 'Catálogo', icon: <BookOpen size={28} color="var(--accent-catalogo)" />, bgColor: 'var(--color-warning-light)' }
   ];
 
   const handleClose = () => {
@@ -712,7 +712,7 @@ const UniversalForm = () => {
 
   const renderSelector = () => (
       <div className="uf-step animate-fade-in">
-        <h3 style={{fontSize: '1.4rem', fontWeight: 800, marginBottom: '8px', color: '#0f172a'}}>¿Qué deseas registrar?</h3>
+        <h3 style={{fontSize: '1.4rem', fontWeight: 800, marginBottom: '8px', color: 'var(--text-main)'}}>¿Qué deseas registrar?</h3>
         <p className="uf-subtitle" style={{marginBottom: '24px'}}>Selecciona un módulo para añadir datos</p>
         <div className="uf-options-grid">
           {formTypes.map(type => (
@@ -729,7 +729,7 @@ const UniversalForm = () => {
                 <span>{type.subtitle}</span>
               </div>
               <div className="uf-option-arrow">
-                <ChevronRight size={20} color="#cbd5e1" />
+                <ChevronRight size={20} color="var(--text-faint)" />
               </div>
             </div>
           ))}
@@ -863,7 +863,7 @@ const UniversalForm = () => {
         <div className="uf-form-group">
           <label>Matrícula Vehículo</label>
           <div className="uf-input-icon left-icon">
-            <Car size={16} color="#94a3b8" className="icon-l" />
+            <Car size={16} color="var(--text-faint)" className="icon-l" />
             <input type="text" name="matricula" defaultValue="9677MKH" />
           </div>
         </div>
@@ -879,7 +879,7 @@ const UniversalForm = () => {
           </div>
           <select className="uf-select-parada" onChange={handleAddParada}>
             <option value="">+ Añadir nueva parada a la ruta...</option>
-            <option value="_custom_" style={{fontWeight: 'bold', color: '#8b5cf6'}}>+ Escribir parada puntual...</option>
+            <option value="_custom_" style={{fontWeight: 'bold', color: 'var(--accent-workapp)'}}>+ Escribir parada puntual...</option>
             {opcionesRuta.filter(o => !jornadaParadas.includes(o)).map((opcion, i) => (
               <option key={i} value={opcion}>{opcion}</option>
             ))}
@@ -889,7 +889,7 @@ const UniversalForm = () => {
         <div className="uf-form-group">
           <label>Archivo Adjunto (Albaranes/Notas)</label>
           <div className="uf-file-input" style={{position: 'relative', cursor: 'pointer'}}>
-            <FileText size={16} color="#64748b" />
+            <FileText size={16} color="var(--text-muted)" />
             <strong>{avisoFileName || "Elegir archivo"}</strong>
             <input 
               type="file" 
@@ -906,7 +906,7 @@ const UniversalForm = () => {
           </div>
         </div>
 
-        <button type="submit" disabled={isSaving} className="uf-btn-save" style={{ background: 'linear-gradient(135deg, #8b5cf6, #ec4899)' }}>
+        <button type="submit" disabled={isSaving} className="uf-btn-save" style={{ background: 'var(--accent-workapp)' }}>
           <UploadCloud size={20} /> {isSaving ? 'Guardando...' : 'Guardar Jornada'}
         </button>
       </form>
@@ -934,20 +934,20 @@ const UniversalForm = () => {
         <div className="uf-form-group" style={{position: 'relative'}}>
           <label>DIRECCIÓN (CALLE / AVENIDA) *</label>
           <div className="uf-input-icon">
-            <Search size={18} color="#94a3b8" className="icon-l" />
+            <Search size={18} color="var(--text-faint)" className="icon-l" />
             <input name="direccion" type="text" placeholder="Escriba para buscar calle..." required value={addressQuery} onChange={(e) => searchAddress(e.target.value)} autoComplete="off" />
           </div>
           <span className="uf-hint">El buscador sugerirá la calle; añade el portal abajo.</span>
           {addressSuggestions.length > 0 && (
-            <div style={{position: 'absolute', top: '100%', left: 0, right: 0, background: 'white', border: '1px solid #cbd5e1', borderRadius: '8px', zIndex: 10, boxShadow: '0 4px 6px rgba(0,0,0,0.1)', maxHeight: '200px', overflowY: 'auto'}}>
+            <div style={{position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--bg-card)', border: '1px solid var(--border-input)', borderRadius: '8px', zIndex: 10, boxShadow: 'var(--shadow-md)', maxHeight: '200px', overflowY: 'auto'}}>
               {addressSuggestions.map((item, idx) => (
                 <div 
                   key={idx} 
                   onClick={() => handleSelectAddress(item)}
-                  style={{padding: '10px 12px', borderBottom: '1px solid #f1f5f9', cursor: 'pointer', fontSize: '0.9rem'}}
+                  style={{padding: '10px 12px', borderBottom: '1px solid var(--border-light)', cursor: 'pointer', fontSize: '0.9rem'}}
                 >
                   <strong>{item.address?.road || item.name}</strong>
-                  <div style={{fontSize: '0.8rem', color: '#64748b'}}>{item.address?.city || item.address?.town || item.address?.village}, {item.address?.state}</div>
+                  <div style={{fontSize: '0.8rem', color: 'var(--text-muted)'}}>{item.address?.city || item.address?.town || item.address?.village}, {item.address?.state}</div>
                 </div>
               ))}
             </div>
@@ -1015,14 +1015,14 @@ const UniversalForm = () => {
 
         <div className="uf-form-group">
           <label>FOTO / ALBARÁN (Opcional)</label>
-          <div className="uf-file-input" style={{position: 'relative', cursor: 'pointer', background: avisoFileName ? '#f0fdf4' : '', border: avisoFileName ? '2px dashed #22c55e' : ''}}>
-            <FileText size={16} color={avisoFileName ? "#22c55e" : "#64748b"} />
-            <strong style={{color: avisoFileName ? "#15803d" : ""}}>{avisoFileName || 'Adjuntar archivo'}</strong>
+          <div className="uf-file-input" style={{position: 'relative', cursor: 'pointer', background: avisoFileName ? 'var(--color-success-light)' : '', border: avisoFileName ? '2px dashed var(--color-success)' : ''}}>
+            <FileText size={16} color={avisoFileName ? "var(--color-success)" : "var(--text-muted)"} />
+            <strong style={{color: avisoFileName ? "var(--color-success)" : ""}}>{avisoFileName || 'Adjuntar archivo'}</strong>
             <input name="adjunto" type="file" onChange={(e) => setAvisoFileName(e.target.files[0]?.name || '')} style={{opacity: 0, position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, cursor: 'pointer'}} />
           </div>
         </div>
 
-        <button type="submit" className="uf-btn-save" style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)', opacity: isUploading ? 0.7 : 1 }} disabled={isUploading}>
+        <button type="submit" className="uf-btn-save" style={{ background: 'var(--color-error)', opacity: isUploading ? 0.7 : 1 }} disabled={isUploading}>
           <UploadCloud size={20} /> {isUploading ? 'Guardando...' : 'Guardar Aviso'}
         </button>
       </form>
@@ -1080,11 +1080,11 @@ const UniversalForm = () => {
                 onChange={handleClienteChange}
               >
                 <option value="">Seleccionar cliente...</option>
-                <option value="_custom_" style={{fontWeight: 'bold', color: '#8b5cf6'}}>+ Escribir cliente puntual...</option>
+                <option value="_custom_" style={{fontWeight: 'bold', color: 'var(--accent-aquapp)'}}>+ Escribir cliente puntual...</option>
                 {clientesGlobales.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
               {selectedClienteId === '_custom_' && (
-                <div style={{marginTop: '8px', padding: '8px', background: '#f1f5f9', borderRadius: '8px', fontSize: '0.85rem', color: '#475569'}}>
+                <div style={{marginTop: '8px', padding: '8px', background: 'var(--bg-main)', borderRadius: 'var(--radius-sm)', fontSize: '0.85rem', color: 'var(--text-secondary)'}}>
                   <span style={{fontWeight: 'bold'}}>Puntual:</span> {customClienteName}
                 </div>
               )}
@@ -1202,7 +1202,7 @@ const UniversalForm = () => {
               </div>
             )}
             
-            <button type="submit" className="uf-btn-save" style={{ background: editingItem ? '#f59e0b' : '#3b82f6', marginTop: '16px' }}>
+            <button type="submit" className="uf-btn-save" style={{ background: editingItem ? 'var(--color-warning)' : 'var(--accent-aquapp)', marginTop: '16px' }}>
               <UploadCloud size={20} /> {editingItem ? 'Actualizar Registro' : 'Guardar Registro'}
             </button>
           </form>
@@ -1214,11 +1214,11 @@ const UniversalForm = () => {
               <label>CLIENTE</label>
               <select name="cliente_id" className="uf-select-basic" value={selectedClienteId} onChange={handleClienteChange}>
                 <option value="">Seleccionar cliente...</option>
-                <option value="_custom_" style={{fontWeight: 'bold', color: '#8b5cf6'}}>+ Escribir cliente puntual...</option>
+                <option value="_custom_" style={{fontWeight: 'bold', color: 'var(--accent-aquapp)'}}>+ Escribir cliente puntual...</option>
                 {clientesGlobales.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
               {selectedClienteId === '_custom_' && (
-                <div style={{marginTop: '8px', padding: '8px', background: '#f1f5f9', borderRadius: '8px', fontSize: '0.85rem', color: '#475569'}}>
+                <div style={{marginTop: '8px', padding: '8px', background: 'var(--bg-main)', borderRadius: 'var(--radius-sm)', fontSize: '0.85rem', color: 'var(--text-secondary)'}}>
                   <span style={{fontWeight: 'bold'}}>Puntual:</span> {customClienteName}
                 </div>
               )}
@@ -1269,7 +1269,7 @@ const UniversalForm = () => {
               </div>
             </div>
 
-            <button type="submit" className="uf-btn-save" style={{ background: editingItem ? '#f59e0b' : '#ef4444', marginTop: '16px' }}>
+            <button type="submit" className="uf-btn-save" style={{ background: editingItem ? 'var(--color-warning)' : 'var(--color-error)', marginTop: '16px' }}>
               <UploadCloud size={20} /> {editingItem ? 'Actualizar Tratamiento' : 'Guardar Tratamiento'}
             </button>
           </form>
@@ -1281,11 +1281,11 @@ const UniversalForm = () => {
               <label>CLIENTE *</label>
               <select name="cliente_id" className="uf-select-basic" required value={selectedClienteId} onChange={handleClienteChange}>
                 <option value="">Seleccionar cliente...</option>
-                <option value="_custom_" style={{fontWeight: 'bold', color: '#8b5cf6'}}>+ Escribir cliente puntual...</option>
+                <option value="_custom_" style={{fontWeight: 'bold', color: 'var(--accent-aquapp)'}}>+ Escribir cliente puntual...</option>
                 {clientesGlobales.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
               {selectedClienteId === '_custom_' && (
-                <div style={{marginTop: '8px', padding: '8px', background: '#f1f5f9', borderRadius: '8px', fontSize: '0.85rem', color: '#475569'}}>
+                <div style={{marginTop: '8px', padding: '8px', background: 'var(--bg-main)', borderRadius: 'var(--radius-sm)', fontSize: '0.85rem', color: 'var(--text-secondary)'}}>
                   <span style={{fontWeight: 'bold'}}>Puntual:</span> {customClienteName}
                 </div>
               )}
@@ -1312,10 +1312,10 @@ const UniversalForm = () => {
             </div>
 
             <div className="uf-form-row" style={{ marginTop: '24px' }}>
-              <button type="submit" className="uf-btn-save" style={{ background: editingItem ? '#f59e0b' : '#16a34a', padding: '12px' }}>
+              <button type="submit" className="uf-btn-save" style={{ background: editingItem ? 'var(--color-warning)' : 'var(--color-success)', padding: '12px' }}>
                 {editingItem ? 'Actualizar' : 'Guardar'}
               </button>
-              <button type="button" className="uf-btn-save" style={{ background: 'white', color: '#1e293b', border: '1px solid #e2e8f0', padding: '12px' }} onClick={handleClose}>
+              <button type="button" className="uf-btn-save" style={{ background: 'var(--bg-card)', color: 'var(--text-main)', border: '1px solid var(--border)', padding: '12px' }} onClick={handleClose}>
                 Cancelar
               </button>
             </div>
@@ -1383,7 +1383,7 @@ const UniversalForm = () => {
           <label>Foto del Producto (Miniatura)</label>
           <div className="uf-file-input" style={{position: 'relative'}}>
             <input type="file" name="foto_producto" accept="image/*" style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer'}} />
-            <Camera size={16} color="#64748b" />
+            <Camera size={16} color="var(--text-muted)" />
             <strong>Adjuntar Foto (JPG/PNG)</strong>
           </div>
           <span className="uf-hint">Esta será la imagen visible en las tarjetas del catálogo.</span>
@@ -1393,13 +1393,13 @@ const UniversalForm = () => {
           <label>Ficha de Seguridad (SDS)</label>
           <div className="uf-file-input" style={{position: 'relative'}}>
             <input type="file" name="ficha_sds" accept="application/pdf,image/*" style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer'}} />
-            <FileText size={16} color="#64748b" />
+            <FileText size={16} color="var(--text-muted)" />
             <strong>Adjuntar Ficha (PDF/Imagen)</strong>
           </div>
           <span className="uf-hint">Si ya tiene una ficha, puedes subir una nueva para reemplazarla.</span>
         </div>
 
-        <button type="submit" className="uf-btn-save" style={{ background: '#3b82f6', marginTop: '16px' }}>
+        <button type="submit" className="uf-btn-save" style={{ background: 'var(--primary)', marginTop: '16px' }}>
           Guardar Producto
         </button>
       </form>

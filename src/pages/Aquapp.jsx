@@ -58,8 +58,8 @@ const Aquapp = () => {
   const getMotivoStyle = (motivo) => {
     const m = (motivo || '').toLowerCase();
     if (m.includes('prev')) return { label: 'Prevención', color: '#166534', bg: '#dcfce7' };
-    if (m.includes('recuento') || m.includes('alto')) return { label: 'Recuento Alto', color: '#991b1b', bg: '#fef2f2' };
-    return { label: motivo || 'Motivo', color: '#475569', bg: '#f1f5f9' };
+    if (m.includes('recuento') || m.includes('alto')) return { label: 'Recuento Alto', color: 'var(--text-main)', bg: '#fef2f2' };
+    return { label: motivo || 'Motivo', color: 'var(--text-secondary)', bg: '#f1f5f9' };
   };
 
   const getAvatarColor = (name) => {
@@ -366,22 +366,22 @@ const Aquapp = () => {
             <div 
               key={client.id} 
               className="client-card"
-              style={{ display: 'flex', alignItems: 'center', gap: '16px', background: 'white', padding: '16px 20px', borderRadius: '14px', boxShadow: '0 2px 4px -1px rgba(0, 0, 0, 0.05)', cursor: 'pointer', border: '1px solid #f1f5f9', transition: 'all 0.2s' }}
+              style={{ display: 'flex', alignItems: 'center', gap: '16px', background: 'var(--bg-card)', padding: '16px 20px', borderRadius: '14px', boxShadow: 'var(--shadow-sm)', cursor: 'pointer', border: '1px solid var(--border-light)', transition: 'all 0.2s' }}
               onClick={() => fetchClientDetails(client)}
-              onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 10px -3px rgba(0, 0, 0, 0.08)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 2px 4px -1px rgba(0, 0, 0, 0.05)'; }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = 'var(--shadow-md)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'var(--shadow-sm)'; }}
             >
               <div className="client-avatar" style={{ width: '50px', height: '50px', borderRadius: '14px', backgroundColor: getAvatarColor(client.name), display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '1.2rem', flexShrink: 0, boxShadow: '0 2px 4px -1px rgba(0,0,0,0.1)' }}>
                 {client.name.substring(0,2).toUpperCase()}
               </div>
               <div className="client-info" style={{ flex: 1 }}>
                 <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px'}}>
-                  <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#1e293b', fontWeight: '700' }}>{client.name}</h3>
+                  <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-main)', fontWeight: '700' }}>{client.name}</h3>
                   <span className="admin-only"><Edit3 size={14} color="#94a3b8" /></span>
                 </div>
-                <p style={{ margin: 0, color: '#64748b', fontSize: '0.88rem', fontWeight: '500' }}>Último registro: {client.ultima_muestra}</p>
+                <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.88rem', fontWeight: '500' }}>Último registro: {client.ultima_muestra}</p>
               </div>
-              <ChevronDown size={18} color="#cbd5e1" style={{ transform: 'rotate(-90deg)' }} />
+              <ChevronDown size={18} color="var(--text-faint)" style={{ transform: 'rotate(-90deg)' }} />
             </div>
           ))}
         </div>
@@ -412,9 +412,9 @@ const Aquapp = () => {
         </div>
 
         {loading ? (
-          <div style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>Cargando registros...</div>
+          <div style={{textAlign: 'center', padding: '40px', color: 'var(--text-muted)'}}>Cargando registros...</div>
         ) : clientData.length === 0 ? (
-          <div style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>No hay registros para este cliente. Añade uno pulsando el botón +</div>
+          <div style={{textAlign: 'center', padding: '40px', color: 'var(--text-muted)'}}>No hay registros para este cliente. Añade uno pulsando el botón +</div>
         ) : (
           <div className="accordion-list">
             {clientData.map(category => {
@@ -492,17 +492,17 @@ const Aquapp = () => {
                           const totalItems = yGroup.months.reduce((acc, m) => acc + m.items.length, 0);
                           
                           return (
-                          <div key={yGroup.year} style={{marginBottom: '16px', background: 'white', borderRadius: '12px', border: '1px solid #f1f5f9', overflow: 'hidden'}}>
+                          <div key={yGroup.year} style={{marginBottom: '16px', background: 'var(--bg-card)', borderRadius: '12px', border: '1px solid var(--border-light)', overflow: 'hidden'}}>
                             <div 
                               onClick={() => toggleYear(yId)}
                               style={{
                                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                padding: '12px 16px', background: '#f8fafc', cursor: 'pointer', userSelect: 'none'
+                                padding: '12px 16px', background: 'var(--bg-card-hover)', cursor: 'pointer', userSelect: 'none'
                               }}
                             >
                               <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
                                 <Calendar size={18} color="#64748b" />
-                                <h4 style={{margin: 0, color: '#334155', fontSize: '1.1rem'}}>{yGroup.year}</h4>
+                                <h4 style={{margin: 0, color: 'var(--text-secondary)', fontSize: '1.1rem'}}>{yGroup.year}</h4>
                                 <span style={{background: '#fee2e2', color: '#ef4444', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold'}}>
                                   {totalItems} {totalItems === 1 ? 'registro' : 'registros'}
                                 </span>
@@ -520,20 +520,20 @@ const Aquapp = () => {
                                 <div onClick={() => toggleMonth(monthId)} style={{display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginBottom: '12px', userSelect: 'none'}}>
                                   {isMonthExpanded ? <ChevronDown size={18} color="#64748b"/> : <ChevronRight size={18} color="#64748b"/>}
                                   <div style={{display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold'}}>
-                                    <Folder fill={getMonthColor(mGroup.month)} color={getMonthColor(mGroup.month)} size={18} /> <span style={{color: '#1e293b'}}>{mGroup.month}</span> <span style={{background: '#f1f5f9', color: '#64748b', padding: '2px 8px', borderRadius: '12px', fontSize: '0.7rem'}}>{mGroup.items.length}</span>
+                                    <Folder fill={getMonthColor(mGroup.month)} color={getMonthColor(mGroup.month)} size={18} /> <span style={{color: 'var(--text-main)'}}>{mGroup.month}</span> <span style={{background: 'var(--bg-main)', color: 'var(--text-muted)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.7rem'}}>{mGroup.items.length}</span>
                                   </div>
                                 </div>
                                 {isMonthExpanded && mGroup.items.map(item => category.id === 'Tratamiento' ? (
-                                  <div key={item.id} className="tratamiento-record-card" style={{border: '1px solid #e2e8f0', borderRadius: '16px', padding: '16px', position: 'relative', overflow: 'hidden', marginBottom: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)', background: 'white'}}>
+                                  <div key={item.id} className="tratamiento-record-card" style={{border: '1px solid var(--border)', borderRadius: '16px', padding: '16px', position: 'relative', overflow: 'hidden', marginBottom: '16px', boxShadow: 'var(--shadow-sm)', background: 'var(--bg-card)'}}>
                                     {/* Borde izquierdo decorativo */}
                                     <div style={{position: 'absolute', left: 0, top: 0, bottom: 0, width: '6px', background: '#8b5cf6'}}></div>
                                     
                                     <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px'}}>
                                       <div style={{width: '20px', height: '20px', borderRadius: '50%', background: '#8b5cf6'}}></div>
-                                      <h4 style={{margin: 0, fontSize: '1.2rem', color: '#1e293b', fontWeight: '800'}}>{item.cliente_nombre || 'Cliente Desconocido'}</h4>
+                                      <h4 style={{margin: 0, fontSize: '1.2rem', color: 'var(--text-main)', fontWeight: '800'}}>{item.cliente_nombre || 'Cliente Desconocido'}</h4>
                                     </div>
                                     
-                                    <div style={{display: 'flex', gap: '16px', color: '#64748b', fontSize: '0.85rem', marginBottom: '12px', fontWeight: '600'}}>
+                                    <div style={{display: 'flex', gap: '16px', color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '12px', fontWeight: '600'}}>
                                       <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><Clock size={14}/> {item.hora}</span>
                                       <span>•</span>
                                       <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><Calendar size={14}/> {item.fecha ? item.fecha.split('T')[0] : '-'}</span>
@@ -545,8 +545,8 @@ const Aquapp = () => {
                                     </div>
                                     
                                     {item.notas && (
-                                      <div style={{ background: '#f8fafc', padding: '8px 10px', borderRadius: '8px', fontWeight: '500', color: '#475569', marginBottom: '16px', fontSize: '0.85rem', border: '1px solid #f1f5f9' }}>
-                                        <strong style={{color: '#1e293b'}}>Notas:</strong> {item.notas}
+                                      <div style={{ background: 'var(--bg-card-hover)', padding: '8px 10px', borderRadius: '8px', fontWeight: '500', color: 'var(--text-secondary)', marginBottom: '16px', fontSize: '0.85rem', border: '1px solid var(--border-light)' }}>
+                                        <strong style={{color: 'var(--text-main)'}}>Notas:</strong> {item.notas}
                                       </div>
                                     )}
 
@@ -567,15 +567,15 @@ const Aquapp = () => {
                                     </div>
                                   </div>
                                 ) : category.id === 'Plagas' ? (
-                                  <div key={item.id} className="tratamiento-record-card" style={{border: '1px solid #e2e8f0', borderRadius: '16px', padding: '16px', position: 'relative', overflow: 'hidden', marginBottom: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)', background: 'white'}}>
+                                  <div key={item.id} className="tratamiento-record-card" style={{border: '1px solid var(--border)', borderRadius: '16px', padding: '16px', position: 'relative', overflow: 'hidden', marginBottom: '16px', boxShadow: 'var(--shadow-sm)', background: 'var(--bg-card)'}}>
                                     <div style={{position: 'absolute', left: 0, top: 0, bottom: 0, width: '6px', background: '#10b981'}}></div>
                                     
                                     <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px'}}>
                                       <div style={{width: '20px', height: '20px', borderRadius: '50%', background: '#10b981'}}></div>
-                                      <h4 style={{margin: 0, fontSize: '1.2rem', color: '#1e293b', fontWeight: '800'}}>{item.cliente_nombre || 'Cliente Desconocido'}</h4>
+                                      <h4 style={{margin: 0, fontSize: '1.2rem', color: 'var(--text-main)', fontWeight: '800'}}>{item.cliente_nombre || 'Cliente Desconocido'}</h4>
                                     </div>
                                     
-                                    <div style={{display: 'flex', gap: '16px', color: '#64748b', fontSize: '0.85rem', marginBottom: '12px', fontWeight: '600'}}>
+                                    <div style={{display: 'flex', gap: '16px', color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '12px', fontWeight: '600'}}>
                                       <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><Clock size={14}/> {item.hora ? item.hora.substring(0, 5) : '-'}</span>
                                       <span>•</span>
                                       <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><Calendar size={14}/> {item.fecha ? item.fecha.split('T')[0] : '-'}</span>
@@ -601,7 +601,7 @@ const Aquapp = () => {
                                     </div>
                                   </div>
                                 ) : (
-                                  <div key={item.id} className="sample-card" style={{border: '1px solid #e2e8f0', borderRadius: '12px', padding: '12px', marginBottom: '12px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', background: 'white'}}>
+                                  <div key={item.id} className="sample-card" style={{border: '1px solid var(--border)', borderRadius: '12px', padding: '12px', marginBottom: '12px', boxShadow: 'var(--shadow-sm)', background: 'var(--bg-card)'}}>
                                     <div className="sample-header" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px'}}>
                                       <div className="sample-title-badge" style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
                                         <h4 style={{margin: 0, fontSize: '1rem', color: '#0ea5e9', fontWeight: '800'}}>{item.numero_muestra || 'Muestra'}</h4>
@@ -614,32 +614,32 @@ const Aquapp = () => {
                                       </span>
                                     </div>
                                     
-                                    <div className="sample-meta" style={{ display: 'flex', gap: '8px', color: '#64748b', fontSize: '0.75rem', marginBottom: '10px', fontWeight: '600' }}>
+                                    <div className="sample-meta" style={{ display: 'flex', gap: '8px', color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: '10px', fontWeight: '600' }}>
                                       <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={12}/> {item.hora ? item.hora.substring(0, 5) : '-'}</span>
                                       <span>•</span>
                                       <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Calendar size={12}/> {item.fecha ? item.fecha.split('T')[0] : '-'}</span>
                                     </div>
                                     
-                                    <div className="sample-location" style={{ background: '#f8fafc', padding: '8px 10px', borderRadius: '8px', fontWeight: '700', color: '#1e293b', marginBottom: '12px', fontSize: '0.9rem' }}>
+                                    <div className="sample-location" style={{ background: 'var(--bg-card-hover)', padding: '8px 10px', borderRadius: '8px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '12px', fontSize: '0.9rem' }}>
                                       {item.descripcion || 'Sin descripción'}
                                     </div>
                                     
                                     {item.tipo_muestra === 'Torre' ? (
                                       <div className="parameters-grid" style={{marginTop: '12px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px'}}>
-                                        <div className="param-box ph" style={{ flex: 1, padding: '8px 0', border: '1px solid #fef08a', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><FlaskConical size={16} color="#eab308" /><span className="param-name" style={{ color: '#eab308', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>PH</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: '#1e293b' }}>{item.ph || '-'}</span></div>
-                                        <div className="param-box temp" style={{ flex: 1, padding: '8px 0', border: '1px solid #fecaca', borderRadius: '8px', background: '#fef2f2', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Thermometer size={16} color="#ef4444" /><span className="param-name" style={{ color: '#ef4444', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>TEMP</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: '#1e293b' }}>{item.temp ? item.temp + 'º' : '-'}</span></div>
-                                        <div className="param-box cond" style={{ flex: 1, padding: '8px 0', border: '1px solid #e2e8f0', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Zap size={16} color="#475569" /><span className="param-name" style={{ color: '#475569', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>COND.</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: '#1e293b' }}>{item.conductividad || '-'}</span></div>
-                                        <div className="param-box turb" style={{ flex: 1, padding: '8px 0', border: '1px solid #bae6fd', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Waves size={16} color="#0ea5e9" /><span className="param-name" style={{ color: '#0ea5e9', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>TURB.</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: '#1e293b' }}>{item.turbidez || '-'}</span></div>
-                                        <div className="param-box hierro" style={{ flex: 1, padding: '8px 0', border: '1px solid #e2e8f0', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Box size={16} color="#64748b" /><span className="param-name" style={{ color: '#64748b', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>HIERRO</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: '#1e293b' }}>{item.hierro || '-'}</span></div>
-                                        <div className="param-box f8583" style={{ flex: 1, padding: '8px 0', border: '1px solid #bae6fd', borderRadius: '8px', background: '#f0f9ff', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Droplet size={16} color="#0ea5e9" /><span className="param-name" style={{ color: '#0ea5e9', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>F-8583</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: '#1e293b' }}>{item.f_8583_kit || '-'}</span></div>
-                                        <div className="param-box f8580" style={{ flex: 1, padding: '8px 0', border: '1px solid #e2e8f0', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><FlaskConical size={16} color="#64748b" /><span className="param-name" style={{ color: '#64748b', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>F-8580</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: '#1e293b' }}>{item.f_8580_total || '-'}</span></div>
+                                        <div className="param-box ph" style={{ flex: 1, padding: '8px 0', border: '1px solid #fef08a', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><FlaskConical size={16} color="#eab308" /><span className="param-name" style={{ color: '#eab308', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>PH</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.ph || '-'}</span></div>
+                                        <div className="param-box temp" style={{ flex: 1, padding: '8px 0', border: '1px solid #fecaca', borderRadius: '8px', background: '#fef2f2', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Thermometer size={16} color="#ef4444" /><span className="param-name" style={{ color: '#ef4444', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>TEMP</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.temp ? item.temp + 'º' : '-'}</span></div>
+                                        <div className="param-box cond" style={{ flex: 1, padding: '8px 0', border: '1px solid var(--border)', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Zap size={16} color="#475569" /><span className="param-name" style={{ color: 'var(--text-secondary)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>COND.</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.conductividad || '-'}</span></div>
+                                        <div className="param-box turb" style={{ flex: 1, padding: '8px 0', border: '1px solid #bae6fd', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Waves size={16} color="#0ea5e9" /><span className="param-name" style={{ color: '#0ea5e9', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>TURB.</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.turbidez || '-'}</span></div>
+                                        <div className="param-box hierro" style={{ flex: 1, padding: '8px 0', border: '1px solid var(--border)', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Box size={16} color="#64748b" /><span className="param-name" style={{ color: 'var(--text-muted)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>HIERRO</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.hierro || '-'}</span></div>
+                                        <div className="param-box f8583" style={{ flex: 1, padding: '8px 0', border: '1px solid #bae6fd', borderRadius: '8px', background: '#f0f9ff', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Droplet size={16} color="#0ea5e9" /><span className="param-name" style={{ color: '#0ea5e9', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>F-8583</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.f_8583_kit || '-'}</span></div>
+                                        <div className="param-box f8580" style={{ flex: 1, padding: '8px 0', border: '1px solid var(--border)', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><FlaskConical size={16} color="#64748b" /><span className="param-name" style={{ color: 'var(--text-muted)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>F-8580</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.f_8580_total || '-'}</span></div>
                                       </div>
                                     ) : (
                                       <div className="parameters-grid" style={{marginTop: '12px', display: 'flex', gap: '6px'}}>
-                                        <div className="param-box ph" style={{ flex: 1, padding: '8px 0', border: '1px solid #fef08a', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><FlaskConical size={16} color="#eab308" /><span className="param-name" style={{ color: '#eab308', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>PH</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: '#1e293b' }}>{item.ph || '-'}</span></div>
-                                        <div className="param-box temp" style={{ flex: 1, padding: '8px 0', border: '1px solid #fecaca', borderRadius: '8px', background: '#fef2f2', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Thermometer size={16} color="#ef4444" /><span className="param-name" style={{ color: '#ef4444', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>TEMP</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: '#1e293b' }}>{item.temp ? item.temp + 'º' : '-'}</span></div>
-                                        <div className="param-box cloro" style={{ flex: 1, padding: '8px 0', border: '1px solid #bae6fd', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Droplet size={16} color="#0ea5e9" /><span className="param-name" style={{ color: '#0ea5e9', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>CLORO</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: '#1e293b' }}>{item.cloro || '-'}</span></div>
-                                        <div className="param-box hierro" style={{ flex: 1, padding: '8px 0', border: '1px solid #e2e8f0', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Box size={16} color="#64748b" /><span className="param-name" style={{ color: '#64748b', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>HIERRO</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: '#1e293b' }}>{item.hierro || '-'}</span></div>
+                                        <div className="param-box ph" style={{ flex: 1, padding: '8px 0', border: '1px solid #fef08a', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><FlaskConical size={16} color="#eab308" /><span className="param-name" style={{ color: '#eab308', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>PH</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.ph || '-'}</span></div>
+                                        <div className="param-box temp" style={{ flex: 1, padding: '8px 0', border: '1px solid #fecaca', borderRadius: '8px', background: '#fef2f2', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Thermometer size={16} color="#ef4444" /><span className="param-name" style={{ color: '#ef4444', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>TEMP</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.temp ? item.temp + 'º' : '-'}</span></div>
+                                        <div className="param-box cloro" style={{ flex: 1, padding: '8px 0', border: '1px solid #bae6fd', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Droplet size={16} color="#0ea5e9" /><span className="param-name" style={{ color: '#0ea5e9', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>CLORO</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.cloro || '-'}</span></div>
+                                        <div className="param-box hierro" style={{ flex: 1, padding: '8px 0', border: '1px solid var(--border)', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Box size={16} color="#64748b" /><span className="param-name" style={{ color: 'var(--text-muted)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>HIERRO</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.hierro || '-'}</span></div>
                                       </div>
                                     )}
 
@@ -764,17 +764,17 @@ const Aquapp = () => {
 
         {/* Listado */}
         {loadingTratTab ? (
-          <div style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>Cargando...</div>
+          <div style={{textAlign: 'center', padding: '40px', color: 'var(--text-muted)'}}>Cargando...</div>
         ) : tratamientosTab.length === 0 ? (
-          <div style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>No hay tratamientos registrados.</div>
+          <div style={{textAlign: 'center', padding: '40px', color: 'var(--text-muted)'}}>No hay tratamientos registrados.</div>
         ) : (
           <div className="accordion-list">
             {tratamientosTab.map(yGroup => {
               const yId = `tab-year-${yGroup.year}`;
               const isYearExpanded = expandedYearsTab[yId];
               return (
-                <div key={yGroup.year} className="accordion-item" style={{background: 'white', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', marginBottom: '12px'}}>
-                  <div className="accordion-header" onClick={() => setExpandedYearsTab(prev => ({...prev, [yId]: !prev[yId]}))} style={{background: '#f8fafc', padding: '16px'}}>
+                <div key={yGroup.year} className="accordion-item" style={{background: 'var(--bg-card)', borderRadius: '16px', overflow: 'hidden', boxShadow: 'var(--shadow-sm)', marginBottom: '12px'}}>
+                  <div className="accordion-header" onClick={() => setExpandedYearsTab(prev => ({...prev, [yId]: !prev[yId]}))} style={{background: 'var(--bg-card-hover)', padding: '16px'}}>
                     <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
                       <Calendar size={20} color="#6366f1" />
                       <h3 style={{margin: 0, fontSize: '1.1rem'}}>{yGroup.year}</h3>
@@ -796,9 +796,9 @@ const Aquapp = () => {
                           });
                           return (
                           <div key={mGroup.month} style={{marginTop: '16px'}}>
-                            <div onClick={() => setExpandedMonthsTab(prev => ({...prev, [mId]: !prev[mId]}))} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', paddingBottom: '8px', borderBottom: '1px solid #f1f5f9'}}>
+                            <div onClick={() => setExpandedMonthsTab(prev => ({...prev, [mId]: !prev[mId]}))} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', paddingBottom: '8px', borderBottom: '1px solid var(--border-light)'}}>
                               <div style={{display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold'}}>
-                                <Folder fill={getMonthColor(mGroup.month)} color={getMonthColor(mGroup.month)} size={18} /> <span style={{color: '#1e293b'}}>{mGroup.month}</span> <span style={{background: '#f1f5f9', color: '#64748b', padding: '2px 8px', borderRadius: '12px', fontSize: '0.7rem'}}>{itemsFiltrados.length}</span>
+                                <Folder fill={getMonthColor(mGroup.month)} color={getMonthColor(mGroup.month)} size={18} /> <span style={{color: 'var(--text-main)'}}>{mGroup.month}</span> <span style={{background: 'var(--bg-main)', color: 'var(--text-muted)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.7rem'}}>{itemsFiltrados.length}</span>
                               </div>
                               {isMonthExpanded ? <ChevronUp size={16} color="#94a3b8" /> : <ChevronDown size={16} color="#94a3b8" />}
                             </div>
@@ -806,13 +806,13 @@ const Aquapp = () => {
                             {isMonthExpanded && (
                               <div style={{marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '16px'}}>
                                 {itemsFiltrados.map(item => (
-                                  <div key={item.id} style={{border: '1px solid #e2e8f0', borderRadius: '16px', padding: '16px', position: 'relative', overflow: 'hidden', background: 'white', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'}}>
+                                  <div key={item.id} style={{border: '1px solid var(--border)', borderRadius: '16px', padding: '16px', position: 'relative', overflow: 'hidden', background: 'var(--bg-card)', boxShadow: 'var(--shadow-sm)'}}>
                                     <div style={{position: 'absolute', left: 0, top: 0, bottom: 0, width: '6px', background: '#8b5cf6'}}></div>
                                     <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px'}}>
                                       <div style={{width: '20px', height: '20px', borderRadius: '50%', background: '#8b5cf6'}}></div>
-                                      <h4 style={{margin: 0, fontSize: '1.2rem', color: '#1e293b', fontWeight: '800'}}>{item.cliente_nombre || 'Cliente Desconocido'}</h4>
+                                      <h4 style={{margin: 0, fontSize: '1.2rem', color: 'var(--text-main)', fontWeight: '800'}}>{item.cliente_nombre || 'Cliente Desconocido'}</h4>
                                     </div>
-                                    <div style={{display: 'flex', gap: '16px', color: '#64748b', fontSize: '0.85rem', marginBottom: '12px', fontWeight: '600'}}>
+                                    <div style={{display: 'flex', gap: '16px', color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '12px', fontWeight: '600'}}>
                                       <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><Clock size={14}/> {item.hora}</span>
                                       <span>•</span>
                                       <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><Calendar size={14}/> {item.fecha ? item.fecha.split('T')[0] : '-'}</span>
@@ -823,8 +823,8 @@ const Aquapp = () => {
                                     </div>
                                     
                                     {item.notas && (
-                                      <div style={{ background: '#f8fafc', padding: '8px 10px', borderRadius: '8px', fontWeight: '500', color: '#475569', marginBottom: '16px', fontSize: '0.85rem', border: '1px solid #f1f5f9' }}>
-                                        <strong style={{color: '#1e293b'}}>Notas:</strong> {item.notas}
+                                      <div style={{ background: 'var(--bg-card-hover)', padding: '8px 10px', borderRadius: '8px', fontWeight: '500', color: 'var(--text-secondary)', marginBottom: '16px', fontSize: '0.85rem', border: '1px solid var(--border-light)' }}>
+                                        <strong style={{color: 'var(--text-main)'}}>Notas:</strong> {item.notas}
                                       </div>
                                     )}
                                     <div className="admin-only" style={{display: 'flex', gap: '12px'}}>
@@ -883,7 +883,7 @@ const Aquapp = () => {
         {/* Client Tabs */}
         <div style={{display: 'flex', gap: '12px', marginBottom: '20px', overflowX: 'auto', paddingBottom: '8px'}}>
           {torresClients.length === 0 ? (
-            <div style={{color: '#64748b'}}>No hay clientes con muestras de Torre.</div>
+            <div style={{color: 'var(--text-muted)'}}>No hay clientes con muestras de Torre.</div>
           ) : (
             torresClients.map(c => (
               <button 
@@ -906,14 +906,14 @@ const Aquapp = () => {
         </div>
 
         {/* Year Selector */}
-        <div style={{background: 'white', padding: '16px', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'}}>
+        <div style={{background: 'var(--bg-card)', padding: '16px', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', boxShadow: 'var(--shadow-sm)'}}>
           <div style={{display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold'}}>
             <Calendar size={20} /> Año de Registro
           </div>
           <select 
             value={selectedTorreYear}
             onChange={(e) => setSelectedTorreYear(e.target.value)}
-            style={{padding: '8px 16px', borderRadius: '20px', border: '1px solid #e2e8f0', fontWeight: 'bold', outline: 'none', background: '#f8fafc', color: '#1e293b'}}
+            style={{padding: '8px 16px', borderRadius: '20px', border: '1px solid var(--border)', fontWeight: 'bold', outline: 'none', background: 'var(--bg-card-hover)', color: 'var(--text-main)'}}
           >
             {[2024, 2025, 2026, 2027].map(y => <option key={y} value={y}>{y}</option>)}
           </select>
@@ -921,15 +921,15 @@ const Aquapp = () => {
 
         {/* Table */}
         {loadingTorres ? (
-           <div style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>Cargando datos...</div>
+           <div style={{textAlign: 'center', padding: '40px', color: 'var(--text-muted)'}}>Cargando datos...</div>
         ) : (
-          <div style={{background: 'white', borderRadius: '16px', overflowX: 'auto', overflowY: 'auto', maxHeight: '65vh', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)', border: '1px solid #e2e8f0'}}>
-            <table className="torres-table" style={{width: '100%', borderCollapse: 'collapse', minWidth: '800px', backgroundColor: 'white'}}>
+          <div style={{background: 'var(--bg-card)', borderRadius: '16px', overflowX: 'auto', overflowY: 'auto', maxHeight: '65vh', boxShadow: 'var(--shadow-lg)', border: '1px solid var(--border)'}}>
+            <table className="torres-table" style={{width: '100%', borderCollapse: 'collapse', minWidth: '800px', backgroundColor: 'var(--bg-card)'}}>
               <thead>
-                <tr style={{ borderBottom: '2px solid #e2e8f0', backgroundColor: '#f8fafc' }}>
-                  <th style={{position: 'sticky', top: 0, left: 0, zIndex: 12, textAlign: 'left', padding: '16px', color: '#64748b', backgroundColor: '#f8fafc'}}>PARÁMETROS</th>
+                <tr style={{ borderBottom: '2px solid var(--border)', backgroundColor: 'var(--bg-card-hover)' }}>
+                  <th style={{position: 'sticky', top: 0, left: 0, zIndex: 12, textAlign: 'left', padding: '16px', color: 'var(--text-muted)', backgroundColor: 'var(--bg-card-hover)'}}>PARÁMETROS</th>
                   {months.map(m => (
-                    <th key={m} style={{position: 'sticky', top: 0, zIndex: 11, backgroundColor: '#f8fafc', textAlign: 'center', minWidth: '100px', padding: '16px', color: '#1e293b', fontWeight: 'bold'}}>{m}</th>
+                    <th key={m} style={{position: 'sticky', top: 0, zIndex: 11, backgroundColor: 'var(--bg-card-hover)', textAlign: 'center', minWidth: '100px', padding: '16px', color: 'var(--text-main)', fontWeight: 'bold'}}>{m}</th>
                   ))}
                 </tr>
               </thead>
@@ -1067,7 +1067,7 @@ const Aquapp = () => {
     return (
       <div className="animate-fade-in" style={{paddingBottom: '40px'}}>
         <div className="view-header" style={{display: 'flex', alignItems: 'center', gap: '16px'}}>
-          <button className="icon-btn" style={{background: 'white', padding: '8px 16px', borderRadius: '24px', display: 'flex', alignItems: 'center', gap: '8px', border: '1px solid #e2e8f0', fontWeight: 'bold'}} onClick={() => setCurrentView('historial')}>
+          <button className="icon-btn" style={{background: 'var(--bg-card)', padding: '8px 16px', borderRadius: '24px', display: 'flex', alignItems: 'center', gap: '8px', border: '1px solid var(--border)', fontWeight: 'bold'}} onClick={() => setCurrentView('historial')}>
             <ChevronDown style={{ transform: 'rotate(90deg)' }} size={18} /> Volver
           </button>
           <h2 style={{margin: 0, fontSize: '1.2rem'}}>{selectedTratamientoType}</h2>
@@ -1079,7 +1079,7 @@ const Aquapp = () => {
             type="text" 
             placeholder="Buscar cliente..." 
             value={tratamientosSearch}
-            onChange={(e) => setTratamientosSearch(e.target.value)}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
 
@@ -1099,9 +1099,9 @@ const Aquapp = () => {
         </button>
 
         {loadingDashboard ? (
-          <div style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>Cargando datos...</div>
+          <div style={{textAlign: 'center', padding: '40px', color: 'var(--text-muted)'}}>Cargando datos...</div>
         ) : tratamientosList.length === 0 ? (
-          <div style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>No hay tratamientos de este tipo registrados.</div>
+          <div style={{textAlign: 'center', padding: '40px', color: 'var(--text-muted)'}}>No hay tratamientos de este tipo registrados.</div>
         ) : (
           <div className="accordion-list">
             {tratamientosList.map(yGroup => {
@@ -1109,8 +1109,8 @@ const Aquapp = () => {
               const isYearExpanded = expandedYears[yId];
 
               return (
-                <div key={yGroup.year} className="accordion-item" style={{background: 'white', borderRadius: '16px', overflow: 'hidden', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)'}}>
-                  <div className="accordion-header" onClick={() => toggleYear(yId)} style={{background: '#f8fafc', padding: '16px'}}>
+                <div key={yGroup.year} className="accordion-item" style={{background: 'var(--bg-card)', borderRadius: '16px', overflow: 'hidden', border: 'none', boxShadow: 'var(--shadow-sm)'}}>
+                  <div className="accordion-header" onClick={() => toggleYear(yId)} style={{background: 'var(--bg-card-hover)', padding: '16px'}}>
                     <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
                       <Calendar size={20} color="#6366f1" />
                       <h3 style={{margin: 0, fontSize: '1.1rem'}}>{yGroup.year}</h3>
@@ -1129,10 +1129,10 @@ const Aquapp = () => {
                           <div key={mGroup.month} style={{marginTop: '16px'}}>
                             <div 
                               onClick={() => toggleMonth(mId)}
-                              style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', paddingBottom: '8px', borderBottom: '1px solid #f1f5f9'}}
+                              style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', paddingBottom: '8px', borderBottom: '1px solid var(--border-light)'}}
                             >
                               <div style={{display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold'}}>
-                                <Folder fill={getMonthColor(mGroup.month)} color={getMonthColor(mGroup.month)} size={18} /> <span style={{color: '#1e293b'}}>{mGroup.month}</span> <span style={{background: '#f1f5f9', color: '#64748b', padding: '2px 8px', borderRadius: '12px', fontSize: '0.7rem'}}>{mGroup.items.length}</span>
+                                <Folder fill={getMonthColor(mGroup.month)} color={getMonthColor(mGroup.month)} size={18} /> <span style={{color: 'var(--text-main)'}}>{mGroup.month}</span> <span style={{background: 'var(--bg-main)', color: 'var(--text-muted)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.7rem'}}>{mGroup.items.length}</span>
                               </div>
                               {isMonthExpanded ? <ChevronUp size={16} color="#94a3b8" /> : <ChevronDown size={16} color="#94a3b8" />}
                             </div>
@@ -1140,16 +1140,16 @@ const Aquapp = () => {
                             {isMonthExpanded && (
                               <div style={{marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '16px'}}>
                                 {mGroup.items.filter(i => (i.cliente_nombre||'').toLowerCase().includes(tratamientosSearch.toLowerCase())).map(item => (
-                                  <div key={item.id} style={{border: '1px solid #e2e8f0', borderRadius: '16px', padding: '16px', position: 'relative', overflow: 'hidden', background: 'white', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)'}}>
+                                  <div key={item.id} style={{border: '1px solid var(--border)', borderRadius: '16px', padding: '16px', position: 'relative', overflow: 'hidden', background: 'var(--bg-card)', boxShadow: 'var(--shadow-sm)'}}>
                                     {/* Borde izquierdo decorativo */}
                                     <div style={{position: 'absolute', left: 0, top: 0, bottom: 0, width: '6px', background: '#8b5cf6'}}></div>
                                     
                                     <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px'}}>
                                       <div style={{width: '20px', height: '20px', borderRadius: '50%', background: '#8b5cf6'}}></div>
-                                      <h4 style={{margin: 0, fontSize: '1.2rem', color: '#1e293b', fontWeight: '800'}}>{item.cliente_nombre || 'Cliente Desconocido'}</h4>
+                                      <h4 style={{margin: 0, fontSize: '1.2rem', color: 'var(--text-main)', fontWeight: '800'}}>{item.cliente_nombre || 'Cliente Desconocido'}</h4>
                                     </div>
                                     
-                                    <div style={{display: 'flex', gap: '16px', color: '#64748b', fontSize: '0.85rem', marginBottom: '12px', fontWeight: '600'}}>
+                                    <div style={{display: 'flex', gap: '16px', color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '12px', fontWeight: '600'}}>
                                       <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><Clock size={14}/> {item.hora}</span>
                                       <span>•</span>
                                       <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><Calendar size={14}/> {item.fecha ? item.fecha.split('T')[0] : '-'}</span>
@@ -1198,7 +1198,7 @@ const Aquapp = () => {
         <div className="view-header"><h2>Acciones Rápidas</h2></div>
         <div className="dashboard-grid" style={{marginBottom: '32px'}}>
            <div className="action-card" style={{borderColor: '#a855f7', cursor: 'pointer'}} onClick={() => handleOpenTratamientoList('Hipercloraciones', 'Hipercloracion')}><div className="icon-wrapper" style={{background:'#a855f715'}}><Droplet size={28} color="#a855f7"/></div><h3>Hipercloraciones</h3></div>
-           <div className="action-card" style={{borderColor: '#ec4899', cursor: 'pointer'}} onClick={() => handleOpenTratamientoList('Choques Térmicos', 'Choque')}><div className="icon-wrapper" style={{background:'#ec489915'}}><Thermometer size={28} color="#ec4899"/></div><h3>Choques Térmicos</h3></div>
+           <div className="action-card" style={{borderColor: 'var(--border)', cursor: 'pointer'}} onClick={() => handleOpenTratamientoList('Choques Térmicos', 'Choque')}><div className="icon-wrapper" style={{background:'#ec489915'}}><Thermometer size={28} color="#ec4899"/></div><h3>Choques Térmicos</h3></div>
            <div className="action-card" style={{borderColor: '#3b82f6', cursor: 'pointer'}} onClick={() => handleOpenTratamientoList('Limpieza de Torres', 'LimpTorres')}><div className="icon-wrapper" style={{background:'#3b82f615'}}><Wind size={28} color="#3b82f6"/></div><h3>Limp. Torres</h3></div>
            <div className="action-card" style={{borderColor: '#22c55e', cursor: 'pointer'}} onClick={() => handleOpenTratamientoList('Control de Plagas', null)}><div className="icon-wrapper" style={{background:'#22c55e15'}}><Bug size={28} color="#22c55e"/></div><h3>Control Plagas</h3></div>
         </div>
@@ -1206,22 +1206,22 @@ const Aquapp = () => {
         <div className="view-header"><h2>Últimos Tratamientos</h2></div>
         
         {loadingDashboard ? (
-          <div style={{textAlign: 'center', padding: '20px', color: '#64748b'}}>Cargando dashboard...</div>
+          <div style={{textAlign: 'center', padding: '20px', color: 'var(--text-muted)'}}>Cargando dashboard...</div>
         ) : recentTratamientos.length === 0 ? (
-          <div style={{textAlign: 'center', padding: '20px', color: '#64748b'}}>Aún no hay tratamientos registrados.</div>
+          <div style={{textAlign: 'center', padding: '20px', color: 'var(--text-muted)'}}>Aún no hay tratamientos registrados.</div>
         ) : (
           <div className="accordion-list">
             {recentTratamientos.map(item => (
-              <div key={item.id} className="tratamiento-record-card" style={{border: '1px solid #e2e8f0', borderRadius: '16px', padding: '16px', position: 'relative', overflow: 'hidden', marginBottom: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)', background: 'white'}}>
+              <div key={item.id} className="tratamiento-record-card" style={{border: '1px solid var(--border)', borderRadius: '16px', padding: '16px', position: 'relative', overflow: 'hidden', marginBottom: '16px', boxShadow: 'var(--shadow-sm)', background: 'var(--bg-card)'}}>
                 {/* Borde izquierdo decorativo */}
                 <div style={{position: 'absolute', left: 0, top: 0, bottom: 0, width: '6px', background: '#8b5cf6'}}></div>
                 
                 <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px'}}>
                   <div style={{width: '20px', height: '20px', borderRadius: '50%', background: '#8b5cf6'}}></div>
-                  <h4 style={{margin: 0, fontSize: '1.2rem', color: '#1e293b', fontWeight: '800'}}>{item.cliente_nombre || 'Cliente Desconocido'}</h4>
+                  <h4 style={{margin: 0, fontSize: '1.2rem', color: 'var(--text-main)', fontWeight: '800'}}>{item.cliente_nombre || 'Cliente Desconocido'}</h4>
                 </div>
                 
-                <div style={{display: 'flex', gap: '16px', color: '#64748b', fontSize: '0.85rem', marginBottom: '12px', fontWeight: '600'}}>
+                <div style={{display: 'flex', gap: '16px', color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '12px', fontWeight: '600'}}>
                   <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><Clock size={14}/> {item.hora}</span>
                   <span>•</span>
                   <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><Calendar size={14}/> {item.fecha ? item.fecha.split('T')[0] : '-'}</span>
@@ -1233,8 +1233,8 @@ const Aquapp = () => {
                 </div>
                 
                 {item.notas && (
-                  <div style={{ background: '#f8fafc', padding: '8px 10px', borderRadius: '8px', fontWeight: '500', color: '#475569', marginBottom: '16px', fontSize: '0.85rem', border: '1px solid #f1f5f9' }}>
-                    <strong style={{color: '#1e293b'}}>Notas:</strong> {item.notas}
+                  <div style={{ background: 'var(--bg-card-hover)', padding: '8px 10px', borderRadius: '8px', fontWeight: '500', color: 'var(--text-secondary)', marginBottom: '16px', fontSize: '0.85rem', border: '1px solid var(--border-light)' }}>
+                    <strong style={{color: 'var(--text-main)'}}>Notas:</strong> {item.notas}
                   </div>
                 )}
 

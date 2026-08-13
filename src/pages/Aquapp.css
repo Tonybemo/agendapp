@@ -32,15 +32,15 @@
 .aquapp-logo h1 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #0ea5e9; /* Light blue */
+  color: var(--accent-aquapp); /* Light blue */
   margin: 0;
 }
 
 .version-badge {
-  background-color: #22c55e;
-  color: white;
+  background-color: var(--color-success);
+  color: var(--bg-card);
   padding: 2px 8px;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   font-size: 0.75rem;
   font-weight: 700;
 }
@@ -64,13 +64,13 @@
   position: absolute;
   top: -6px;
   right: -6px;
-  background-color: #ef4444;
-  color: white;
+  background-color: var(--color-error);
+  color: var(--bg-card);
   font-size: 0.65rem;
   font-weight: bold;
   width: 16px;
   height: 16px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -78,8 +78,8 @@
 
 /* Offline Banner */
 .offline-banner {
-  background-color: #f59e0b;
-  color: white;
+  background-color: var(--color-warning);
+  color: var(--bg-card);
   padding: 8px;
   text-align: center;
   font-size: 0.85rem;
@@ -121,12 +121,12 @@
 
 .tab-btn:hover {
   background: rgba(14, 165, 233, 0.05);
-  color: #0ea5e9;
+  color: var(--accent-aquapp);
 }
 
 .tab-btn.active {
-  background: linear-gradient(135deg, #0ea5e9, #3b82f6);
-  color: white;
+  background: var(--accent-aquapp);
+  color: var(--bg-card);
   box-shadow: var(--shadow-glow-blue);
   transform: translateY(-1px);
 }
@@ -146,7 +146,7 @@
 
 .stat-card {
   background-color: var(--bg-card);
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   padding: 16px;
   text-align: center;
   box-shadow: var(--shadow-sm);
@@ -184,14 +184,14 @@
 .big-btn {
   width: 100%;
   padding: 16px;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
   font-size: 1.1rem;
   font-weight: 700;
-  color: white;
+  color: var(--bg-card);
   margin-bottom: 12px;
   box-shadow: var(--shadow-sm);
   transition: transform 0.2s, box-shadow 0.2s;
@@ -201,8 +201,8 @@
   transform: scale(0.98);
 }
 
-.btn-red { background-color: #ef4444; }
-.btn-orange { background-color: #f59e0b; }
+.btn-red { background-color: var(--color-error); }
+.btn-orange { background-color: var(--color-warning); }
 
 /* Dashboard Actions Grid */
 .actions-grid {
@@ -219,8 +219,8 @@
   justify-content: center;
   gap: 8px;
   padding: 24px 12px;
-  border-radius: 12px;
-  color: white;
+  border-radius: var(--radius-sm);
+  color: var(--bg-card);
   font-weight: 600;
   font-size: 0.9rem;
   box-shadow: var(--shadow-sm);
@@ -246,7 +246,7 @@
 
 .search-box {
   background-color: var(--bg-card);
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   padding: 12px 16px;
   display: flex;
   align-items: center;
@@ -294,11 +294,11 @@
 .client-avatar {
   width: 48px;
   height: 48px;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--bg-card);
   font-weight: 700;
   font-size: 1.2rem;
   flex-shrink: 0;
@@ -326,7 +326,7 @@
 /* ---- Client Details / Accordion ---- */
 .client-detail-header {
   background-color: var(--bg-card);
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   padding: 16px;
   display: flex;
   align-items: center;
@@ -374,7 +374,7 @@
 .sample-card {
   background-color: var(--bg-main);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   padding: 16px;
   margin-top: 16px;
 }
@@ -395,14 +395,14 @@
 .sample-title-badge h4 {
   font-size: 1rem;
   font-weight: 700;
-  color: #0ea5e9;
+  color: var(--accent-aquapp);
 }
 
 .badge-tipo {
-  background-color: #fef08a;
-  color: #ca8a04;
+  background-color: var(--color-warning);
+  color: var(--text-faint);
   padding: 2px 8px;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   font-size: 0.75rem;
   font-weight: 700;
   display: flex;
@@ -414,7 +414,7 @@
   background-color: #e0f2fe;
   color: #0284c7;
   padding: 2px 8px;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   font-size: 0.75rem;
   font-weight: 700;
 }
@@ -443,9 +443,9 @@
 }
 
 .param-box {
-  background-color: white;
+  background-color: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   padding: 8px 4px;
   display: flex;
   flex-direction: column;
@@ -454,8 +454,8 @@
   text-align: center;
 }
 
-.param-box.ph { border-color: #fef08a; }
-.param-box.ph svg { color: #eab308; }
+.param-box.ph { border-color: var(--color-warning); }
+.param-box.ph svg { color: var(--color-warning); }
 
 .param-box.temp { border-color: #fecaca; background-color: #fef2f2; }
 .param-box.temp svg { color: #ef4444; }
@@ -487,7 +487,7 @@
 .action-btn-outline {
   flex: 1;
   padding: 10px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -497,13 +497,13 @@
 }
 
 .action-btn-outline.edit {
-  color: #3b82f6;
+  color: var(--text-faint);
   background-color: #eff6ff;
-  border: 1px solid #bfdbfe;
+  border: 1px solid var(--border);
 }
 
 .action-btn-outline.delete {
-  color: #ef4444;
+  color: var(--color-error);
   background-color: #fef2f2;
   border: 1px solid #fecaca;
 }
@@ -518,10 +518,10 @@
   align-items: center;
   gap: 6px;
   background-color: #3b82f6;
-  color: white;
+  color: var(--bg-card);
   border: none;
   padding: 8px 16px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   font-weight: 600;
   cursor: pointer;
 }
@@ -537,21 +537,21 @@
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  border-radius: 20px;
+  border-radius: var(--radius-md);
   font-weight: 600;
   border: none;
   cursor: pointer;
 }
 
 .filter-btn.active {
-  background-color: #0ea5e9;
-  color: white;
+  background-color: var(--accent-aquapp);
+  color: var(--bg-card);
 }
 
 .filter-btn.outline {
-  background-color: white;
-  border: 1px solid #cbd5e1;
-  color: #64748b;
+  background-color: var(--bg-card);
+  border: 1px solid var(--text-faint);
+  color: var(--text-muted);
 }
 
 .circle-empty {
@@ -565,20 +565,20 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background-color: white;
+  background-color: var(--bg-card);
   padding: 12px 16px;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
   margin-bottom: 20px;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--text-main);
 }
 
 .year-badge {
   margin-left: auto;
-  background-color: #f1f5f9;
+  background-color: var(--bg-main);
   padding: 4px 12px;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   font-weight: 700;
 }
 
@@ -599,34 +599,34 @@
 }
 
 .torres-table th, .tratamientos-table th {
-  background-color: #f1f5f9; /* Light header */
+  background-color: var(--bg-main); /* Light header */
   padding: 14px 12px;
   font-size: 0.85rem;
-  color: #334155;
+  color: var(--text-secondary);
   font-weight: 800;
-  border-bottom: 2px solid #e2e8f0;
-  border-right: 1px solid #e2e8f0;
+  border-bottom: 2px solid var(--border);
+  border-right: 1px solid var(--border);
 }
 
 .torres-table td, .tratamientos-table td {
   padding: 14px 12px;
-  border-bottom: 1px solid #e2e8f0;
-  border-right: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
   font-size: 0.9rem;
   font-weight: 700;
-  color: #0ea5e9; /* Blue text for values */
+  color: var(--accent-aquapp); /* Blue text for values */
 }
 
 .torres-table td:first-child, .tratamientos-table td:first-child {
   text-align: left;
-  background-color: #f8fafc; /* Very light param column */
-  color: #1e293b;
+  background-color: var(--bg-card-hover); /* Very light param column */
+  color: var(--text-main);
   font-weight: 800;
-  border-right: 2px solid #e2e8f0;
+  border-right: 2px solid var(--border);
 }
 
 .text-blue {
-  color: #0ea5e9;
+  color: var(--accent-aquapp);
   font-weight: 600;
 }
 
@@ -634,7 +634,7 @@
   background-color: #fee2e2;
   color: #b91c1c;
   padding: 4px 8px;
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
   font-size: 0.8rem;
   font-weight: 600;
 }
@@ -643,7 +643,7 @@
   background-color: #fef08a;
   color: #a16207;
   padding: 6px;
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
   font-size: 0.8rem;
   font-weight: 600;
   text-align: left;
@@ -651,11 +651,11 @@
 
 /* ---- Tratamientos View ---- */
 .leyenda-box {
-  background-color: white;
-  border-radius: 12px;
+  background-color: var(--bg-card);
+  border-radius: var(--radius-sm);
   padding: 16px;
   margin-bottom: 20px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  box-shadow: var(--shadow-sm);
 }
 
 .leyenda-box h3 {
@@ -669,7 +669,7 @@
   gap: 12px;
   font-size: 0.8rem;
   font-weight: 600;
-  color: #475569;
+  color: var(--text-secondary);
 }
 
 .leyenda-grid span {
@@ -698,10 +698,10 @@
 
 /* ---- Estadisticas View ---- */
 .chart-card-aq {
-  background-color: white;
-  border-radius: 12px;
+  background-color: var(--bg-card);
+  border-radius: var(--radius-sm);
   padding: 20px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  box-shadow: var(--shadow-sm);
 }
 
 .chart-card-aq h3 {
@@ -715,7 +715,7 @@
   display: flex;
   align-items: flex-end;
   padding-bottom: 20px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--border);
 }
 
 .bar-chart-aq {
@@ -744,7 +744,7 @@
 
 .bar-col-aq span {
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .leyenda-inline {
@@ -777,7 +777,7 @@
 .h-bar-row-aq span {
   width: 40px;
   font-size: 0.8rem;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .h-bar-fill-aq {
@@ -792,16 +792,16 @@
 }
 
 .tratamiento-record-card {
-  background-color: white;
-  border-radius: 12px;
+  background-color: var(--bg-card);
+  border-radius: var(--radius-sm);
   padding: 20px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+  box-shadow: var(--shadow-md);
   transition: transform 0.15s, box-shadow 0.15s;
 }
 
 .tratamiento-record-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  box-shadow: var(--shadow-lg);
 }
 
 .trat-card-header {
@@ -821,22 +821,22 @@
 .trat-card-title h4 {
   font-size: 1rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text-main);
   margin: 0;
 }
 
 .trat-tipo-badge {
   padding: 3px 10px;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   font-size: 0.75rem;
   font-weight: 700;
 }
 
 .trat-id-badge {
-  background-color: #f1f5f9;
-  color: #64748b;
+  background-color: var(--bg-main);
+  color: var(--text-muted);
   padding: 3px 10px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   font-size: 0.75rem;
   font-weight: 700;
   white-space: nowrap;
@@ -845,7 +845,7 @@
 .trat-card-meta {
   display: flex;
   gap: 16px;
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 0.85rem;
   margin-bottom: 12px;
 }
@@ -857,8 +857,8 @@
 }
 
 .trat-card-details {
-  background-color: #f8fafc;
-  border-radius: 8px;
+  background-color: var(--bg-card-hover);
+  border-radius: var(--radius-sm);
   padding: 12px;
   margin-bottom: 12px;
 }
@@ -872,17 +872,17 @@
 
 .trat-detail-label {
   font-weight: 700;
-  color: #475569;
+  color: var(--text-secondary);
   min-width: 75px;
 }
 
 .trat-card-notas {
   background-color: #fefce8;
   border: 1px solid #fde68a;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   padding: 10px 12px;
   font-size: 0.85rem;
-  color: #92400e;
+  color: var(--color-success);
   font-weight: 600;
 }
 
@@ -895,7 +895,7 @@
 
 .trat-motivo-badge {
   padding: 3px 10px;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   font-size: 0.75rem;
   font-weight: 700;
   border: 1px solid;
