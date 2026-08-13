@@ -86,6 +86,62 @@
   --transition-slow: 0.4s ease;
 }
 
+/* ═══════════════════════════════════════════
+   DARK MODE — Agendapp
+   ═══════════════════════════════════════════ */
+[data-theme='dark'] {
+  /* ── Backgrounds ── */
+  --bg-main: #0f172a;
+  --bg-card: #1e293b;
+  --bg-card-glass: rgba(30, 41, 59, 0.85);
+  --bg-card-hover: #334155;
+  --bg-input: #1e293b;
+  --bg-elevated: #1e293b;
+  --bg-modal-overlay: rgba(0, 0, 0, 0.6);
+
+  /* ── Text ── */
+  --text-main: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-faint: #64748b;
+  --text-on-primary: #ffffff;
+
+  /* ── Borders ── */
+  --border: #334155;
+  --border-light: #1e293b;
+  --border-input: #475569;
+
+  /* ── Primary ── */
+  --primary: #60a5fa;
+  --primary-hover: #3b82f6;
+  --primary-light: rgba(59, 130, 246, 0.15);
+
+  /* ── Semantic States (slightly brighter for dark bg) ── */
+  --color-success: #4ade80;
+  --color-success-light: rgba(34, 197, 94, 0.15);
+  --color-success-border: rgba(34, 197, 94, 0.3);
+  --color-error: #f87171;
+  --color-error-light: rgba(239, 68, 68, 0.15);
+  --color-error-border: rgba(239, 68, 68, 0.3);
+  --color-warning: #fbbf24;
+  --color-warning-light: rgba(245, 158, 11, 0.15);
+  --color-warning-border: rgba(245, 158, 11, 0.3);
+  --color-info: #38bdf8;
+  --color-info-light: rgba(14, 165, 233, 0.15);
+  --color-info-border: rgba(14, 165, 233, 0.3);
+
+  /* ── Danger ── */
+  --color-danger: #f87171;
+  --color-danger-hover: #ef4444;
+
+  /* ── Shadows (deeper for dark) ── */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.3), 0 4px 8px rgba(0, 0, 0, 0.15);
+  --shadow-xl: 0 20px 40px -8px rgba(0, 0, 0, 0.4), 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -103,6 +159,15 @@ body {
   color: var(--text-main);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
+  transition: background-color var(--transition-slow), color var(--transition-slow);
+}
+
+[data-theme='dark'] body {
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(14, 165, 233, 0.04) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(59, 130, 246, 0.04) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(14, 165, 233, 0.02) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(59, 130, 246, 0.02) 0px, transparent 50%);
 }
 
 button {

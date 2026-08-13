@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, CalendarCheck, Droplet, MapPin, BookOpen, Clock, Menu, X, BarChart2, Calendar as CalendarIcon, Database, ArrowLeft, LogOut, LogIn, Bell, CheckCircle2 } from 'lucide-react';
+import { LayoutDashboard, CalendarCheck, Droplet, MapPin, BookOpen, Clock, Menu, X, BarChart2, Calendar as CalendarIcon, Database, ArrowLeft, LogOut, LogIn, Bell, CheckCircle2, Moon, Sun } from 'lucide-react';
 import UniversalForm from './UniversalForm';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -15,6 +15,17 @@ const Layout = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAdmin, signOut } = useAuth();
+
+  // Dark mode state with localStorage persistence
+  const [isDark, setIsDark] = useState(() => {
+    const saved = localStorage.getItem('agendapp-theme');
+    return saved === 'dark';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    localStorage.setItem('agendapp-theme', isDark ? 'dark' : 'light');
+  }, [isDark]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -218,7 +229,22 @@ const Layout = ({ children }) => {
           ))}
         </nav>
         
-        <div style={{ padding: '20px', marginTop: 'auto' }}>
+        <div style={{ padding: '20px', marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {/* Dark Mode Toggle */}
+          <button 
+            onClick={() => setIsDark(prev => !prev)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '12px',
+              background: isDark ? 'var(--bg-card-hover)' : 'var(--bg-card-hover)',
+              color: 'var(--text-muted)', border: '1px solid var(--border)',
+              borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontWeight: '600',
+              transition: 'all var(--transition-normal)'
+            }}
+          >
+            {isDark ? <Sun size={20} /> : <Moon size={20} />}
+            <span>{isDark ? 'Modo Claro' : 'Modo Oscuro'}</span>
+          </button>
+
           {isAdmin ? (
             <button 
               onClick={() => { signOut(); isMobile && setSidebarOpen(false); navigate('/'); }}
