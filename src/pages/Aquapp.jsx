@@ -18,10 +18,10 @@ const IconMap = {
 };
 
 const ColorMap = {
-  Estandar: '#0ea5e9',
+  Estandar: 'var(--color-info)',
   Torre: '#f97316',
   Piscina: '#3b82f6',
-  Jacuzzi: '#eab308',
+  Jacuzzi: 'var(--color-warning)',
   Tratamiento: '#a855f7',
   Plagas: '#10b981'
 };
@@ -36,11 +36,11 @@ const Aquapp = () => {
   // Supabase states
   const getMonthColor = (month) => {
     const colors = {
-      '01': '#0ea5e9', '02': '#8b5cf6', '03': '#10b981', '04': '#f59e0b',
-      '05': '#ef4444', '06': '#3b82f6', '07': '#ec4899', '08': '#14b8a6',
+      '01': 'var(--color-info)', '02': '#8b5cf6', '03': '#10b981', '04': '#f59e0b',
+      '05': 'var(--color-error)', '06': '#3b82f6', '07': '#ec4899', '08': '#14b8a6',
       '09': '#f97316', '10': '#6366f1', '11': '#84cc16', '12': '#06b6d4',
-      'Enero': '#0ea5e9', 'Febrero': '#8b5cf6', 'Marzo': '#10b981', 'Abril': '#f59e0b',
-      'Mayo': '#ef4444', 'Junio': '#3b82f6', 'Julio': '#ec4899', 'Agosto': '#14b8a6',
+      'Enero': 'var(--color-info)', 'Febrero': '#8b5cf6', 'Marzo': '#10b981', 'Abril': '#f59e0b',
+      'Mayo': 'var(--color-error)', 'Junio': '#3b82f6', 'Julio': '#ec4899', 'Agosto': '#14b8a6',
       'Septiembre': '#f97316', 'Octubre': '#6366f1', 'Noviembre': '#84cc16', 'Diciembre': '#06b6d4',
     };
     return colors[month] || '#64748b';
@@ -58,7 +58,7 @@ const Aquapp = () => {
   const getMotivoStyle = (motivo) => {
     const m = (motivo || '').toLowerCase();
     if (m.includes('prev')) return { label: 'Prevención', color: '#166534', bg: '#dcfce7' };
-    if (m.includes('recuento') || m.includes('alto')) return { label: 'Recuento Alto', color: 'var(--text-main)', bg: '#fef2f2' };
+    if (m.includes('recuento') || m.includes('alto')) return { label: 'Recuento Alto', color: 'var(--text-main)', bg: 'var(--color-error-light)' };
     return { label: motivo || 'Motivo', color: 'var(--text-secondary)', bg: '#f1f5f9' };
   };
 
@@ -503,7 +503,7 @@ const Aquapp = () => {
                               <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
                                 <Calendar size={18} color="#64748b" />
                                 <h4 style={{margin: 0, color: 'var(--text-secondary)', fontSize: '1.1rem'}}>{yGroup.year}</h4>
-                                <span style={{background: '#fee2e2', color: '#ef4444', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold'}}>
+                                <span style={{background: '#fee2e2', color: 'var(--color-error)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold'}}>
                                   {totalItems} {totalItems === 1 ? 'registro' : 'registros'}
                                 </span>
                               </div>
@@ -558,7 +558,7 @@ const Aquapp = () => {
                                       }}>
                                         <Edit3 size={16}/> Editar
                                       </button>
-                                      <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: '#fef2f2', color: '#ef4444', border: '1px solid #fecaca', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { 
+                                      <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: 'var(--color-error-light)', color: 'var(--color-error)', border: '1px solid #fecaca', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { 
                                         e.stopPropagation(); 
                                         handleDeleteTratamiento(item.id); 
                                       }}>
@@ -592,7 +592,7 @@ const Aquapp = () => {
                                       }}>
                                         <Edit3 size={16}/> Editar
                                       </button>
-                                      <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: '#fef2f2', color: '#ef4444', border: '1px solid #fecaca', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { 
+                                      <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: 'var(--color-error-light)', color: 'var(--color-error)', border: '1px solid #fecaca', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { 
                                         e.stopPropagation(); 
                                         handleDeletePlaga(item.id); 
                                       }}>
@@ -604,8 +604,8 @@ const Aquapp = () => {
                                   <div key={item.id} className="sample-card" style={{border: '1px solid var(--border)', borderRadius: '12px', padding: '12px', marginBottom: '12px', boxShadow: 'var(--shadow-sm)', background: 'var(--bg-card)'}}>
                                     <div className="sample-header" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px'}}>
                                       <div className="sample-title-badge" style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-                                        <h4 style={{margin: 0, fontSize: '1rem', color: '#0ea5e9', fontWeight: '800'}}>{item.numero_muestra || 'Muestra'}</h4>
-                                        <span className="badge-tipo" style={{ backgroundColor: item.tipo_muestra === 'Torre' ? '#ffedd5' : '#fef08a', color: item.tipo_muestra === 'Torre' ? '#c2410c' : '#a16207', display: 'flex', alignItems: 'center', gap: '4px', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: '700' }}>
+                                        <h4 style={{margin: 0, fontSize: '1rem', color: 'var(--color-info)', fontWeight: '800'}}>{item.numero_muestra || 'Muestra'}</h4>
+                                        <span className="badge-tipo" style={{ backgroundColor: item.tipo_muestra === 'Torre' ? '#ffedd5' : 'var(--color-warning-border)', color: item.tipo_muestra === 'Torre' ? '#c2410c' : '#a16207', display: 'flex', alignItems: 'center', gap: '4px', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: '700' }}>
                                           <Droplet size={12}/> {item.tipo_muestra}
                                         </span>
                                       </div>
@@ -626,19 +626,19 @@ const Aquapp = () => {
                                     
                                     {item.tipo_muestra === 'Torre' ? (
                                       <div className="parameters-grid" style={{marginTop: '12px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px'}}>
-                                        <div className="param-box ph" style={{ flex: 1, padding: '8px 0', border: '1px solid #fef08a', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><FlaskConical size={16} color="#eab308" /><span className="param-name" style={{ color: '#eab308', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>PH</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.ph || '-'}</span></div>
-                                        <div className="param-box temp" style={{ flex: 1, padding: '8px 0', border: '1px solid #fecaca', borderRadius: '8px', background: '#fef2f2', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Thermometer size={16} color="#ef4444" /><span className="param-name" style={{ color: '#ef4444', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>TEMP</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.temp ? item.temp + 'º' : '-'}</span></div>
+                                        <div className="param-box ph" style={{ flex: 1, padding: '8px 0', border: '1px solid #fef08a', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><FlaskConical size={16} color="#eab308" /><span className="param-name" style={{ color: 'var(--color-warning)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>PH</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.ph || '-'}</span></div>
+                                        <div className="param-box temp" style={{ flex: 1, padding: '8px 0', border: '1px solid #fecaca', borderRadius: '8px', background: 'var(--color-error-light)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Thermometer size={16} color="#ef4444" /><span className="param-name" style={{ color: 'var(--color-error)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>TEMP</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.temp ? item.temp + 'º' : '-'}</span></div>
                                         <div className="param-box cond" style={{ flex: 1, padding: '8px 0', border: '1px solid var(--border)', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Zap size={16} color="#475569" /><span className="param-name" style={{ color: 'var(--text-secondary)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>COND.</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.conductividad || '-'}</span></div>
-                                        <div className="param-box turb" style={{ flex: 1, padding: '8px 0', border: '1px solid #bae6fd', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Waves size={16} color="#0ea5e9" /><span className="param-name" style={{ color: '#0ea5e9', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>TURB.</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.turbidez || '-'}</span></div>
+                                        <div className="param-box turb" style={{ flex: 1, padding: '8px 0', border: '1px solid #bae6fd', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Waves size={16} color="#0ea5e9" /><span className="param-name" style={{ color: 'var(--color-info)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>TURB.</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.turbidez || '-'}</span></div>
                                         <div className="param-box hierro" style={{ flex: 1, padding: '8px 0', border: '1px solid var(--border)', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Box size={16} color="#64748b" /><span className="param-name" style={{ color: 'var(--text-muted)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>HIERRO</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.hierro || '-'}</span></div>
-                                        <div className="param-box f8583" style={{ flex: 1, padding: '8px 0', border: '1px solid #bae6fd', borderRadius: '8px', background: '#f0f9ff', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Droplet size={16} color="#0ea5e9" /><span className="param-name" style={{ color: '#0ea5e9', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>F-8583</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.f_8583_kit || '-'}</span></div>
+                                        <div className="param-box f8583" style={{ flex: 1, padding: '8px 0', border: '1px solid #bae6fd', borderRadius: '8px', background: 'var(--color-info-light)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Droplet size={16} color="#0ea5e9" /><span className="param-name" style={{ color: 'var(--color-info)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>F-8583</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.f_8583_kit || '-'}</span></div>
                                         <div className="param-box f8580" style={{ flex: 1, padding: '8px 0', border: '1px solid var(--border)', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><FlaskConical size={16} color="#64748b" /><span className="param-name" style={{ color: 'var(--text-muted)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>F-8580</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.f_8580_total || '-'}</span></div>
                                       </div>
                                     ) : (
                                       <div className="parameters-grid" style={{marginTop: '12px', display: 'flex', gap: '6px'}}>
-                                        <div className="param-box ph" style={{ flex: 1, padding: '8px 0', border: '1px solid #fef08a', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><FlaskConical size={16} color="#eab308" /><span className="param-name" style={{ color: '#eab308', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>PH</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.ph || '-'}</span></div>
-                                        <div className="param-box temp" style={{ flex: 1, padding: '8px 0', border: '1px solid #fecaca', borderRadius: '8px', background: '#fef2f2', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Thermometer size={16} color="#ef4444" /><span className="param-name" style={{ color: '#ef4444', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>TEMP</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.temp ? item.temp + 'º' : '-'}</span></div>
-                                        <div className="param-box cloro" style={{ flex: 1, padding: '8px 0', border: '1px solid #bae6fd', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Droplet size={16} color="#0ea5e9" /><span className="param-name" style={{ color: '#0ea5e9', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>CLORO</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.cloro || '-'}</span></div>
+                                        <div className="param-box ph" style={{ flex: 1, padding: '8px 0', border: '1px solid #fef08a', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><FlaskConical size={16} color="#eab308" /><span className="param-name" style={{ color: 'var(--color-warning)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>PH</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.ph || '-'}</span></div>
+                                        <div className="param-box temp" style={{ flex: 1, padding: '8px 0', border: '1px solid #fecaca', borderRadius: '8px', background: 'var(--color-error-light)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Thermometer size={16} color="#ef4444" /><span className="param-name" style={{ color: 'var(--color-error)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>TEMP</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.temp ? item.temp + 'º' : '-'}</span></div>
+                                        <div className="param-box cloro" style={{ flex: 1, padding: '8px 0', border: '1px solid #bae6fd', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Droplet size={16} color="#0ea5e9" /><span className="param-name" style={{ color: 'var(--color-info)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>CLORO</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.cloro || '-'}</span></div>
                                         <div className="param-box hierro" style={{ flex: 1, padding: '8px 0', border: '1px solid var(--border)', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Box size={16} color="#64748b" /><span className="param-name" style={{ color: 'var(--text-muted)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>HIERRO</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.hierro || '-'}</span></div>
                                       </div>
                                     )}
@@ -650,7 +650,7 @@ const Aquapp = () => {
                                       }}>
                                         <Edit3 size={16}/> Editar
                                       </button>
-                                      <button className="action-btn-outline delete" style={{flex: 1, padding: '8px', borderRadius: '8px', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: '#fef2f2', color: '#ef4444', border: '1px solid #fecaca', cursor: 'pointer'}} onClick={(e) => { 
+                                      <button className="action-btn-outline delete" style={{flex: 1, padding: '8px', borderRadius: '8px', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: 'var(--color-error-light)', color: 'var(--color-error)', border: '1px solid #fecaca', cursor: 'pointer'}} onClick={(e) => { 
                                         e.stopPropagation(); 
                                         handleDeleteMuestra(item.id); 
                                       }}>
@@ -831,7 +831,7 @@ const Aquapp = () => {
                                       <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); window.dispatchEvent(new CustomEvent('edit-record', { detail: { ...item, editType: 'tratamiento' } })); }}>
                                         <Edit3 size={16}/> Editar
                                       </button>
-                                      <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: '#fef2f2', color: '#ef4444', border: '1px solid #fecaca', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); handleDeleteTratamiento(item.id); handleCargarTratamientos(selectedFiltroTrat); }}>
+                                      <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: 'var(--color-error-light)', color: 'var(--color-error)', border: '1px solid #fecaca', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); handleDeleteTratamiento(item.id); handleCargarTratamientos(selectedFiltroTrat); }}>
                                         <Trash2 size={16}/> Borrar
                                       </button>
                                     </div>
@@ -891,8 +891,8 @@ const Aquapp = () => {
                 onClick={() => setSelectedTorreClient(c.id)}
                 style={{
                   flex: 1, minWidth: '150px', padding: '12px', borderRadius: '24px', fontWeight: 'bold', border: '2px solid',
-                  borderColor: selectedTorreClient === c.id ? '#0ea5e9' : '#e2e8f0',
-                  background: selectedTorreClient === c.id ? '#0ea5e9' : 'white',
+                  borderColor: selectedTorreClient === c.id ? 'var(--color-info)' : '#e2e8f0',
+                  background: selectedTorreClient === c.id ? 'var(--color-info)' : 'white',
                   color: selectedTorreClient === c.id ? 'white' : '#64748b',
                   cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px',
                   transition: 'all 0.2s'
@@ -941,7 +941,7 @@ const Aquapp = () => {
                   datePart = datePart.includes('-') ? datePart.split('-')[2] : datePart.split('/')[0];
                   let timePart = item.hora ? item.hora.substring(0, 5) : '';
                   return `Día ${datePart} ${timePart}`;
-                }, {color: '#0ea5e9', fontWeight: 'bold'})}
+                }, {color: 'var(--color-info)', fontWeight: 'bold'})}
                 {renderTorreRow('pH', item => item ? item.ph : '-')}
                 {renderTorreRow('Temp', item => item ? item.temp : '-')}
                 {renderTorreRow('Cond.', item => item ? item.conductividad : '-')}
@@ -956,12 +956,12 @@ const Aquapp = () => {
                 {renderTorreRow('A-4170 (Entrega)', item => item ? item.mat_a_4170 : '-', {}, (val) => val && val !== '-' ? <div style={{background: '#fce7f3', color: '#be185d', padding: '4px 8px', borderRadius: '8px', display: 'inline-block'}}>📦 {val}</div> : val)}
                 {renderTorreRow('A-645 (Entrega)', item => item ? item.mat_a_645 : '-', {}, (val) => val && val !== '-' ? <div style={{background: '#fce7f3', color: '#be185d', padding: '4px 8px', borderRadius: '8px', display: 'inline-block'}}>📦 {val}</div> : val)}
                 
-                {renderTorreRow('Limpieza', item => item ? item.limpieza : '-', {color: '#0ea5e9', fontWeight: 'bold'})}
+                {renderTorreRow('Limpieza', item => item ? item.limpieza : '-', {color: 'var(--color-info)', fontWeight: 'bold'})}
                 {renderTorreRow('Notas', item => item ? item.descripcion : '-', {}, (val) => val && val !== '-' ? <div style={{background: '#fef3c7', color: '#92400e', padding: '8px', borderRadius: '8px', fontSize: '0.75rem', textAlign: 'left'}}>📝 {val}</div> : '')}
-                {renderTorreRow('Envase', item => item ? item.cod_envase : '-', {color: '#0ea5e9'})}
+                {renderTorreRow('Envase', item => item ? item.cod_envase : '-', {color: 'var(--color-info)'})}
                 
                 <tr>
-                  <td style={{position: 'sticky', left: 0, zIndex: 10, color: '#0ea5e9'}}>Acciones</td>
+                  <td style={{position: 'sticky', left: 0, zIndex: 10, color: 'var(--color-info)'}}>Acciones</td>
                   {torresData.map((item, idx) => (
                     <td key={idx} style={{textAlign: 'center'}}>
                       {item ? (
@@ -972,7 +972,7 @@ const Aquapp = () => {
                               await supabase.from('aquapp_muestras').delete().eq('id', item.id);
                               window.dispatchEvent(new CustomEvent('aquapp-refresh-data'));
                             }
-                          }} style={{background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer'}}><Trash2 size={16}/></button>
+                          }} style={{background: 'none', border: 'none', color: 'var(--color-error)', cursor: 'pointer'}}><Trash2 size={16}/></button>
                         </div>
                       ) : null}
                     </td>
@@ -1167,7 +1167,7 @@ const Aquapp = () => {
                                       }}>
                                         <Edit3 size={16}/> Editar
                                       </button>
-                                      <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: '#fef2f2', color: '#ef4444', border: '1px solid #fecaca', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { 
+                                      <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: 'var(--color-error-light)', color: 'var(--color-error)', border: '1px solid #fecaca', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { 
                                         e.stopPropagation(); 
                                         handleDeleteTratamiento(item.id); 
                                       }}>
@@ -1245,7 +1245,7 @@ const Aquapp = () => {
                   }}>
                     <Edit3 size={16}/> Editar
                   </button>
-                  <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: '#fef2f2', color: '#ef4444', border: '1px solid #fecaca', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { 
+                  <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: 'var(--color-error-light)', color: 'var(--color-error)', border: '1px solid #fecaca', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { 
                     e.stopPropagation(); 
                     handleDeleteTratamiento(item.id); 
                   }}>
