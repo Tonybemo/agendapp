@@ -286,13 +286,13 @@ const Tareasapp = () => {
           <select 
             value={currentYear}
             onChange={(e) => setCurrentYear(Number(e.target.value))}
-            style={{width: '100%', appearance: 'none', background: 'transparent', border: 'none', padding: '12px', fontSize: '1rem', fontWeight: '700', color: '#0f172a', outline: 'none', cursor: 'pointer'}}
+            style={{width: '100%', appearance: 'none', background: 'transparent', border: 'none', padding: '12px', fontSize: '1rem', fontWeight: '700', color: 'var(--text-main)', outline: 'none', cursor: 'pointer'}}
           >
             <option value={2025}>2025</option>
             <option value={2026}>2026</option>
             <option value={2027}>2027</option>
           </select>
-          <div style={{position: 'absolute', right: '12px', top: '14px', pointerEvents: 'none', color: '#64748b'}}>
+          <div style={{position: 'absolute', right: '12px', top: '14px', pointerEvents: 'none', color: 'var(--text-muted)'}}>
             <ChevronDownIcon />
           </div>
         </div>
@@ -321,7 +321,7 @@ const Tareasapp = () => {
         <button 
           className="btn-nueva-planificacion" 
           onClick={() => setIsModalOpen(true)}
-          style={{background: 'linear-gradient(135deg, #e11d48, #be123c)', color: 'white', border: 'none', padding: '12px 16px', borderRadius: '12px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', boxShadow: '0 4px 10px rgba(225, 29, 72, 0.3)', marginTop: '20px', width: '100%'}}
+          style={{background: 'var(--accent-workapp)', color: 'var(--text-on-primary)', border: 'none', padding: '12px 16px', borderRadius: '12px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', boxShadow: 'var(--shadow-md)', marginTop: '20px', width: '100%'}}
         >
           <Plus size={20} /> Añadir Planificación
         </button>
@@ -413,8 +413,8 @@ const Tareasapp = () => {
                     </p>
                   </div>
                   <div className="tf-card-actions">
-                    <MessageSquare size={16} color={tarea.notas ? "#ef4444" : "#cbd5e1"} style={{cursor: 'pointer'}} onClick={() => addNote(tarea.id)}/>
-                    <MoreVertical size={16} color="#cbd5e1" style={{cursor: 'pointer'}} onClick={() => deleteCard(tarea.id)}/>
+                    <MessageSquare size={16} color={tarea.notas ? "var(--color-danger)" : "var(--text-faint)"} style={{cursor: 'pointer'}} onClick={() => addNote(tarea.id)}/>
+                    <MoreVertical size={16} color="var(--text-faint)" style={{cursor: 'pointer'}} onClick={() => deleteCard(tarea.id)}/>
                   </div>
                 </div>
 
@@ -438,7 +438,7 @@ const Tareasapp = () => {
                             type="date" 
                             style={{
                               background: 'rgba(99, 102, 241, 0.1)',
-                              color: '#4f46e5',
+                              color: 'var(--accent-tareas)',
                               border: 'none',
                               borderRadius: '12px',
                               padding: '4px 8px',
@@ -469,7 +469,7 @@ const Tareasapp = () => {
 
                 <div className="btn-add-actuacion" style={{position: 'relative', padding: 0}}>
                   <select 
-                    style={{width: '100%', appearance: 'none', background: 'transparent', border: 'none', padding: '12px', fontSize: '0.85rem', fontWeight: '600', color: '#64748b', outline: 'none', cursor: 'pointer', textAlign: 'center'}}
+                    style={{width: '100%', appearance: 'none', background: 'transparent', border: 'none', padding: '12px', fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-muted)', outline: 'none', cursor: 'pointer', textAlign: 'center'}}
                     onChange={(e) => {
                       if (e.target.value) {
                         addTask(tarea.id, e.target.value);
@@ -494,15 +494,15 @@ const Tareasapp = () => {
 
       {/* Modal Nueva Planificación */}
       {isModalOpen && createPortal(
-        <div className="modal-overlay" style={{position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999}}>
-          <div className="modal-content animate-fade-in" style={{background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(255,255,255,0.8)', padding: '24px', borderRadius: '24px', width: '90%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 40px rgba(0,0,0,0.1)'}}>
-            <h2 style={{color: '#0f172a', marginBottom: '20px', fontSize: '1.3rem', fontWeight: '800'}}>Nueva Planificación</h2>
+        <div className="modal-overlay" style={{position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'var(--bg-modal-overlay)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999}}>
+          <div className="modal-content animate-fade-in" style={{background: 'var(--bg-card-glass)', border: '1px solid var(--border-light)', padding: '24px', borderRadius: '24px', width: '90%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto', boxShadow: 'var(--shadow-lg)'}}>
+            <h2 style={{color: 'var(--text-main)', marginBottom: '20px', fontSize: '1.3rem', fontWeight: '800'}}>Nueva Planificación</h2>
             
             <div style={{display: 'flex', flexDirection: 'column', gap: '20px'}}>
 
               {/* 1. CLIENTE */}
               <div>
-                <label style={{display: 'block', marginBottom: '8px', fontSize: '0.85rem', fontWeight: '700', color: '#475569'}}>NOMBRE DEL CLIENTE</label>
+                <label style={{display: 'block', marginBottom: '8px', fontSize: '0.85rem', fontWeight: '700', color: 'var(--text-secondary)'}}>NOMBRE DEL CLIENTE</label>
                 <select 
                   value={newClientData.id}
                   onChange={(e) => {
@@ -522,14 +522,14 @@ const Tareasapp = () => {
                     }
                     setNewClientData({...newClientData, id: val, name: cName});
                   }}
-                  style={{width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #cbd5e1', outline: 'none', background: 'white'}}
+                  style={{width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--border-input)', outline: 'none', background: 'var(--bg-input)'}}
                 >
                   <option value="">Seleccionar cliente...</option>
-                  <option value="_custom_" style={{fontWeight: 'bold', color: '#8b5cf6'}}>+ Escribir cliente puntual...</option>
+                  <option value="_custom_" style={{fontWeight: 'bold', color: 'var(--accent-estadisticas)'}}>+ Escribir cliente puntual...</option>
                   {clientesGlobales.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
                 {newClientData.id === '_custom_' && (
-                  <div style={{marginTop: '8px', padding: '8px', background: '#f1f5f9', borderRadius: '8px', fontSize: '0.85rem', color: '#475569'}}>
+                  <div style={{marginTop: '8px', padding: '8px', background: 'var(--bg-main)', borderRadius: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)'}}>
                     <span style={{fontWeight: 'bold'}}>Puntual:</span> {newClientData.name}
                   </div>
                 )}
@@ -544,17 +544,17 @@ const Tareasapp = () => {
                     style={{
                       width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                       padding: '12px 16px', borderRadius: tasksOpen ? '12px 12px 0 0' : '12px',
-                      border: '1px solid #cbd5e1', background: tasksOpen ? '#f1f5f9' : 'white',
-                      cursor: 'pointer', fontWeight: '700', fontSize: '0.85rem', color: '#475569'
+                      border: '1px solid var(--border-input)', background: tasksOpen ? 'var(--bg-main)' : 'var(--bg-card)',
+                      cursor: 'pointer', fontWeight: '700', fontSize: '0.85rem', color: 'var(--text-secondary)'
                     }}
                   >
-                    <span>TAREAS A REALIZAR {selectedTasks.length > 0 && <span style={{background:'#e11d48', color:'white', borderRadius:'999px', padding:'1px 8px', fontSize:'0.75rem', marginLeft:'6px'}}>{selectedTasks.length}</span>}</span>
+                    <span>TAREAS A REALIZAR {selectedTasks.length > 0 && <span style={{background:'var(--accent-workapp)', color:'var(--text-on-primary)', borderRadius:'999px', padding:'1px 8px', fontSize:'0.75rem', marginLeft:'6px'}}>{selectedTasks.length}</span>}</span>
                     <span style={{transition: 'transform 0.2s', display:'inline-block', transform: tasksOpen ? 'rotate(180deg)' : 'rotate(0deg)'}}><ChevronDownIcon /></span>
                   </button>
                   {tasksOpen && (
-                    <div style={{display: 'flex', flexDirection: 'column', gap: '8px', padding: '12px', background: '#f8fafc', borderRadius: '0 0 12px 12px', border: '1px solid #cbd5e1', borderTop: 'none'}}>
+                    <div style={{display: 'flex', flexDirection: 'column', gap: '8px', padding: '12px', background: 'var(--bg-input)', borderRadius: '0 0 12px 12px', border: '1px solid var(--border-input)', borderTop: 'none'}}>
                       {defaultTasksList.map((tName) => (
-                        <label key={tName} style={{display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem', color: '#334155'}}>
+                        <label key={tName} style={{display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem', color: 'var(--text-secondary)'}}>
                           <input 
                             type="checkbox" 
                             checked={selectedTasks.includes(tName)}
@@ -570,11 +570,11 @@ const Tareasapp = () => {
 
               {/* 3. FRECUENCIA */}
               <div>
-                <label style={{display: 'block', marginBottom: '8px', fontSize: '0.85rem', fontWeight: '700', color: '#475569'}}>FRECUENCIA DE VISITA</label>
+                <label style={{display: 'block', marginBottom: '8px', fontSize: '0.85rem', fontWeight: '700', color: 'var(--text-secondary)'}}>FRECUENCIA DE VISITA</label>
                 <select 
                   value={newClientData.frecuencia}
                   onChange={(e) => setNewClientData({...newClientData, frecuencia: e.target.value})}
-                  style={{width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #cbd5e1', outline: 'none', background: 'white'}}
+                  style={{width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--border-input)', outline: 'none', background: 'var(--bg-input)'}}
                 >
                   <option value="mensual">Mensual Fijo (Se añade a todos los meses)</option>
                   <option value="semanal">Semanal (Se divide en 4 semanas automáticamente)</option>
@@ -585,11 +585,11 @@ const Tareasapp = () => {
               {/* 4. MES ESPECÍFICO (solo si puntual) */}
               {newClientData.frecuencia === 'puntual' && (
                 <div>
-                  <label style={{display: 'block', marginBottom: '8px', fontSize: '0.85rem', fontWeight: '700', color: '#475569'}}>MES ESPECÍFICO</label>
+                  <label style={{display: 'block', marginBottom: '8px', fontSize: '0.85rem', fontWeight: '700', color: 'var(--text-secondary)'}}>MES ESPECÍFICO</label>
                   <select 
                     value={newClientData.month}
                     onChange={(e) => setNewClientData({...newClientData, month: e.target.value})}
-                    style={{width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #cbd5e1', outline: 'none', background: 'white'}}
+                    style={{width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--border-input)', outline: 'none', background: 'var(--bg-input)'}}
                   >
                     {months.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}
                   </select>
@@ -601,13 +601,13 @@ const Tareasapp = () => {
             <div style={{display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '32px'}}>
               <button 
                 onClick={() => setIsModalOpen(false)}
-                style={{padding: '12px 24px', borderRadius: '12px', border: '1px solid #e2e8f0', background: 'white', color: '#475569', fontWeight: '700', cursor: 'pointer'}}
+                style={{padding: '12px 24px', borderRadius: '12px', border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-secondary)', fontWeight: '700', cursor: 'pointer'}}
               >
                 Cancelar
               </button>
               <button 
                 onClick={handleSavePlanning}
-                style={{padding: '12px 24px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, #e11d48, #be123c)', color: 'white', fontWeight: '700', cursor: 'pointer', boxShadow: '0 4px 10px rgba(225, 29, 72, 0.3)'}}
+                style={{padding: '12px 24px', borderRadius: '12px', border: 'none', background: 'var(--accent-workapp)', color: 'var(--text-on-primary)', fontWeight: '700', cursor: 'pointer', boxShadow: 'var(--shadow-md)'}}
               >
                 Guardar Cliente
               </button>

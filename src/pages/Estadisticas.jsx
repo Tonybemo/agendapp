@@ -351,12 +351,12 @@ const Estadisticas = () => {
           <Filter size={18} />
           <h3 style={{margin: 0}}>FILTRO POR AÑO</h3>
         </div>
-        <div style={{display: 'flex', alignItems: 'center', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px 12px'}}>
-          <Calendar size={16} color="#64748b" style={{marginRight: '8px'}} />
+        <div style={{display: 'flex', alignItems: 'center', background: 'var(--bg-card-hover)', border: '1px solid var(--border)', borderRadius: '8px', padding: '10px 12px'}}>
+          <Calendar size={16} color="var(--text-muted)" style={{marginRight: '8px'}} />
           <select 
             value={aquappYearFilter} 
             onChange={(e) => setAquappYearFilter(e.target.value)}
-            style={{border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '0.9rem', color: '#334155'}}
+            style={{border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '0.9rem', color: 'var(--text-secondary)'}}
           >
             {aquappStats.availableYears?.length === 0 ? (
                <option value={new Date().getFullYear().toString()}>{new Date().getFullYear()}</option>
@@ -437,12 +437,12 @@ const Estadisticas = () => {
             <tbody>
               {aquappStats.clientTableData?.length === 0 ? (
                 <tr>
-                  <td colSpan="13" style={{textAlign: 'center', color: '#64748b'}}>No hay datos para el año {aquappYearFilter}</td>
+                  <td colSpan="13" style={{textAlign: 'center', color: 'var(--text-muted)'}}>No hay datos para el año {aquappYearFilter}</td>
                 </tr>
               ) : (
                 aquappStats.clientTableData?.map((client, idx) => (
                   <tr key={idx}>
-                    <td style={{fontWeight: '600', color: '#334155'}}>{client.name}</td>
+                    <td style={{fontWeight: '600', color: 'var(--text-secondary)'}}>{client.name}</td>
                     {client.months.map((events, mIdx) => (
                       <td key={mIdx} style={{textAlign: 'center'}}>
                         <div style={{display: 'flex', gap: '2px', justifyContent: 'center', flexWrap: 'wrap'}}>
@@ -486,12 +486,12 @@ const Estadisticas = () => {
           <Filter size={18} />
           <h3 style={{margin: 0}}>FILTRO POR AÑO</h3>
         </div>
-        <div style={{display: 'flex', alignItems: 'center', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px 12px'}}>
-          <Calendar size={16} color="#64748b" style={{marginRight: '8px'}} />
+        <div style={{display: 'flex', alignItems: 'center', background: 'var(--bg-card-hover)', border: '1px solid var(--border)', borderRadius: '8px', padding: '10px 12px'}}>
+          <Calendar size={16} color="var(--text-muted)" style={{marginRight: '8px'}} />
           <select 
             value={avisomapYearFilter} 
             onChange={(e) => setAvisomapYearFilter(e.target.value)}
-            style={{border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '0.9rem', color: '#334155'}}
+            style={{border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '0.9rem', color: 'var(--text-secondary)'}}
           >
             <option value="Todos">Histórico (Todos los años)</option>
             {avisomapStats.availableYears?.map(y => (
@@ -515,13 +515,13 @@ const Estadisticas = () => {
           </div>
         </div>
         {avisomapStats.plagas.length === 0 ? (
-          <p style={{textAlign: 'center', color: '#64748b'}}>No hay datos de plagas.</p>
+          <p style={{textAlign: 'center', color: 'var(--text-muted)'}}>No hay datos de plagas.</p>
         ) : (
           <div className="stats-bar-list">
             {avisomapStats.plagas.map(stat => (
               <div key={stat.name} className="stats-bar-item">
                 <div className="stats-bar-info">
-                  <span><Bug size={14} color="#64748b"/> {stat.name}</span>
+                  <span><Bug size={14} color="var(--text-muted)"/> {stat.name}</span>
                   <span className="stats-bar-numbers">{stat.count} avisos · <strong>{stat.percentage}%</strong></span>
                 </div>
                 <div className="stats-bar-bg">
@@ -542,7 +542,7 @@ const Estadisticas = () => {
           </div>
         </div>
         {avisomapStats.localidades.length === 0 ? (
-          <p style={{textAlign: 'center', color: '#64748b'}}>No hay datos de localidades.</p>
+          <p style={{textAlign: 'center', color: 'var(--text-muted)'}}>No hay datos de localidades.</p>
         ) : (
           <div className="stats-bar-list">
             {avisomapStats.localidades.map(stat => (
@@ -573,14 +573,14 @@ const Estadisticas = () => {
         </div>
         <div style={{display: 'flex', gap: '16px', marginBottom: '16px', flexWrap: 'wrap'}}>
           <div style={{flex: '1 1 200px'}}>
-            <label style={{display: 'block', fontSize: '0.8rem', color: '#64748b', fontWeight: '600', marginBottom: '6px'}}>Desde</label>
-            <div style={{display: 'flex', alignItems: 'center', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px 12px'}}>
+            <label style={{display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600', marginBottom: '6px'}}>Desde</label>
+            <div style={{display: 'flex', alignItems: 'center', background: 'var(--bg-card-hover)', border: '1px solid var(--border)', borderRadius: '8px', padding: '10px 12px'}}>
               <input type="date" value={workappFiltro.desde} onChange={e => setWorkappFiltro({...workappFiltro, desde: e.target.value})} style={{border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '0.9rem'}} />
             </div>
           </div>
           <div style={{flex: '1 1 200px'}}>
-            <label style={{display: 'block', fontSize: '0.8rem', color: '#64748b', fontWeight: '600', marginBottom: '6px'}}>Hasta</label>
-            <div style={{display: 'flex', alignItems: 'center', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px 12px'}}>
+            <label style={{display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600', marginBottom: '6px'}}>Hasta</label>
+            <div style={{display: 'flex', alignItems: 'center', background: 'var(--bg-card-hover)', border: '1px solid var(--border)', borderRadius: '8px', padding: '10px 12px'}}>
               <input type="date" value={workappFiltro.hasta} onChange={e => setWorkappFiltro({...workappFiltro, hasta: e.target.value})} style={{border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '0.9rem'}} />
             </div>
           </div>
@@ -628,7 +628,7 @@ const Estadisticas = () => {
       <div className="stats-chart-card" style={{height: '350px'}}>
         <h3 style={{color: '#6366f1', textTransform: 'uppercase'}}><BarChart2 size={18} style={{marginRight: '8px', verticalAlign: 'text-bottom'}} /> Horas Extras por Día</h3>
         {workappResultados.chartData.length === 0 ? (
-          <p style={{textAlign: 'center', color: '#64748b'}}>No hay horas extras en este rango.</p>
+          <p style={{textAlign: 'center', color: 'var(--text-muted)'}}>No hay horas extras en este rango.</p>
         ) : (
           <ResponsiveContainer width="100%" height="85%">
             <BarChart
@@ -650,7 +650,7 @@ const Estadisticas = () => {
       <div className="stats-chart-card" style={{height: '350px'}}>
         <h3 style={{color: '#6366f1', textTransform: 'uppercase'}}><span style={{fontWeight: 'bold', fontSize: '1.2rem', marginRight: '8px'}}>$</span> Importe (€) por Día</h3>
         {workappResultados.chartData.length === 0 ? (
-          <p style={{textAlign: 'center', color: '#64748b'}}>Sin importe en este rango.</p>
+          <p style={{textAlign: 'center', color: 'var(--text-muted)'}}>Sin importe en este rango.</p>
         ) : (
           <ResponsiveContainer width="100%" height="85%">
             <BarChart

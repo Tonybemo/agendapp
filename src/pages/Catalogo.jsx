@@ -133,7 +133,7 @@ const Catalogo = () => {
         {/* Header inside category view */}
         <div className="catalogo-header-card">
           <div className="catalogo-title-row">
-            <BookOpen size={28} color="#2563eb" />
+            <BookOpen size={28} color="var(--primary)" />
             <h1>Catálogo</h1>
             <div className="brand-icon">A</div>
           </div>
@@ -154,7 +154,7 @@ const Catalogo = () => {
             <ArrowLeft size={18} /> Volver
           </button>
           <div className="category-title-inline">
-            <CategoryIcon size={20} color="#0f172a" />
+            <CategoryIcon size={20} color="var(--text-main)" />
             <h2>{categoryInfo.title}</h2>
           </div>
         </div>
@@ -170,7 +170,7 @@ const Catalogo = () => {
                   <div className="product-detail-badges">
                     <span className="badge-ins">{selectedProduct.badge}</span>
                     <span className="product-detail-badge">Registro: {selectedProduct.registro}</span>
-                    <span className="product-detail-badge" style={{color: '#2563eb', borderColor: '#93c5fd', background: 'rgba(37, 99, 235, 0.08)'}}>Lote: {selectedProduct.lote}</span>
+                    <span className="product-detail-badge" style={{color: 'var(--primary)', borderColor: 'var(--primary-light)', background: 'var(--primary-light)'}}>Lote: {selectedProduct.lote}</span>
                   </div>
                 </div>
               </div>
@@ -205,26 +205,26 @@ const Catalogo = () => {
               {selectedProduct.pdfUrl ? (
                 <a 
                   href={selectedProduct.pdfUrl} target="_blank" rel="noopener noreferrer"
-                  style={{display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 20px', background: 'rgba(255,255,255,0.6)', color: '#2563eb', border: '1px solid rgba(255,255,255,0.8)', borderRadius: '12px', fontWeight: '700', cursor: 'pointer', boxShadow: '0 4px 10px rgba(0,0,0,0.02)', textDecoration: 'none'}}
+                  style={{display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 20px', background: 'var(--bg-card-glass)', color: 'var(--primary)', border: '1px solid rgba(255,255,255,0.8)', borderRadius: 'var(--radius-sm)', fontWeight: '700', cursor: 'pointer', boxShadow: 'var(--shadow-sm)', textDecoration: 'none'}}
                 >
                   <FileText size={18} /> Ver Adjunto (SDS)
                 </a>
               ) : (
-                <div style={{color: '#94a3b8', fontSize: '0.9rem', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 20px'}}>
+                <div style={{color: 'var(--text-faint)', fontSize: '0.9rem', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 20px'}}>
                   <FileText size={18} /> Sin Ficha
                 </div>
               )}
               
               <div style={{display: 'flex', gap: '8px'}}>
                 <button 
-                  style={{display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', backgroundColor: 'white', color: '#14b8a6', border: '1px solid #14b8a6', borderRadius: '10px', cursor: 'pointer'}}
+                  style={{display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', backgroundColor: 'var(--bg-card)', color: 'var(--color-success)', border: '1px solid var(--color-success)', borderRadius: '10px', cursor: 'pointer'}}
                   onClick={() => setEditingProduct(selectedProduct)}
                   title="Editar"
                 >
                   <Edit3 size={18} />
                 </button>
                 <button 
-                  style={{display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', backgroundColor: 'white', color: '#ef4444', border: '1px solid #ef4444', borderRadius: '10px', cursor: 'pointer'}}
+                  style={{display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', backgroundColor: 'var(--bg-card)', color: 'var(--color-error)', border: '1px solid var(--color-error)', borderRadius: '10px', cursor: 'pointer'}}
                   onClick={() => deleteProduct(selectedProduct.id)}
                   title="Eliminar"
                 >
@@ -234,9 +234,9 @@ const Catalogo = () => {
             </div>
           </div>
         ) : loading ? (
-          <div style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>Cargando catálogo...</div>
+          <div style={{textAlign: 'center', padding: '40px', color: 'var(--text-muted)'}}>Cargando catálogo...</div>
         ) : filteredProducts.length === 0 ? (
-          <div style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>No hay productos en esta categoría. Añade uno desde el botón central (+).</div>
+          <div style={{textAlign: 'center', padding: '40px', color: 'var(--text-muted)'}}>No hay productos en esta categoría. Añade uno desde el botón central (+).</div>
         ) : (
           <div className="products-grid">
             {filteredProducts.map(product => (
@@ -252,8 +252,8 @@ const Catalogo = () => {
                   <h3>{product.name}</h3>
                   
                   <div style={{display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '16px', flex: 1}}>
-                    <span style={{fontSize: '0.8rem', color: '#2563eb', fontWeight: '700'}}>Lote: <strong>{product.lote}</strong></span>
-                    <span style={{fontSize: '0.8rem', color: '#64748b'}}>Nº Reg: <strong>{product.registro}</strong></span>
+                    <span style={{fontSize: '0.8rem', color: 'var(--primary)', fontWeight: '700'}}>Lote: <strong>{product.lote}</strong></span>
+                    <span style={{fontSize: '0.8rem', color: 'var(--text-muted)'}}>Nº Reg: <strong>{product.registro}</strong></span>
                   </div>
 
                   <div className={`product-status ${product.hasWarning ? 'warning' : 'safe'}`}>
@@ -268,59 +268,59 @@ const Catalogo = () => {
 
 
         {editingProduct && (
-          <div className="uf-overlay" onClick={() => setEditingProduct(null)} style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-            <div className="uf-modal animate-fade-in" onClick={e => e.stopPropagation()} style={{background: 'white', padding: '24px', borderRadius: '16px', width: '90%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto'}}>
+          <div className="uf-overlay" onClick={() => setEditingProduct(null)} style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'var(--bg-modal-overlay)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+            <div className="uf-modal animate-fade-in" onClick={e => e.stopPropagation()} style={{background: 'var(--bg-card)', padding: '24px', borderRadius: 'var(--radius-md)', width: '90%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto'}}>
               <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px'}}>
                 <h2 style={{margin: 0}}>Editar Producto</h2>
-                <X size={24} color="#64748b" style={{cursor: 'pointer'}} onClick={() => setEditingProduct(null)} />
+                <X size={24} color="var(--text-muted)" style={{cursor: 'pointer'}} onClick={() => setEditingProduct(null)} />
               </div>
               <form onSubmit={handleSaveProductEdit} style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
                 <div>
-                  <label style={{fontSize: '0.8rem', fontWeight: 700, color: '#64748b'}}>NOMBRE</label>
-                  <input type="text" value={editingProduct.name || ''} onChange={e => setEditingProduct({...editingProduct, name: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1'}} required />
+                  <label style={{fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)'}}>NOMBRE</label>
+                  <input type="text" value={editingProduct.name || ''} onChange={e => setEditingProduct({...editingProduct, name: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-input)'}} required />
                 </div>
                 <div style={{display: 'flex', gap: '12px'}}>
                   <div style={{flex: 1}}>
-                    <label style={{fontSize: '0.8rem', fontWeight: 700, color: '#64748b'}}>TIPO (PRO, BASICO, etc)</label>
-                    <input type="text" value={editingProduct.badge || ''} onChange={e => setEditingProduct({...editingProduct, badge: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1'}} />
+                    <label style={{fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)'}}>TIPO (PRO, BASICO, etc)</label>
+                    <input type="text" value={editingProduct.badge || ''} onChange={e => setEditingProduct({...editingProduct, badge: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-input)'}} />
                   </div>
                   <div style={{flex: 1}}>
-                    <label style={{fontSize: '0.8rem', fontWeight: 700, color: '#64748b'}}>CADUCIDAD</label>
-                    <input type="date" value={editingProduct.caducidad || ''} onChange={e => setEditingProduct({...editingProduct, caducidad: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1'}} />
+                    <label style={{fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)'}}>CADUCIDAD</label>
+                    <input type="date" value={editingProduct.caducidad || ''} onChange={e => setEditingProduct({...editingProduct, caducidad: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-input)'}} />
                   </div>
                 </div>
                 <div style={{display: 'flex', gap: '12px'}}>
                   <div style={{flex: 1}}>
-                    <label style={{fontSize: '0.8rem', fontWeight: 700, color: '#64748b'}}>Nº REGISTRO</label>
-                    <input type="text" value={editingProduct.registro || ''} onChange={e => setEditingProduct({...editingProduct, registro: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1'}} />
+                    <label style={{fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)'}}>Nº REGISTRO</label>
+                    <input type="text" value={editingProduct.registro || ''} onChange={e => setEditingProduct({...editingProduct, registro: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-input)'}} />
                   </div>
                   <div style={{flex: 1}}>
-                    <label style={{fontSize: '0.8rem', fontWeight: 700, color: '#64748b'}}>LOTE</label>
-                    <input type="text" value={editingProduct.lote || ''} onChange={e => setEditingProduct({...editingProduct, lote: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1'}} />
+                    <label style={{fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)'}}>LOTE</label>
+                    <input type="text" value={editingProduct.lote || ''} onChange={e => setEditingProduct({...editingProduct, lote: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-input)'}} />
                   </div>
                 </div>
                 <div>
-                  <label style={{fontSize: '0.8rem', fontWeight: 700, color: '#64748b'}}>MATERIA ACTIVA</label>
-                  <input type="text" value={editingProduct.materiaActiva || ''} onChange={e => setEditingProduct({...editingProduct, materiaActiva: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1'}} />
+                  <label style={{fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)'}}>MATERIA ACTIVA</label>
+                  <input type="text" value={editingProduct.materiaActiva || ''} onChange={e => setEditingProduct({...editingProduct, materiaActiva: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-input)'}} />
                 </div>
                 <div>
-                  <label style={{fontSize: '0.8rem', fontWeight: 700, color: '#64748b'}}>PLAGA DIANA</label>
-                  <input type="text" value={editingProduct.plagaDiana || ''} onChange={e => setEditingProduct({...editingProduct, plagaDiana: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1'}} />
+                  <label style={{fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)'}}>PLAGA DIANA</label>
+                  <input type="text" value={editingProduct.plagaDiana || ''} onChange={e => setEditingProduct({...editingProduct, plagaDiana: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-input)'}} />
                 </div>
                 <div>
-                  <label style={{fontSize: '0.8rem', fontWeight: 700, color: '#64748b'}}>MÉTODO APLICACIÓN</label>
-                  <input type="text" value={editingProduct.metodoAplicacion || ''} onChange={e => setEditingProduct({...editingProduct, metodoAplicacion: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1'}} />
+                  <label style={{fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)'}}>MÉTODO APLICACIÓN</label>
+                  <input type="text" value={editingProduct.metodoAplicacion || ''} onChange={e => setEditingProduct({...editingProduct, metodoAplicacion: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-input)'}} />
                 </div>
                 <div>
-                  <label style={{fontSize: '0.8rem', fontWeight: 700, color: '#64748b'}}>PLAZO DE SEGURIDAD</label>
-                  <input type="text" value={editingProduct.plazoSeguridad || ''} onChange={e => setEditingProduct({...editingProduct, plazoSeguridad: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1'}} />
+                  <label style={{fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)'}}>PLAZO DE SEGURIDAD</label>
+                  <input type="text" value={editingProduct.plazoSeguridad || ''} onChange={e => setEditingProduct({...editingProduct, plazoSeguridad: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-input)'}} />
                 </div>
                 <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px'}}>
                   <input type="checkbox" checked={editingProduct.hasWarning || false} onChange={e => setEditingProduct({...editingProduct, hasWarning: e.target.checked})} id="hasWarningCheck" />
-                  <label htmlFor="hasWarningCheck" style={{fontSize: '0.9rem', color: '#0f172a'}}>Marca si tiene alerta / plazo de seguridad alto</label>
+                  <label htmlFor="hasWarningCheck" style={{fontSize: '0.9rem', color: 'var(--text-main)'}}>Marca si tiene alerta / plazo de seguridad alto</label>
                 </div>
                 
-                <button type="submit" disabled={isSavingProduct} style={{padding: '12px', background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', marginTop: '16px'}}>
+                <button type="submit" disabled={isSavingProduct} style={{padding: '12px', background: 'var(--primary)', color: 'var(--text-on-primary)', border: 'none', borderRadius: 'var(--radius-sm)', fontWeight: 600, cursor: 'pointer', marginTop: '16px'}}>
                   {isSavingProduct ? 'Guardando...' : 'Guardar Cambios'}
                 </button>
               </form>
@@ -337,7 +337,7 @@ const Catalogo = () => {
       {/* Header */}
       <div className="catalogo-header-card">
         <div className="catalogo-title-row">
-          <BookOpen size={28} color="#2563eb" />
+          <BookOpen size={28} color="var(--primary)" />
           <h1>Catálogo</h1>
           <div className="brand-icon">A</div>
         </div>
@@ -363,12 +363,12 @@ const Catalogo = () => {
               (p.lote || '').toLowerCase().includes(q) ||
               (p.plagaDiana || '').toLowerCase().includes(q)
             );
-            if (results.length === 0) return <div style={{textAlign: 'center', padding: '40px', color: '#64748b', gridColumn: '1/-1'}}>No se encontraron productos para "{searchQuery}"</div>;
+            if (results.length === 0) return <div style={{textAlign: 'center', padding: '40px', color: 'var(--text-muted)', gridColumn: '1/-1'}}>No se encontraron productos para "{searchQuery}"</div>;
             return results.map(p => (
               <div key={p.id} className="product-card" onClick={() => { setSelectedCategory(p.categoryId); setSelectedProduct(p); setSearchQuery(''); }}>
                 <h4>{p.name}</h4>
                 {p.badge && <span className="product-badge">{p.badge}</span>}
-                {p.materiaActiva && <p style={{fontSize: '0.75rem', color: '#64748b', margin: '4px 0 0'}}>{p.materiaActiva}</p>}
+                {p.materiaActiva && <p style={{fontSize: '0.75rem', color: 'var(--text-muted)', margin: '4px 0 0'}}>{p.materiaActiva}</p>}
               </div>
             ));
           })()}
@@ -387,7 +387,7 @@ const Catalogo = () => {
               >
                 <div 
                   className="category-icon" 
-                  style={{ background: `linear-gradient(135deg, ${category.color}, #334155)` }}
+                  style={{ background: `linear-gradient(135deg, ${category.color}, var(--text-secondary))` }}
                 >
                   <Icon size={28} color="white" />
                 </div>

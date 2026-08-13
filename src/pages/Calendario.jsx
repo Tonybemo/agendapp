@@ -251,7 +251,7 @@ const Calendario = () => {
   return (
     <div className="calendario-container animate-fade-in">
       <div className="calendario-header">
-        <CalendarIcon size={28} color="#6366f1" />
+        <CalendarIcon size={28} color="var(--accent-calendario)" />
         <h1>Calendario Global</h1>
       </div>
 
@@ -287,7 +287,7 @@ const Calendario = () => {
             <>
               <div className="cal-details-header">
                 {selectedDetailGroup ? (
-                  <button className="back-btn" onClick={() => setSelectedDetailGroup(null)} style={{ background: 'none', border: 'none', color: '#6366f1', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontWeight: 600 }}>
+                  <button className="back-btn" onClick={() => setSelectedDetailGroup(null)} style={{ background: 'none', border: 'none', color: 'var(--accent-calendario)', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontWeight: 600 }}>
                     <ChevronLeft size={20} /> {selectedDetailGroup.client}
                   </button>
                 ) : (
@@ -311,54 +311,54 @@ const Calendario = () => {
                         return (
                           <div key={`${actKey}-${idx}`}>
                             {isMuestra && (
-                              <div className="sample-card" style={{border: '1px solid #e2e8f0', borderRadius: '12px', padding: '12px', marginBottom: '12px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', background: 'white'}}>
+                              <div className="sample-card" style={{border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '12px', marginBottom: '12px', boxShadow: 'var(--shadow-sm)', background: 'var(--bg-card)'}}>
                                 <div className="sample-header" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px'}}>
                                   <div className="sample-title-badge" style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-                                    <h4 style={{margin: 0, fontSize: '1.1rem', color: '#1e293b', fontWeight: '800'}}>{item.numero_muestra || 'Muestra'}</h4>
+                                    <h4 style={{margin: 0, fontSize: '1.1rem', color: 'var(--text-main)', fontWeight: '800'}}>{item.numero_muestra || 'Muestra'}</h4>
                                     {item.tipo_muestra && (
-                                      <span className="badge-tipo" style={{ backgroundColor: item.tipo_muestra === 'Torre' ? '#ffedd5' : '#fef08a', color: item.tipo_muestra === 'Torre' ? '#c2410c' : '#a16207', display: 'flex', alignItems: 'center', gap: '4px', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: '700' }}>
+                                      <span className="badge-tipo" style={{ backgroundColor: item.tipo_muestra === 'Torre' ? '#ffedd5' : '#fef08a', color: item.tipo_muestra === 'Torre' ? '#c2410c' : '#a16207', display: 'flex', alignItems: 'center', gap: '4px', padding: '2px 8px', borderRadius: 'var(--radius-sm)', fontSize: '0.75rem', fontWeight: '700' }}>
                                         <Droplet size={12}/> {item.tipo_muestra}
                                       </span>
                                     )}
                                   </div>
-                                  <span className="sample-id" style={{fontSize: '0.8rem', color: '#64748b', fontWeight: 'bold', background: '#f1f5f9', padding: '4px 10px', borderRadius: '12px'}}>{item.cod_envase || 'Sin Cód.'}</span>
+                                  <span className="sample-id" style={{fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 'bold', background: 'var(--bg-main)', padding: '4px 10px', borderRadius: 'var(--radius-sm)'}}>{item.cod_envase || 'Sin Cód.'}</span>
                                 </div>
                                 
-                                <div className="sample-meta" style={{display: 'flex', gap: '12px', color: '#64748b', fontSize: '0.8rem', marginBottom: '12px', fontWeight: '600'}}>
+                                <div className="sample-meta" style={{display: 'flex', gap: '12px', color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '12px', fontWeight: '600'}}>
                                   <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><Clock size={14}/> {item.hora || '-'}</span>
                                   <span>•</span>
                                   <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><CalendarIcon size={14}/> {item.fecha ? item.fecha.split('T')[0] : '-'}</span>
                                 </div>
 
-                                <div className="sample-location" style={{ background: '#f8fafc', padding: '8px 10px', borderRadius: '8px', fontWeight: '700', color: '#1e293b', marginBottom: '12px', fontSize: '0.9rem' }}>
+                                <div className="sample-location" style={{ background: 'var(--bg-card-hover)', padding: '8px 10px', borderRadius: 'var(--radius-sm)', fontWeight: '700', color: 'var(--text-main)', marginBottom: '12px', fontSize: '0.9rem' }}>
                                   {item.descripcion || 'Sin descripción'}
                                 </div>
                                 
                                 {item.tipo_muestra === 'Torre' ? (
                                   <div className="parameters-grid" style={{marginTop: '12px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px'}}>
-                                    <div className="param-box ph" style={{ flex: 1, padding: '8px 0', border: '1px solid #fef08a', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><FlaskConical size={16} color="#eab308" /><span className="param-name" style={{ color: '#eab308', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>PH</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: '#1e293b' }}>{item.ph || '-'}</span></div>
-                                    <div className="param-box temp" style={{ flex: 1, padding: '8px 0', border: '1px solid #fecaca', borderRadius: '8px', background: '#fef2f2', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><ThermometerSun size={16} color="#ef4444" /><span className="param-name" style={{ color: '#ef4444', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>TEMP</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: '#1e293b' }}>{item.temp || item.temperatura ? (item.temp || item.temperatura) + 'º' : '-'}</span></div>
-                                    <div className="param-box cond" style={{ flex: 1, padding: '8px 0', border: '1px solid #e2e8f0', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Zap size={16} color="#475569" /><span className="param-name" style={{ color: '#475569', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>COND.</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: '#1e293b' }}>{item.conductividad || '-'}</span></div>
-                                    <div className="param-box turb" style={{ flex: 1, padding: '8px 0', border: '1px solid #bae6fd', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Waves size={16} color="#0ea5e9" /><span className="param-name" style={{ color: '#0ea5e9', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>TURB.</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: '#1e293b' }}>{item.turbidez || '-'}</span></div>
-                                    <div className="param-box hierro" style={{ flex: 1, padding: '8px 0', border: '1px solid #e2e8f0', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Box size={16} color="#64748b" /><span className="param-name" style={{ color: '#64748b', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>HIERRO</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: '#1e293b' }}>{item.hierro || '-'}</span></div>
-                                    <div className="param-box f8583" style={{ flex: 1, padding: '8px 0', border: '1px solid #bae6fd', borderRadius: '8px', background: '#f0f9ff', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Droplet size={16} color="#0ea5e9" /><span className="param-name" style={{ color: '#0ea5e9', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>F-8583</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: '#1e293b' }}>{item.f_8583_kit || '-'}</span></div>
-                                    <div className="param-box f8580" style={{ flex: 1, padding: '8px 0', border: '1px solid #e2e8f0', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><FlaskConical size={16} color="#64748b" /><span className="param-name" style={{ color: '#64748b', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>F-8580</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: '#1e293b' }}>{item.f_8580_total || '-'}</span></div>
+                                    <div className="param-box ph" style={{ flex: 1, padding: '8px 0', border: '1px solid #fef08a', borderRadius: 'var(--radius-sm)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><FlaskConical size={16} color="#eab308" /><span className="param-name" style={{ color: '#eab308', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>PH</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.ph || '-'}</span></div>
+                                    <div className="param-box temp" style={{ flex: 1, padding: '8px 0', border: '1px solid #fecaca', borderRadius: 'var(--radius-sm)', background: '#fef2f2', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><ThermometerSun size={16} color="#ef4444" /><span className="param-name" style={{ color: '#ef4444', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>TEMP</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.temp || item.temperatura ? (item.temp || item.temperatura) + 'º' : '-'}</span></div>
+                                    <div className="param-box cond" style={{ flex: 1, padding: '8px 0', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Zap size={16} color="var(--text-secondary)" /><span className="param-name" style={{ color: 'var(--text-secondary)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>COND.</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.conductividad || '-'}</span></div>
+                                    <div className="param-box turb" style={{ flex: 1, padding: '8px 0', border: '1px solid #bae6fd', borderRadius: 'var(--radius-sm)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Waves size={16} color="#0ea5e9" /><span className="param-name" style={{ color: '#0ea5e9', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>TURB.</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.turbidez || '-'}</span></div>
+                                    <div className="param-box hierro" style={{ flex: 1, padding: '8px 0', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Box size={16} color="var(--text-muted)" /><span className="param-name" style={{ color: 'var(--text-muted)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>HIERRO</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.hierro || '-'}</span></div>
+                                    <div className="param-box f8583" style={{ flex: 1, padding: '8px 0', border: '1px solid #bae6fd', borderRadius: 'var(--radius-sm)', background: '#f0f9ff', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Droplet size={16} color="#0ea5e9" /><span className="param-name" style={{ color: '#0ea5e9', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>F-8583</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.f_8583_kit || '-'}</span></div>
+                                    <div className="param-box f8580" style={{ flex: 1, padding: '8px 0', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><FlaskConical size={16} color="var(--text-muted)" /><span className="param-name" style={{ color: 'var(--text-muted)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>F-8580</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.f_8580_total || '-'}</span></div>
                                   </div>
                                 ) : (
                                   <div className="parameters-grid" style={{marginTop: '12px', display: 'flex', gap: '6px'}}>
-                                    <div className="param-box ph" style={{ flex: 1, padding: '8px 0', border: '1px solid #fef08a', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><FlaskConical size={16} color="#eab308" /><span className="param-name" style={{ color: '#eab308', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>PH</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: '#1e293b' }}>{item.ph || '-'}</span></div>
-                                    <div className="param-box temp" style={{ flex: 1, padding: '8px 0', border: '1px solid #fecaca', borderRadius: '8px', background: '#fef2f2', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><ThermometerSun size={16} color="#ef4444" /><span className="param-name" style={{ color: '#ef4444', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>TEMP</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: '#1e293b' }}>{item.temp || item.temperatura ? (item.temp || item.temperatura) + 'º' : '-'}</span></div>
-                                    <div className="param-box cloro" style={{ flex: 1, padding: '8px 0', border: '1px solid #bae6fd', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Droplet size={16} color="#0ea5e9" /><span className="param-name" style={{ color: '#0ea5e9', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>CLORO</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: '#1e293b' }}>{item.cloro_libre || item.cloro || '-'}</span></div>
-                                    <div className="param-box hierro" style={{ flex: 1, padding: '8px 0', border: '1px solid #e2e8f0', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Box size={16} color="#64748b" /><span className="param-name" style={{ color: '#64748b', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>HIERRO</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: '#1e293b' }}>{item.hierro || '-'}</span></div>
+                                    <div className="param-box ph" style={{ flex: 1, padding: '8px 0', border: '1px solid #fef08a', borderRadius: 'var(--radius-sm)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><FlaskConical size={16} color="#eab308" /><span className="param-name" style={{ color: '#eab308', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>PH</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.ph || '-'}</span></div>
+                                    <div className="param-box temp" style={{ flex: 1, padding: '8px 0', border: '1px solid #fecaca', borderRadius: 'var(--radius-sm)', background: '#fef2f2', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><ThermometerSun size={16} color="#ef4444" /><span className="param-name" style={{ color: '#ef4444', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>TEMP</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.temp || item.temperatura ? (item.temp || item.temperatura) + 'º' : '-'}</span></div>
+                                    <div className="param-box cloro" style={{ flex: 1, padding: '8px 0', border: '1px solid #bae6fd', borderRadius: 'var(--radius-sm)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Droplet size={16} color="#0ea5e9" /><span className="param-name" style={{ color: '#0ea5e9', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>CLORO</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.cloro_libre || item.cloro || '-'}</span></div>
+                                    <div className="param-box hierro" style={{ flex: 1, padding: '8px 0', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Box size={16} color="var(--text-muted)" /><span className="param-name" style={{ color: 'var(--text-muted)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>HIERRO</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.hierro || '-'}</span></div>
                                   </div>
                                 )}
 
                                 {isAdmin && (
                                   <div className="sample-actions" style={{marginTop: '12px', display: 'flex', gap: '8px'}}>
-                                    <button className="action-btn-outline edit" style={{flex: 1, padding: '8px', borderRadius: '8px', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); navigate('/aquapp'); }}>
+                                    <button className="action-btn-outline edit" style={{flex: 1, padding: '8px', borderRadius: 'var(--radius-sm)', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: 'var(--primary-light)', color: 'var(--primary-hover)', border: '1px solid #bfdbfe', cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); navigate('/aquapp'); }}>
                                       Editar
                                     </button>
-                                    <button className="action-btn-outline delete" style={{flex: 1, padding: '8px', borderRadius: '8px', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: '#fef2f2', color: '#ef4444', border: '1px solid #fecaca', cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); navigate('/aquapp'); }}>
+                                    <button className="action-btn-outline delete" style={{flex: 1, padding: '8px', borderRadius: 'var(--radius-sm)', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: 'var(--color-error-light)', color: 'var(--color-error)', border: '1px solid var(--color-error-border)', cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); navigate('/aquapp'); }}>
                                       Borrar
                                     </button>
                                   </div>
@@ -367,16 +367,16 @@ const Calendario = () => {
                             )}
 
                             {isTratamiento && (
-                              <div className="tratamiento-record-card" style={{border: '1px solid #e2e8f0', borderRadius: '16px', padding: '16px', position: 'relative', overflow: 'hidden', marginBottom: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)', background: 'white'}}>
+                              <div className="tratamiento-record-card" style={{border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '16px', position: 'relative', overflow: 'hidden', marginBottom: '16px', boxShadow: 'var(--shadow-md)', background: 'var(--bg-card)'}}>
                                 {/* Borde izquierdo decorativo */}
                                 <div style={{position: 'absolute', left: 0, top: 0, bottom: 0, width: '6px', background: actKey.includes('limpieza') ? '#10b981' : '#8b5cf6'}}></div>
                                 
                                 <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px'}}>
                                   <div style={{width: '20px', height: '20px', borderRadius: '50%', background: actKey.includes('limpieza') ? '#10b981' : '#8b5cf6'}}></div>
-                                  <h4 style={{margin: 0, fontSize: '1.2rem', color: '#1e293b', fontWeight: '800'}}>{item.tipo_tratamiento || item.tipo_actuacion || cfg.label}</h4>
+                                  <h4 style={{margin: 0, fontSize: '1.2rem', color: 'var(--text-main)', fontWeight: '800'}}>{item.tipo_tratamiento || item.tipo_actuacion || cfg.label}</h4>
                                 </div>
                                 
-                                <div style={{display: 'flex', gap: '16px', color: '#64748b', fontSize: '0.85rem', marginBottom: '12px', fontWeight: '600'}}>
+                                <div style={{display: 'flex', gap: '16px', color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '12px', fontWeight: '600'}}>
                                   <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><Clock size={14}/> {item.hora || '-'}</span>
                                   <span>•</span>
                                   <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><CalendarIcon size={14}/> {item.fecha ? item.fecha.split('T')[0] : '-'}</span>
@@ -384,37 +384,37 @@ const Calendario = () => {
                                 
                                 {item.motivo && (
                                   <div style={{display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap'}}>
-                                    <span style={{background: '#f1f5f9', color: '#475569', padding: '6px 12px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: '700'}}>{item.motivo}</span>
+                                    <span style={{background: 'var(--bg-main)', color: 'var(--text-secondary)', padding: '6px 12px', borderRadius: 'var(--radius-sm)', fontSize: '0.85rem', fontWeight: '700'}}>{item.motivo}</span>
                                   </div>
                                 )}
 
                                 {item.producto && (
                                   <div style={{marginBottom: '12px'}}>
-                                    <div style={{fontSize: '0.75rem', fontWeight: '800', color: '#64748b', marginBottom: '4px'}}>PRODUCTO</div>
-                                    <div style={{fontWeight: '600', color: '#1e293b', fontSize: '0.95rem'}}>{item.producto}</div>
+                                    <div style={{fontSize: '0.75rem', fontWeight: '800', color: 'var(--text-muted)', marginBottom: '4px'}}>PRODUCTO</div>
+                                    <div style={{fontWeight: '600', color: 'var(--text-main)', fontSize: '0.95rem'}}>{item.producto}</div>
                                   </div>
                                 )}
 
                                 {item.dosis && (
                                   <div style={{marginBottom: '12px'}}>
-                                    <div style={{fontSize: '0.75rem', fontWeight: '800', color: '#64748b', marginBottom: '4px'}}>DOSIS</div>
-                                    <div style={{fontWeight: '600', color: '#1e293b', fontSize: '0.95rem'}}>{item.dosis}</div>
+                                    <div style={{fontSize: '0.75rem', fontWeight: '800', color: 'var(--text-muted)', marginBottom: '4px'}}>DOSIS</div>
+                                    <div style={{fontWeight: '600', color: 'var(--text-main)', fontSize: '0.95rem'}}>{item.dosis}</div>
                                   </div>
                                 )}
                                 
                                 {item.notas && (
-                                  <div style={{background: '#f8fafc', padding: '12px', borderRadius: '12px', fontSize: '0.9rem', color: '#475569', marginBottom: '16px'}}>
-                                    <div style={{fontWeight: 'bold', fontSize: '0.75rem', color: '#94a3b8', marginBottom: '4px'}}>NOTAS</div>
+                                  <div style={{background: 'var(--bg-card-hover)', padding: '12px', borderRadius: 'var(--radius-sm)', fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '16px'}}>
+                                    <div style={{fontWeight: 'bold', fontSize: '0.75rem', color: 'var(--text-faint)', marginBottom: '4px'}}>NOTAS</div>
                                     {item.notas}
                                   </div>
                                 )}
 
                                 {isAdmin && (
                                   <div className="admin-only" style={{display: 'flex', gap: '12px'}}>
-                                    <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); navigate('/aquapp'); }}>
+                                    <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: 'var(--primary-light)', color: 'var(--primary-hover)', border: '1px solid #bfdbfe', padding: '10px', borderRadius: 'var(--radius-sm)', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); navigate('/aquapp'); }}>
                                       Editar
                                     </button>
-                                    <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: '#fef2f2', color: '#ef4444', border: '1px solid #fecaca', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); navigate('/aquapp'); }}>
+                                    <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: 'var(--color-error-light)', color: 'var(--color-error)', border: '1px solid var(--color-error-border)', padding: '10px', borderRadius: 'var(--radius-sm)', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); navigate('/aquapp'); }}>
                                       Borrar
                                     </button>
                                   </div>
@@ -423,18 +423,18 @@ const Calendario = () => {
                             )}
 
                             {isAviso && (
-                              <div style={{border: '1px solid #e2e8f0', borderRadius: '16px', padding: '16px', marginBottom: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)', background: 'white'}}>
+                              <div style={{border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '16px', marginBottom: '16px', boxShadow: 'var(--shadow-md)', background: 'var(--bg-card)'}}>
                                 <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px'}}>
-                                  <h4 style={{margin: 0, fontSize: '1.2rem', color: '#1e293b', fontWeight: '800'}}>
+                                  <h4 style={{margin: 0, fontSize: '1.2rem', color: 'var(--text-main)', fontWeight: '800'}}>
                                     {item.direccion}{item.portal ? `, ${item.portal}` : ''}
                                   </h4>
                                 </div>
-                                <div style={{display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b', fontSize: '0.9rem', marginBottom: '12px'}}>
-                                  <MapPin size={14} color="#22c55e" />
+                                <div style={{display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '12px'}}>
+                                  <MapPin size={14} color="var(--color-success)" />
                                   <span style={{fontWeight: 700}}>{item.localidad || 'Localidad desconocida'}</span>
                                 </div>
                                 
-                                <div style={{display: 'flex', gap: '16px', color: '#64748b', fontSize: '0.85rem', marginBottom: '12px', fontWeight: '600'}}>
+                                <div style={{display: 'flex', gap: '16px', color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '12px', fontWeight: '600'}}>
                                   <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><Clock size={14}/> {item.hora || '-'}</span>
                                   <span>•</span>
                                   <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><CalendarIcon size={14}/> {item.fecha ? item.fecha.split('T')[0] : '-'}</span>
@@ -442,38 +442,38 @@ const Calendario = () => {
 
                                 <div style={{display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap'}}>
                                   {(Array.isArray(item.plagas) ? item.plagas : (item.plagas ? String(item.plagas).split(',') : [])).map((p, i) => (
-                                    <span key={i} style={{background: '#f1f5f9', color: '#475569', padding: '4px 10px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px'}}>
+                                    <span key={i} style={{background: 'var(--bg-main)', color: 'var(--text-secondary)', padding: '4px 10px', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px'}}>
                                       <Bug size={14}/> {p.trim()}
                                     </span>
                                   ))}
                                 </div>
 
                                 {item.contacto && (
-                                  <div style={{display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b', fontSize: '0.85rem', marginBottom: '12px'}}>
-                                    <Phone size={14} color="#64748b" />
+                                  <div style={{display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '12px'}}>
+                                    <Phone size={14} color="var(--text-muted)" />
                                     <span>{item.contacto}</span>
                                   </div>
                                 )}
 
                                 {item.observaciones && (
-                                  <div style={{background: '#f8fafc', padding: '12px', borderRadius: '12px', fontSize: '0.9rem', color: '#475569', marginBottom: '16px'}}>
-                                    <div style={{fontWeight: 'bold', fontSize: '0.75rem', color: '#94a3b8', marginBottom: '4px'}}>OBSERVACIONES</div>
+                                  <div style={{background: 'var(--bg-card-hover)', padding: '12px', borderRadius: 'var(--radius-sm)', fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '16px'}}>
+                                    <div style={{fontWeight: 'bold', fontSize: '0.75rem', color: 'var(--text-faint)', marginBottom: '4px'}}>OBSERVACIONES</div>
                                     {item.observaciones}
                                   </div>
                                 )}
 
                                 <div style={{marginBottom: '12px'}}>
-                                  <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((item.direccion || '') + ' ' + (item.portal || '') + ', ' + (item.localidad || ''))}`, '_blank')} style={{display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: '#f8fafc', color: '#64748b', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 'bold', cursor: 'pointer'}}>
+                                  <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((item.direccion || '') + ' ' + (item.portal || '') + ', ' + (item.localidad || ''))}`, '_blank')} style={{display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: 'var(--bg-card-hover)', color: 'var(--text-muted)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', fontWeight: 'bold', cursor: 'pointer'}}>
                                     <Navigation size={14}/> Ruta GPS
                                   </button>
                                 </div>
 
                                 {isAdmin && (
                                   <div className="admin-only" style={{display: 'flex', gap: '12px'}}>
-                                    <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); navigate('/avisomap'); }}>
+                                    <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: 'var(--primary-light)', color: 'var(--primary-hover)', border: '1px solid #bfdbfe', padding: '10px', borderRadius: 'var(--radius-sm)', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); navigate('/avisomap'); }}>
                                       Editar
                                     </button>
-                                    <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: '#fef2f2', color: '#ef4444', border: '1px solid #fecaca', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); navigate('/avisomap'); }}>
+                                    <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: 'var(--color-error-light)', color: 'var(--color-error)', border: '1px solid var(--color-error-border)', padding: '10px', borderRadius: 'var(--radius-sm)', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); navigate('/avisomap'); }}>
                                       Borrar
                                     </button>
                                   </div>
@@ -482,27 +482,27 @@ const Calendario = () => {
                             )}
 
                             {isTarea && (
-                              <div style={{border: '1px solid #e2e8f0', borderRadius: '16px', padding: '16px', marginBottom: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)', background: 'white'}}>
+                              <div style={{border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '16px', marginBottom: '16px', boxShadow: 'var(--shadow-md)', background: 'var(--bg-card)'}}>
                                 <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px'}}>
-                                  <div style={{padding: '8px', borderRadius: '12px', background: '#fee2e2', color: '#ef4444'}}><CalendarCheck size={20}/></div>
-                                  <h4 style={{margin: 0, fontSize: '1.2rem', color: '#1e293b', fontWeight: '800'}}>{item.name || 'Tarea'}</h4>
+                                  <div style={{padding: '8px', borderRadius: 'var(--radius-sm)', background: 'var(--color-error-light)', color: 'var(--color-error)'}}><CalendarCheck size={20}/></div>
+                                  <h4 style={{margin: 0, fontSize: '1.2rem', color: 'var(--text-main)', fontWeight: '800'}}>{item.name || 'Tarea'}</h4>
                                 </div>
                                 
-                                <div style={{display: 'flex', gap: '16px', color: '#64748b', fontSize: '0.85rem', marginBottom: '12px', fontWeight: '600'}}>
+                                <div style={{display: 'flex', gap: '16px', color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '12px', fontWeight: '600'}}>
                                   <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><CalendarIcon size={14}/> {item.date ? item.date.split('T')[0] : '-'}</span>
                                 </div>
 
-                                <div style={{padding: '8px', backgroundColor: '#f0fdf4', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px'}}>
-                                  <CalendarCheck size={18} color="#16a34a" />
-                                  <span style={{ color: '#15803d', fontWeight: 600 }}>Completada</span>
+                                <div style={{padding: '8px', backgroundColor: 'var(--color-success-light)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px'}}>
+                                  <CalendarCheck size={18} color="var(--color-success)" />
+                                  <span style={{ color: 'var(--color-success)', fontWeight: 600 }}>Completada</span>
                                 </div>
 
                                 {isAdmin && (
                                   <div className="admin-only" style={{display: 'flex', gap: '12px'}}>
-                                    <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); navigate('/tareas'); }}>
+                                    <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: 'var(--primary-light)', color: 'var(--primary-hover)', border: '1px solid #bfdbfe', padding: '10px', borderRadius: 'var(--radius-sm)', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); navigate('/tareas'); }}>
                                       Editar
                                     </button>
-                                    <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: '#fef2f2', color: '#ef4444', border: '1px solid #fecaca', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); navigate('/tareas'); }}>
+                                    <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: 'var(--color-error-light)', color: 'var(--color-error)', border: '1px solid var(--color-error-border)', padding: '10px', borderRadius: 'var(--radius-sm)', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); navigate('/tareas'); }}>
                                       Borrar
                                     </button>
                                   </div>
@@ -516,17 +516,17 @@ const Calendario = () => {
                   </div>
                 ) : selectedDate.grouped.length === 0 ? (
                   <div className="cal-empty-state">
-                    <Info size={32} color="#cbd5e1" />
+                    <Info size={32} color="var(--text-faint)" />
                     <p>No hay servicios registrados para este día.</p>
                   </div>
                 ) : (
                   <div className="cal-events-list">
                     {selectedDate.grouped.map(g => {
                       const primaryActKey = Object.keys(g.activities)[0];
-                      const mainCfg = ACTIVITY_CONFIG[primaryActKey] || { bg: '#f1f5f9', color: '#64748b' };
+                      const mainCfg = ACTIVITY_CONFIG[primaryActKey] || { bg: 'var(--bg-main)', color: 'var(--text-muted)' };
                       return (
                       <div key={g.client} className="cal-client-card" style={{ borderLeftColor: mainCfg.color, backgroundColor: mainCfg.bg }}>
-                        <div className="cal-client-card-header" style={{ color: '#1e293b', borderBottom: 'none', paddingBottom: '0' }}>
+                        <div className="cal-client-card-header" style={{ color: 'var(--text-main)', borderBottom: 'none', paddingBottom: '0' }}>
                           <strong style={{ fontSize: '1.05rem', fontWeight: 800 }}>{g.client}</strong>
                         </div>
                         <div className="cal-activity-list">
@@ -542,7 +542,7 @@ const Calendario = () => {
                                 </div>
                                 <div className="cal-activity-details" style={{ flex: 1 }}>
                                   <span style={{ color: cfg.color, fontWeight: 700 }}>{count}x {cfg.label}</span>
-                                  {extras.length > 0 && <small className="cal-activity-extras" style={{ display: 'block', fontSize: '0.7rem', color: '#64748b' }}>{extras.join(', ')}</small>}
+                                  {extras.length > 0 && <small className="cal-activity-extras" style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>{extras.join(', ')}</small>}
                                 </div>
                                 <ChevronRight size={16} color={cfg.color} style={{opacity: 0.5}} />
                               </div>
@@ -558,7 +558,7 @@ const Calendario = () => {
             </>
           ) : (
             <div className="cal-empty-state">
-              <CalendarIcon size={48} color="#e2e8f0" style={{marginBottom:'16px'}}/>
+              <CalendarIcon size={48} color="var(--border)" style={{marginBottom:'16px'}}/>
               <h3>Selecciona un día</h3>
               <p>Haz clic en cualquier día del calendario para ver los servicios realizados.</p>
             </div>
