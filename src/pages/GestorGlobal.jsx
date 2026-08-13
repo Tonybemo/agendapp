@@ -189,8 +189,8 @@ const GestorGlobal = () => {
               </div>
             </div>
             <div className="gg-card-body">
-              {client.address && <p><MapPin size={14} color="#64748b"/> {client.address}</p>}
-              {client.contact && <p><Mail size={14} color="#64748b"/> {client.contact}</p>}
+              {client.address && <p><MapPin size={14} color="var(--text-muted)"/> {client.address}</p>}
+              {client.contact && <p><Mail size={14} color="var(--text-muted)"/> {client.contact}</p>}
             </div>
           </div>
         ))}
@@ -215,7 +215,7 @@ const GestorGlobal = () => {
               </div>
             </div>
             <div className="gg-card-body">
-              {task.description && <p><AlignLeft size={14} color="#64748b"/> {task.description}</p>}
+              {task.description && <p><AlignLeft size={14} color="var(--text-muted)"/> {task.description}</p>}
             </div>
           </div>
         ))}
@@ -228,7 +228,7 @@ const GestorGlobal = () => {
       <div className="gg-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <div className="gg-header-title">
-            <CheckCircle2 size={28} color="#6366f1" />
+            <CheckCircle2 size={28} color="var(--accent-gestor)" />
             <h1>Gestor Global</h1>
           </div>
           <p className="gg-subtitle">Administra tu base de clientes y tareas (Conectado a Supabase).</p>
@@ -238,8 +238,8 @@ const GestorGlobal = () => {
           disabled={isExporting}
           style={{
             display: 'flex', alignItems: 'center', gap: '8px',
-            background: '#10b981', color: 'white', border: 'none',
-            padding: '10px 16px', borderRadius: '8px', fontWeight: 'bold',
+            background: 'var(--color-success)', color: 'var(--text-on-primary)', border: 'none',
+            padding: '10px 16px', borderRadius: 'var(--radius-sm)', fontWeight: 'bold',
             cursor: isExporting ? 'not-allowed' : 'pointer',
             opacity: isExporting ? 0.7 : 1
           }}
@@ -266,7 +266,7 @@ const GestorGlobal = () => {
 
       <div className="gg-toolbar">
         <div className="gg-search">
-          <Search size={18} color="#94a3b8" />
+          <Search size={18} color="var(--text-faint)" />
           <input 
             type="text" 
             placeholder={`Buscar ${activeTab}...`} 
@@ -284,7 +284,7 @@ const GestorGlobal = () => {
 
       <div className="gg-content">
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
+          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
             <p>Cargando datos desde la nube...</p>
           </div>
         ) : (

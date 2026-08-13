@@ -110,7 +110,7 @@ const Dashboard = () => {
       id: 'aquapp',
       title: 'Aquapp',
       description: 'Gestión integral de muestras, torres y tratamientos.',
-      icon: <Droplet size={28} color="#0284c7" />,
+      icon: <Droplet size={28} color="var(--accent-aquapp)" />,
       path: '/aquapp',
       bgColor: 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)',
       featured: true
@@ -120,7 +120,7 @@ const Dashboard = () => {
         adminOnly: true,
       title: 'Tareas',
       description: 'Visitas mensuales.',
-      icon: <CalendarCheck size={28} color="#e11d48" />,
+      icon: <CalendarCheck size={28} color="var(--accent-tareas)" />,
       path: '/tareas',
       bgColor: 'linear-gradient(135deg, #ffe4e6 0%, #fecdd3 100%)',
       featured: true
@@ -130,7 +130,7 @@ const Dashboard = () => {
         adminOnly: true,
       title: 'Workapp',
       description: 'Jornada laboral y descansos.',
-      icon: <Briefcase size={28} color="#7c3aed" />,
+      icon: <Briefcase size={28} color="var(--accent-workapp)" />,
       path: '/workapp',
       bgColor: 'linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%)',
       featured: true
@@ -139,7 +139,7 @@ const Dashboard = () => {
       id: 'avisomap',
       title: 'Avisomap',
       description: 'Registro de avisos de plagas.',
-      icon: <MapPin size={24} color="#059669" />,
+      icon: <MapPin size={24} color="var(--accent-avisomap)" />,
       path: '/avisomap',
       bgColor: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)',
     },
@@ -148,7 +148,7 @@ const Dashboard = () => {
         adminOnly: true,
       title: 'Catálogo',
       description: 'Fichas y productos.',
-      icon: <BookOpen size={24} color="#d97706" />,
+      icon: <BookOpen size={24} color="var(--accent-catalogo)" />,
       path: '/catalogo',
       bgColor: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
     },
@@ -157,7 +157,7 @@ const Dashboard = () => {
         adminOnly: true,
       title: 'Estadísticas',
       description: 'Métricas globales.',
-      icon: <BarChart2 size={24} color="#4f46e5" />,
+      icon: <BarChart2 size={24} color="var(--accent-estadisticas)" />,
       path: '/estadisticas',
       bgColor: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)',
     },
@@ -165,7 +165,7 @@ const Dashboard = () => {
       id: 'calendario',
       title: 'Calendario',
       description: 'Agenda global.',
-      icon: <Calendar size={24} color="#db2777" />,
+      icon: <Calendar size={24} color="var(--accent-calendario)" />,
       path: '/calendario',
       bgColor: 'linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%)',
     }
@@ -177,21 +177,21 @@ const Dashboard = () => {
         <button 
           onClick={() => navigate('/gestor')}
           style={{
-            background: 'white', 
-            border: '1px solid #e2e8f0', 
-            borderRadius: '12px', 
+            background: 'var(--bg-card)', 
+            border: '1px solid var(--border)', 
+            borderRadius: 'var(--radius-md)', 
             padding: '10px', 
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 2px 5px rgba(0,0,0,0.05)',
-            color: '#64748b',
+            boxShadow: 'var(--shadow-sm)',
+            color: 'var(--text-muted)',
             transition: 'all 0.2s'
           }}
           title="Gestor Global (Avanzado)"
-          onMouseOver={(e) => { e.currentTarget.style.color = '#0f172a'; e.currentTarget.style.borderColor = '#cbd5e1'; }}
-          onMouseOut={(e) => { e.currentTarget.style.color = '#64748b'; e.currentTarget.style.borderColor = '#e2e8f0'; }}
+          onMouseOver={(e) => { e.currentTarget.style.color = 'var(--text-main)'; e.currentTarget.style.borderColor = 'var(--border-input)'; }}
+          onMouseOut={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
         >
           <Settings size={24} />
         </button>
@@ -205,12 +205,12 @@ const Dashboard = () => {
         }}>
           <div style={{
             display: 'flex', alignItems: 'center',
-            background: 'rgba(255, 255, 255, 0.75)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
-            borderRadius: '20px', border: '1px solid rgba(255, 255, 255, 0.9)',
-            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 1)',
+            background: 'var(--bg-card-glass)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+            borderRadius: 'var(--radius-md)', border: '1px solid var(--border-light)',
+            boxShadow: 'var(--shadow-md)',
             padding: '14px 20px', transition: 'all 0.3s ease'
           }}>
-            <Search size={22} color="#0284c7" style={{ marginRight: '14px', flexShrink: 0 }} />
+            <Search size={22} color="var(--accent-aquapp)" style={{ marginRight: '14px', flexShrink: 0 }} />
             <input 
               type="text" 
               placeholder="Buscar cliente para ver ficha..."
@@ -218,7 +218,7 @@ const Dashboard = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
                 width: '100%', border: 'none', outline: 'none',
-                background: 'transparent', fontSize: '1rem', color: '#1e293b', fontWeight: '500'
+                background: 'transparent', fontSize: '1rem', color: 'var(--text-main)', fontWeight: '500'
               }}
             />
           </div>
@@ -227,26 +227,26 @@ const Dashboard = () => {
           {searchQuery.length >= 2 && (
             <div style={{
               position: 'absolute', top: '100%', left: 0, right: 0, marginTop: '8px',
-              background: 'white', borderRadius: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
-              overflow: 'hidden', border: '1px solid #e2e8f0'
+              background: 'var(--bg-card)', borderRadius: 'var(--radius-md)', boxShadow: 'var(--shadow-lg)',
+              overflow: 'hidden', border: '1px solid var(--border)'
             }}>
               {isSearching ? (
-                <div style={{padding: '16px', textAlign: 'center', color: '#64748b'}}>Buscando...</div>
+                <div style={{padding: '16px', textAlign: 'center', color: 'var(--text-muted)'}}>Buscando...</div>
               ) : searchResults.length === 0 ? (
-                <div style={{padding: '16px', textAlign: 'center', color: '#64748b'}}>No se encontraron clientes</div>
+                <div style={{padding: '16px', textAlign: 'center', color: 'var(--text-muted)'}}>No se encontraron clientes</div>
               ) : (
                 searchResults.map(c => (
                   <div key={c.id} 
                     onClick={() => handleSelectClient(c)}
                     style={{
                       padding: '14px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center',
-                      borderBottom: '1px solid #f1f5f9', background: 'white'
+                      borderBottom: '1px solid var(--border-light)', background: 'var(--bg-card)'
                     }}
-                    onMouseOver={(e) => e.currentTarget.style.background = '#f8fafc'}
-                    onMouseOut={(e) => e.currentTarget.style.background = 'white'}
+                    onMouseOver={(e) => e.currentTarget.style.background = 'var(--bg-card-hover)'}
+                    onMouseOut={(e) => e.currentTarget.style.background = 'var(--bg-card)'}
                   >
-                    <User size={18} color="#64748b" style={{marginRight: '12px'}} />
-                    <span style={{fontWeight: '600', color: '#0f172a'}}>{c.name}</span>
+                    <User size={18} color="var(--text-muted)" style={{marginRight: '12px'}} />
+                    <span style={{fontWeight: '600', color: 'var(--text-main)'}}>{c.name}</span>
                   </div>
                 ))
               )}
@@ -270,7 +270,7 @@ const Dashboard = () => {
             </div>
             {card.featured && (
               <div className="dash-card-arrow">
-                <ChevronRight size={20} color="#64748b" strokeWidth={3} />
+                <ChevronRight size={20} color="var(--text-muted)" strokeWidth={3} />
               </div>
             )}
           </div>
@@ -281,41 +281,41 @@ const Dashboard = () => {
       {selectedClient && (
         <div style={{
           position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-          backgroundColor: 'rgba(15, 23, 42, 0.5)', backdropFilter: 'blur(4px)',
+          backgroundColor: 'var(--bg-modal-overlay)', backdropFilter: 'blur(4px)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           zIndex: 10000, padding: '20px'
         }} onClick={() => setSelectedClient(null)}>
           <div style={{
-            background: 'white', borderRadius: '24px', width: '100%', maxWidth: '600px',
-            maxHeight: '85vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+            background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', width: '100%', maxWidth: '600px',
+            maxHeight: '85vh', overflowY: 'auto', boxShadow: 'var(--shadow-xl)',
             display: 'flex', flexDirection: 'column'
           }} onClick={e => e.stopPropagation()}>
             <div style={{
-              padding: '24px', borderBottom: '1px solid #e2e8f0', display: 'flex',
+              padding: '24px', borderBottom: '1px solid var(--border)', display: 'flex',
               justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0,
-              background: 'white', zIndex: 10, borderRadius: '24px 24px 0 0'
+              background: 'var(--bg-card)', zIndex: 10, borderRadius: 'var(--radius-lg) var(--radius-lg) 0 0'
             }}>
-              <h2 style={{margin: 0, fontSize: '1.4rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '10px'}}>
-                <User size={24} color="#0ea5e9" />
+              <h2 style={{margin: 0, fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '10px'}}>
+                <User size={24} color="var(--accent-aquapp)" />
                 {selectedClient.name}
               </h2>
-              <button onClick={() => setSelectedClient(null)} style={{background: 'none', border: 'none', cursor: 'pointer', color: '#64748b'}}><X size={24}/></button>
+              <button onClick={() => setSelectedClient(null)} style={{background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)'}}><X size={24}/></button>
             </div>
             
             <div style={{padding: '24px'}}>
               {loadingDetails ? (
-                <div style={{textAlign: 'center', color: '#64748b', padding: '40px 0'}}>Cargando ficha...</div>
+                <div style={{textAlign: 'center', color: 'var(--text-muted)', padding: '40px 0'}}>Cargando ficha...</div>
               ) : clientDetails && (
                 <div style={{display: 'flex', flexDirection: 'column', gap: '24px'}}>
                   
                   {/* Tratamientos */}
                   <div>
-                    <h3 style={{fontSize: '1rem', fontWeight: 700, color: '#334155', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px'}}><Droplet size={16} color="#0ea5e9"/> Últimos Tratamientos</h3>
-                    {clientDetails.tratamientos.length === 0 ? <p style={{color: '#94a3b8', fontSize: '0.9rem', margin: 0}}>No hay tratamientos recientes.</p> : (
+                    <h3 style={{fontSize: '1rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px'}}><Droplet size={16} color="var(--accent-aquapp)"/> Últimos Tratamientos</h3>
+                    {clientDetails.tratamientos.length === 0 ? <p style={{color: 'var(--text-faint)', fontSize: '0.9rem', margin: 0}}>No hay tratamientos recientes.</p> : (
                       <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
                         {clientDetails.tratamientos.map(t => (
-                          <div key={t.id} style={{background: '#f8fafc', padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: '0.9rem'}}>
-                            <strong>{formatDatePretty(t.fecha)}</strong> - {t.tipo_tratamiento.replace(/_/g, ' ')}
+                          <div key={t.id} style={{background: 'var(--bg-card-hover)', padding: '12px 16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', fontSize: '0.9rem'}}>
+                            <strong style={{color: 'var(--text-main)'}}>{formatDatePretty(t.fecha)}</strong> - <span style={{color: 'var(--text-secondary)'}}>{t.tipo_tratamiento.replace(/_/g, ' ')}</span>
                           </div>
                         ))}
                       </div>
@@ -324,22 +324,22 @@ const Dashboard = () => {
                   
                   {/* Muestras (Resumen) */}
                   <div>
-                    <h3 style={{fontSize: '1rem', fontWeight: 700, color: '#334155', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px'}}><Droplet size={16} color="#10b981"/> Resumen de Muestras</h3>
-                    {clientDetails.muestrasResumen.length === 0 ? <p style={{color: '#94a3b8', fontSize: '0.9rem', margin: 0}}>No hay muestras registradas.</p> : (
+                    <h3 style={{fontSize: '1rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px'}}><Droplet size={16} color="var(--accent-avisomap)"/> Resumen de Muestras</h3>
+                    {clientDetails.muestrasResumen.length === 0 ? <p style={{color: 'var(--text-faint)', fontSize: '0.9rem', margin: 0}}>No hay muestras registradas.</p> : (
                       <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
                         {clientDetails.muestrasResumen.map((yearGroup) => {
                           const isExpanded = expandedYears[yearGroup.year];
                           return (
-                            <div key={yearGroup.year} style={{background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden'}}>
+                            <div key={yearGroup.year} style={{background: 'var(--bg-card-hover)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', overflow: 'hidden'}}>
                               <div 
                                 onClick={() => setExpandedYears(prev => ({...prev, [yearGroup.year]: !prev[yearGroup.year]}))}
                                 style={{
                                   padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                                  cursor: 'pointer', background: isExpanded ? '#f1f5f9' : 'transparent', transition: 'background 0.2s'
+                                  cursor: 'pointer', background: isExpanded ? 'var(--bg-main)' : 'transparent', transition: 'background 0.2s'
                                 }}
                               >
-                                <strong style={{color: '#0f172a'}}>Año {yearGroup.year}</strong>
-                                <span style={{display: 'flex', alignItems: 'center', gap: '8px', color: '#64748b', fontSize: '0.9rem', fontWeight: 'bold'}}>
+                                <strong style={{color: 'var(--text-main)'}}>Año {yearGroup.year}</strong>
+                                <span style={{display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 'bold'}}>
                                   {yearGroup.months.reduce((acc, curr) => acc + curr.count, 0)} muestras
                                   <ChevronRight size={18} style={{transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s'}} />
                                 </span>
@@ -348,9 +348,9 @@ const Dashboard = () => {
                               {isExpanded && (
                                 <div style={{padding: '0 16px 12px 16px', display: 'flex', flexDirection: 'column', gap: '8px'}}>
                                   {yearGroup.months.map((m, idx) => (
-                                    <div key={idx} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderTop: idx === 0 ? 'none' : '1px solid #e2e8f0'}}>
-                                      <span style={{textTransform: 'capitalize', color: '#475569'}}>{m.label}</span>
-                                      <span style={{background: '#d1fae5', color: '#047857', padding: '4px 10px', borderRadius: '20px', fontWeight: 'bold', fontSize: '0.85rem'}}>
+                                    <div key={idx} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderTop: idx === 0 ? 'none' : '1px solid var(--border)'}}>
+                                      <span style={{textTransform: 'capitalize', color: 'var(--text-secondary)'}}>{m.label}</span>
+                                      <span style={{background: 'var(--color-success-border)', color: 'var(--text-main)', padding: '4px 10px', borderRadius: 'var(--radius-pill)', fontWeight: 'bold', fontSize: '0.85rem'}}>
                                         {m.count} {m.count === 1 ? 'muestra' : 'muestras'}
                                       </span>
                                     </div>

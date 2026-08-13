@@ -1,33 +1,89 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  /* System Colors */
+  /* ═══════════════════════════════════════════
+     DESIGN SYSTEM — Agendapp Unified Palette
+     ═══════════════════════════════════════════ */
+
+  /* ── Backgrounds ── */
   --bg-main: #f1f5f9;
-  --bg-card: rgba(255, 255, 255, 0.85); /* For Glassmorphism */
+  --bg-card: #ffffff;
+  --bg-card-glass: rgba(255, 255, 255, 0.85);
+  --bg-card-hover: #f8fafc;
+  --bg-input: #f8fafc;
+  --bg-elevated: #ffffff;
+  --bg-modal-overlay: rgba(15, 23, 42, 0.5);
+
+  /* ── Text ── */
   --text-main: #0f172a;
+  --text-secondary: #334155;
   --text-muted: #64748b;
-  --border: rgba(226, 232, 240, 0.6);
-  
-  /* Brand/Action Defaults */
+  --text-faint: #94a3b8;
+  --text-on-primary: #ffffff;
+
+  /* ── Borders ── */
+  --border: #e2e8f0;
+  --border-light: #f1f5f9;
+  --border-input: #cbd5e1;
+
+  /* ── Primary Action (universal) ── */
   --primary: #3b82f6;
   --primary-hover: #2563eb;
-  
-  /* Dimensions */
+  --primary-light: #eff6ff;
+
+  /* ── Semantic States ── */
+  --color-success: #22c55e;
+  --color-success-light: #f0fdf4;
+  --color-success-border: #bbf7d0;
+  --color-error: #ef4444;
+  --color-error-light: #fef2f2;
+  --color-error-border: #fecaca;
+  --color-warning: #f59e0b;
+  --color-warning-light: #fffbeb;
+  --color-warning-border: #fde68a;
+  --color-info: #0ea5e9;
+  --color-info-light: #e0f2fe;
+  --color-info-border: #bae6fd;
+
+  /* ── Module Accents (5% of UI — icons, headers, active states) ── */
+  --accent-aquapp: #0ea5e9;
+  --accent-avisomap: #10b981;
+  --accent-workapp: #e11d48;
+  --accent-tareas: #4f46e5;
+  --accent-catalogo: #f59e0b;
+  --accent-calendario: #6366f1;
+  --accent-estadisticas: #8b5cf6;
+  --accent-gestor: #6366f1;
+
+  /* ── Delete / Danger ── */
+  --color-danger: #ef4444;
+  --color-danger-hover: #dc2626;
+
+  /* ── Dimensions ── */
   --sidebar-width: 260px;
   --bottom-nav-height: 65px;
+
+  /* ── Border Radius (unified) ── */
+  --radius-xs: 4px;
   --radius-sm: 8px;
   --radius-md: 16px;
   --radius-lg: 24px;
   --radius-pill: 999px;
 
-  /* Modern Depth (Shadows) */
+  /* ── Shadows (unified depth) ── */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
-  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  --shadow-glow-blue: 0 10px 25px -5px rgba(14, 165, 233, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.03);
+  --shadow-xl: 0 20px 40px -8px rgba(0, 0, 0, 0.12), 0 8px 16px rgba(0, 0, 0, 0.04);
 
-  /* Glassmorphism Effect Base */
+  /* ── Glassmorphism ── */
   --backdrop-blur: blur(16px);
+
+  /* ── Transitions ── */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+  --transition-slow: 0.4s ease;
 }
 
 * {

@@ -103,11 +103,11 @@ const Layout = ({ children }) => {
       onClick={() => setShowNotifPanel(!showNotifPanel)}
       style={{background: 'none', border: 'none', cursor: 'pointer', padding: '8px', position: 'relative'}}
     >
-      <Bell size={size} color={pendingNotifications.length > 0 ? '#ef4444' : '#64748b'} />
+      <Bell size={size} color={pendingNotifications.length > 0 ? 'var(--color-error)' : 'var(--text-muted)'} />
       {pendingNotifications.length > 0 && (
         <span style={{
           position: 'absolute', top: '0px', right: '0px',
-          background: '#ef4444', color: 'white', borderRadius: '999px',
+          background: 'var(--color-error)', color: 'var(--text-on-primary)', borderRadius: 'var(--radius-pill)',
           fontSize: '0.6rem', fontWeight: '800', minWidth: '18px', height: '18px',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           padding: '0 4px', lineHeight: 1
@@ -125,17 +125,17 @@ const Layout = ({ children }) => {
 
     return (
       <div key={n.id} style={{
-        padding: '14px 16px', borderRadius: '14px',
-        background: isPending ? '#fef2f2' : '#f0fdf4',
-        border: `1px solid ${isPending ? '#fecaca' : '#bbf7d0'}`,
-        borderLeft: `4px solid ${isPending ? '#ef4444' : '#22c55e'}`,
+        padding: '14px 16px', borderRadius: 'var(--radius-md)',
+        background: isPending ? 'var(--color-error-light)' : 'var(--color-success-light)',
+        border: `1px solid ${isPending ? 'var(--color-error-border)' : 'var(--color-success-border)'}`,
+        borderLeft: `4px solid ${isPending ? 'var(--color-error)' : 'var(--color-success)'}`,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px'
       }}>
         <div style={{flex: 1, minWidth: 0}}>
-          <div style={{fontWeight: '700', color: '#0f172a', marginBottom: '2px', fontSize: '0.92rem'}}>
+          <div style={{fontWeight: '700', color: 'var(--text-main)', marginBottom: '2px', fontSize: '0.92rem'}}>
             {n.cliente_nombre || 'Cliente'}
           </div>
-          <div style={{fontSize: '0.78rem', color: '#475569'}}>
+          <div style={{fontSize: '0.78rem', color: 'var(--text-secondary)'}}>
             {n.tipo_tratamiento} · Hace {diasPasados} día{diasPasados !== 1 ? 's' : ''}
           </div>
         </div>
@@ -143,7 +143,7 @@ const Layout = ({ children }) => {
           <button 
             onClick={() => handleMarkCollected(n.id)}
             style={{
-              background: '#22c55e', color: 'white', border: 'none', borderRadius: '10px',
+              background: 'var(--color-success)', color: 'var(--text-on-primary)', border: 'none', borderRadius: 'var(--radius-sm)',
               padding: '8px 14px', cursor: 'pointer', fontWeight: '700', fontSize: '0.78rem',
               display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', flexShrink: 0
             }}
@@ -154,9 +154,9 @@ const Layout = ({ children }) => {
           <button 
             onClick={() => handleUnmarkCollected(n.id)}
             style={{
-              background: 'none', border: '1px solid #d1d5db', borderRadius: '999px',
+              background: 'none', border: '1px solid var(--border)', borderRadius: 'var(--radius-pill)',
               width: '32px', height: '32px', cursor: 'pointer', display: 'flex',
-              alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#94a3b8',
+              alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--text-faint)',
               fontSize: '0.85rem'
             }}
             title="Desmarcar"
@@ -174,13 +174,13 @@ const Layout = ({ children }) => {
       {isMobile && (
         <header className="mobile-header">
           {location.pathname !== '/' ? (
-            <button onClick={() => navigate(-1)} style={{background: 'none', border: 'none', color: '#1e293b', cursor: 'pointer', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+            <button onClick={() => navigate(-1)} style={{background: 'none', border: 'none', color: 'var(--text-main)', cursor: 'pointer', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
               <ArrowLeft size={24} />
             </button>
           ) : (
             <div className="logo-container">
               <div className="logo-icon">A</div>
-              <h1 style={{margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#1e293b'}}>Agendapp</h1>
+              <h1 style={{margin: 0, fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)'}}>Agendapp</h1>
             </div>
           )}
           
@@ -222,7 +222,7 @@ const Layout = ({ children }) => {
           {isAdmin ? (
             <button 
               onClick={() => { signOut(); isMobile && setSidebarOpen(false); navigate('/'); }}
-              style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '12px', background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}
+              style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '12px', background: 'var(--color-error-light)', color: 'var(--color-error)', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontWeight: '600' }}
             >
               <LogOut size={20} />
               <span>Cerrar Sesión</span>
@@ -230,7 +230,7 @@ const Layout = ({ children }) => {
           ) : (
             <button 
               onClick={() => { isMobile && setSidebarOpen(false); navigate('/login'); }}
-              style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '12px', background: '#eff6ff', color: '#2563eb', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}
+              style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '12px', background: 'var(--primary-light)', color: 'var(--primary)', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontWeight: '600' }}
             >
               <LogIn size={20} />
               <span>Acceso Admin</span>
@@ -275,23 +275,23 @@ const Layout = ({ children }) => {
       {showNotifPanel && (
         <div style={{
           position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-          backgroundColor: 'rgba(15, 23, 42, 0.5)', backdropFilter: 'blur(4px)',
+          backgroundColor: 'var(--bg-modal-overlay)', backdropFilter: 'blur(4px)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           zIndex: 10000
         }} onClick={() => setShowNotifPanel(false)}>
           <div style={{
-            background: 'white', borderRadius: '20px', padding: '24px',
+            background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', padding: '24px',
             width: '90%', maxWidth: '500px', maxHeight: '80vh', overflowY: 'auto',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.15)'
+            boxShadow: 'var(--shadow-xl)'
           }} onClick={e => e.stopPropagation()}>
             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'}}>
-              <h2 style={{fontSize: '1.2rem', fontWeight: '800', color: '#0f172a'}}>🔔 Avisos de Muestra</h2>
-              <button onClick={() => setShowNotifPanel(false)} style={{background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#94a3b8'}}>&times;</button>
+              <h2 style={{fontSize: '1.2rem', fontWeight: '800', color: 'var(--text-main)'}}>🔔 Avisos de Muestra</h2>
+              <button onClick={() => setShowNotifPanel(false)} style={{background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: 'var(--text-faint)'}}>&times;</button>
             </div>
 
             {/* Pendientes */}
             {pendingNotifications.length === 0 ? (
-              <div style={{textAlign: 'center', padding: '24px 16px', color: '#22c55e', background: '#f0fdf4', borderRadius: '12px', marginBottom: '16px'}}>
+              <div style={{textAlign: 'center', padding: '24px 16px', color: 'var(--color-success)', background: 'var(--color-success-light)', borderRadius: 'var(--radius-md)', marginBottom: '16px'}}>
                 <p style={{fontWeight: '700', fontSize: '0.95rem', margin: 0}}>Sin pendientes.</p>
               </div>
             ) : (
@@ -307,7 +307,7 @@ const Layout = ({ children }) => {
                   onClick={() => setShowResueltos(!showResueltos)}
                   style={{
                     background: 'none', border: 'none', cursor: 'pointer',
-                    color: '#64748b', fontSize: '0.85rem', fontWeight: '600',
+                    color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: '600',
                     display: 'flex', alignItems: 'center', gap: '6px',
                     padding: '8px 0', width: '100%'
                   }}
