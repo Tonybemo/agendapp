@@ -62,6 +62,8 @@ const UniversalForm = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [avisoFileName, setAvisoFileName] = useState('');
+  const [fotoFileName, setFotoFileName] = useState('');
+  const [fichaFileName, setFichaFileName] = useState('');
   const [jornadaParadas, setJornadaParadas] = useState([]);
   const [jornadaFecha, setJornadaFecha] = useState(() => {
     const d = new Date();
@@ -374,6 +376,8 @@ const UniversalForm = () => {
     setLocalidadQuery('');
     setAddressSuggestions([]);
     setAvisoFileName('');
+    setFotoFileName('');
+    setFichaFileName('');
     setJornadaParadas([]);
     setJornadaFecha(new Date().toISOString().split('T')[0]);
   };
@@ -1381,20 +1385,44 @@ const UniversalForm = () => {
 
         <div className="uf-form-group">
           <label>Foto del Producto (Miniatura)</label>
-          <div className="uf-file-input" style={{position: 'relative'}}>
-            <input type="file" name="foto_producto" accept="image/*" style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer'}} />
-            <Camera size={16} color="var(--text-muted)" />
-            <strong>Adjuntar Foto (JPG/PNG)</strong>
+          <div className="uf-file-input" style={{
+            position: 'relative', 
+            background: fotoFileName ? 'var(--color-success-light)' : 'transparent',
+            borderColor: fotoFileName ? 'var(--color-success)' : 'var(--border)'
+          }}>
+            <input 
+              type="file" 
+              name="foto_producto" 
+              accept="image/*" 
+              onChange={(e) => setFotoFileName(e.target.files[0]?.name || '')}
+              style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer'}} 
+            />
+            <Camera size={16} color={fotoFileName ? 'var(--color-success)' : 'var(--text-muted)'} />
+            <strong style={{ color: fotoFileName ? 'var(--color-success)' : 'var(--text-main)' }}>
+              {fotoFileName || 'Adjuntar Foto (JPG/PNG)'}
+            </strong>
           </div>
           <span className="uf-hint">Esta será la imagen visible en las tarjetas del catálogo.</span>
         </div>
 
         <div className="uf-form-group">
           <label>Ficha de Seguridad (SDS)</label>
-          <div className="uf-file-input" style={{position: 'relative'}}>
-            <input type="file" name="ficha_sds" accept="application/pdf,image/*" style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer'}} />
-            <FileText size={16} color="var(--text-muted)" />
-            <strong>Adjuntar Ficha (PDF/Imagen)</strong>
+          <div className="uf-file-input" style={{
+            position: 'relative',
+            background: fichaFileName ? 'var(--color-success-light)' : 'transparent',
+            borderColor: fichaFileName ? 'var(--color-success)' : 'var(--border)'
+          }}>
+            <input 
+              type="file" 
+              name="ficha_sds" 
+              accept="application/pdf,image/*" 
+              onChange={(e) => setFichaFileName(e.target.files[0]?.name || '')}
+              style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer'}} 
+            />
+            <FileText size={16} color={fichaFileName ? 'var(--color-success)' : 'var(--text-muted)'} />
+            <strong style={{ color: fichaFileName ? 'var(--color-success)' : 'var(--text-main)' }}>
+              {fichaFileName || 'Adjuntar Ficha (PDF/Imagen)'}
+            </strong>
           </div>
           <span className="uf-hint">Si ya tiene una ficha, puedes subir una nueva para reemplazarla.</span>
         </div>
