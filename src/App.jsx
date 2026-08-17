@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ToastProvider, useToast } from './components/Toast';
 import { useEffect } from 'react';
 import { supabase } from './lib/supabase';
 import Layout from './components/Layout';
@@ -22,7 +23,14 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-function App() {
+function AppContent() {
+  const toast = useToast();
+
+  useEffect(() => {
+    // Hacer el toast disponible globalmente para código fuera de componentes
+    window.__toast = toast;
+  }, [toast]);
+
   useEffect(() => {
     const syncOfflineMuestras = async () => {
       const queue = JSON.parse(localStorage.getItem('offline_muestras_queue') || '[]');
@@ -31,8 +39,7 @@ function App() {
         const { error } = await supabase.from('aquapp_muestras').insert(queue);
         if (!error) {
           localStorage.removeItem('offline_muestras_queue');
-          alert(`✅ Sincronización completada: Se han subido ${queue.length} muestras guardadas sin conexión.`);
-          // Opcionalmente forzar un reload suave o dejar que el usuario refresque
+          toast.success(`Sincronización completada: ${queue.length} muestras subidas`);
           window.dispatchEvent(new CustomEvent('aquapp-refresh-data'));
         } else {
           console.error("Error sincronizando muestras offline:", error);
@@ -40,36 +47,41 @@ function App() {
       }
     };
 
-    // Check on startup
     syncOfflineMuestras();
-
-    // Listen for online events
     window.addEventListener('online', syncOfflineMuestras);
     return () => window.removeEventListener('online', syncOfflineMuestras);
-  }, []);
+  }, [toast]);
 
   return (
+    <Router>
+      <Layout>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          
+          {/* Public Routes (Read-only for guests) */}
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/aquapp" element={<Aquapp />} />
+          <Route path="/avisomap" element={<Avisomap />} />
+          <Route path="/calendario" element={<Calendario />} />
+          
+          {/* Private Routes (Admin only) */}
+          <Route path="/tareas" element={<ProtectedRoute><Tareasapp /></ProtectedRoute>} />
+          <Route path="/catalogo" element={<ProtectedRoute><Catalogo /></ProtectedRoute>} />
+          <Route path="/workapp" element={<ProtectedRoute><Workapp /></ProtectedRoute>} />
+          <Route path="/estadisticas" element={<ProtectedRoute><Estadisticas /></ProtectedRoute>} />
+          <Route path="/gestor" element={<ProtectedRoute><GestorGlobal /></ProtectedRoute>} />
+        </Routes>
+      </Layout>
+    </Router>
+  );
+}
+
+function App() {
+  return (
     <AuthProvider>
-      <Router>
-        <Layout>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            
-            {/* Public Routes (Read-only for guests) */}
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/aquapp" element={<Aquapp />} />
-            <Route path="/avisomap" element={<Avisomap />} />
-            <Route path="/calendario" element={<Calendario />} />
-            
-            {/* Private Routes (Admin only) */}
-            <Route path="/tareas" element={<ProtectedRoute><Tareasapp /></ProtectedRoute>} />
-            <Route path="/catalogo" element={<ProtectedRoute><Catalogo /></ProtectedRoute>} />
-            <Route path="/workapp" element={<ProtectedRoute><Workapp /></ProtectedRoute>} />
-            <Route path="/estadisticas" element={<ProtectedRoute><Estadisticas /></ProtectedRoute>} />
-            <Route path="/gestor" element={<ProtectedRoute><GestorGlobal /></ProtectedRoute>} />
-          </Routes>
-        </Layout>
-      </Router>
+      <ToastProvider>
+        <AppContent />
+      </ToastProvider>
     </AuthProvider>
   );
 }

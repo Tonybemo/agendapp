@@ -68,7 +68,7 @@ const Avisomap = () => {
         adjuntoUrl = publicUrlData.publicUrl;
       } else {
         console.error("Error subiendo archivo:", uploadError);
-        alert("Aviso: No se pudo subir el nuevo archivo adjunto. (" + uploadError.message + ")");
+        window.__toast?.error("Aviso: No se pudo subir el nuevo archivo adjunto. (" + uploadError.message + ")");
       }
     }
 
@@ -93,7 +93,7 @@ const Avisomap = () => {
       setAvisoFileName('');
       fetchData();
     } else {
-      alert("Error al actualizar: " + error.message);
+      window.__toast?.error("Error al actualizar: " + error.message);
     }
   };
 
@@ -112,7 +112,7 @@ const Avisomap = () => {
       if (!error) {
         fetchData();
       } else {
-        alert("Error al eliminar: " + error.message);
+        window.__toast?.error("Error al eliminar: " + error.message);
       }
     }
   };

@@ -191,7 +191,7 @@ const UniversalForm = () => {
         adjuntoUrl = publicUrlData.publicUrl;
       } else {
         console.error("Error subiendo archivo:", uploadError);
-        alert("Aviso: No se pudo subir el archivo adjunto, pero la jornada se guardará.");
+        window.__toast?.warning("Aviso: No se pudo subir el archivo adjunto, pero la jornada se guardará.");
       }
     }
     
@@ -208,15 +208,15 @@ const UniversalForm = () => {
 
     if (!error) {
       window.dispatchEvent(new Event('refresh-workapp'));
-      alert("✅ Jornada guardada correctamente");
+      window.__toast?.success(" Jornada guardada correctamente");
       handleClose();
     } else {
       console.error(error);
-      alert("Error al guardar jornada.");
+      window.__toast?.error("Error al guardar jornada.");
     }
     } catch (err) {
       console.error(err);
-      alert("Error inesperado al guardar.");
+      window.__toast?.error("Error inesperado al guardar.");
     } finally {
       setIsSaving(false);
     }
@@ -294,15 +294,15 @@ const UniversalForm = () => {
 
     if (!error) {
       window.dispatchEvent(new Event('refresh-catalogo'));
-      alert("✅ Producto guardado");
+      window.__toast?.success(" Producto guardado");
       handleClose();
     } else {
       console.error("Error guardando producto:", error);
-      alert("Error de Supabase: " + (error.message || JSON.stringify(error)));
+      window.__toast?.error("Error de Supabase: " + (error.message || JSON.stringify(error)));
     }
     } catch (err) {
       console.error(err);
-      alert("Error inesperado al guardar.");
+      window.__toast?.error("Error inesperado al guardar.");
     } finally {
       setIsSaving(false);
     }
@@ -324,7 +324,7 @@ const UniversalForm = () => {
     }
     
     if (todasLasPlagas.length === 0) {
-      alert("Debes seleccionar o escribir al menos una plaga a tratar.");
+      window.__toast?.success("Debes seleccionar o escribir al menos una plaga a tratar.");
       return;
     }
     
@@ -345,7 +345,7 @@ const UniversalForm = () => {
         adjuntoUrl = publicUrlData.publicUrl;
       } else {
         console.error("Error subiendo archivo:", uploadError);
-        alert("Aviso: No se pudo subir el archivo adjunto, pero el aviso se guardará. (" + uploadError.message + ")");
+        window.__toast?.error("Aviso: No se pudo subir el archivo adjunto, pero el aviso se guardará. (" + uploadError.message + ")");
       }
     }
 
@@ -368,11 +368,11 @@ const UniversalForm = () => {
       handleClose();
     } else {
       console.error(error);
-      alert("Error guardando aviso: " + error.message);
+      window.__toast?.error("Error guardando aviso: " + error.message);
     }
     } catch (err) {
       console.error(err);
-      alert("Error inesperado al guardar.");
+      window.__toast?.error("Error inesperado al guardar.");
     } finally {
       setIsSaving(false);
     }
@@ -470,7 +470,7 @@ const UniversalForm = () => {
       const queue = JSON.parse(localStorage.getItem('offline_muestras_queue') || '[]');
       queue.push(record);
       localStorage.setItem('offline_muestras_queue', JSON.stringify(queue));
-      alert("⚠️ Sin conexión a Internet.\nLa muestra se ha guardado en el móvil y se subirá automáticamente cuando recuperes la cobertura.");
+      window.__toast?.success("⚠️ Sin conexión a Internet.\nLa muestra se ha guardado en el móvil y se subirá automáticamente cuando recuperes la cobertura.");
       handleClose();
       setIsSaving(false);
       return;
@@ -484,16 +484,16 @@ const UniversalForm = () => {
     }
 
     if (!error) {
-      alert(editingItem ? "Muestra actualizada" : "Muestra guardada en la nube");
+      window.__toast?.success(editingItem ? "Muestra actualizada" : "Muestra guardada en la nube");
       window.dispatchEvent(new CustomEvent('aquapp-refresh-data'));
       handleClose();
     } else {
       console.error(error);
-      alert("Error al guardar muestra");
+      window.__toast?.error("Error al guardar muestra");
     }
     } catch (err) {
       console.error(err);
-      alert("Error inesperado al guardar.");
+      window.__toast?.error("Error inesperado al guardar.");
     } finally {
       setIsSaving(false);
     }
@@ -540,16 +540,16 @@ const UniversalForm = () => {
     }
 
     if (!error) {
-      alert(editingItem ? "Tratamiento actualizado" : "Tratamiento guardado en la nube");
+      window.__toast?.success(editingItem ? "Tratamiento actualizado" : "Tratamiento guardado en la nube");
       window.dispatchEvent(new CustomEvent('aquapp-refresh-data'));
       handleClose();
     } else {
       console.error(error);
-      alert("Error al guardar tratamiento");
+      window.__toast?.error("Error al guardar tratamiento");
     }
     } catch (err) {
       console.error(err);
-      alert("Error inesperado al guardar.");
+      window.__toast?.error("Error inesperado al guardar.");
     } finally {
       setIsSaving(false);
     }
@@ -592,16 +592,16 @@ const UniversalForm = () => {
     }
 
     if (!error) {
-      alert(editingItem ? "Plaga actualizada" : "Aviso de plaga guardado en la nube");
+      window.__toast?.warning(editingItem ? "Plaga actualizada" : "Aviso de plaga guardado en la nube");
       window.dispatchEvent(new CustomEvent('aquapp-refresh-data'));
       handleClose();
     } else {
       console.error(error);
-      alert("Error al guardar aviso de plaga");
+      window.__toast?.error("Error al guardar aviso de plaga");
     }
     } catch (err) {
       console.error(err);
-      alert("Error inesperado al guardar.");
+      window.__toast?.error("Error inesperado al guardar.");
     } finally {
       setIsSaving(false);
     }

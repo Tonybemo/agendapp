@@ -190,7 +190,7 @@ const Catalogo = () => {
               <div style={{display: 'flex', gap: '12px'}}>
                 <button 
                   style={{display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 16px', backgroundColor: 'white', color: '#14b8a6', border: '1px solid #14b8a6', borderRadius: '8px', fontWeight: '600', cursor: 'pointer'}}
-                  onClick={() => alert('Editando producto...')}
+                  onClick={() => window.__toast?.success('Editando producto...')}
                 >
                   <Edit3 size={18} /> Editar
                 </button>

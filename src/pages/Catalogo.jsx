@@ -42,7 +42,7 @@ const Catalogo = () => {
       setEditingProduct(null);
       fetchProducts();
     } else {
-      alert("Error al guardar el producto");
+      window.__toast?.error("Error al guardar el producto");
     }
   };
 

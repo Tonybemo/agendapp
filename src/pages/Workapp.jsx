@@ -237,7 +237,7 @@ const Workapp = () => {
     if (window.confirm('¿Eliminar este registro permanentemente?')) {
       const { error } = await supabase.from('workapp_jornadas').delete().eq('id', id);
       if (!error) fetchJornadas();
-      else alert('Error al eliminar: ' + error.message);
+      else window.__toast?.error('Error al eliminar: ' + error.message);
     }
     setActiveMenuId(null);
   };
@@ -246,7 +246,7 @@ const Workapp = () => {
     if (window.confirm('¿Eliminar esta nómina permanentemente?')) {
       const { error } = await supabase.from('workapp_nominas').delete().eq('id', id);
       if (!error) fetchNominas();
-      else alert('Error al eliminar nómina: ' + error.message);
+      else window.__toast?.error('Error al eliminar nómina: ' + error.message);
     }
   };
 
@@ -315,7 +315,7 @@ const Workapp = () => {
       setNominaAdjuntoFile(null);
       fetchNominas();
     } else {
-      alert("Error guardando la nómina: " + error.message);
+      window.__toast?.error("Error guardando la nómina: " + error.message);
     }
   };
 
@@ -416,14 +416,14 @@ const Workapp = () => {
       setModalType(null);
       fetchJornadas();
     } else {
-      alert('Error al actualizar: ' + error.message);
+      window.__toast?.error('Error al actualizar: ' + error.message);
     }
   };
 
   const calculateInicio = () => {
     if (!cuadrarForm.importe || parseFloat(cuadrarForm.importe) <= 0) return;
     if (!cuadrarForm.fechaCierre) {
-      alert("Por favor, selecciona la fecha de cierre.");
+      window.__toast?.success("Por favor, selecciona la fecha de cierre.");
       return;
     }
     

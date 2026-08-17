@@ -95,7 +95,7 @@ const GestorGlobal = () => {
       URL.revokeObjectURL(url);
     } catch (err) {
       console.error("Error general exportando CSV:", err);
-      alert("Error al exportar la copia de seguridad: " + (err.message || "Error desconocido"));
+      window.__toast?.error("Error al exportar la copia de seguridad: " + (err.message || "Error desconocido"));
     } finally {
       setIsExporting(false);
     }
@@ -114,7 +114,7 @@ const GestorGlobal = () => {
     if (!error) {
       fetchData(); // Recargar
     } else {
-      alert("Error al añadir cliente");
+      window.__toast?.error("Error al añadir cliente");
       console.error(error);
     }
   };
@@ -131,7 +131,7 @@ const GestorGlobal = () => {
     if (!error) {
       fetchData(); // Recargar
     } else {
-      alert("Error al añadir tarea");
+      window.__toast?.error("Error al añadir tarea");
       console.error(error);
     }
   };
@@ -140,7 +140,7 @@ const GestorGlobal = () => {
     if (window.confirm("¿Seguro que deseas eliminar este cliente? Se borrarán sus tareas asociadas.")) {
       const { error } = await supabase.from('clientes').delete().eq('id', id);
       if (!error) fetchData();
-      else alert("Error al eliminar cliente");
+      else window.__toast?.error("Error al eliminar cliente");
     }
   };
 
@@ -151,14 +151,14 @@ const GestorGlobal = () => {
 
     const { error } = await supabase.from('clientes').update({ name: newName, address: newAddress, contact: newContact }).eq('id', client.id);
     if (!error) fetchData();
-    else alert("Error al editar cliente");
+    else window.__toast?.error("Error al editar cliente");
   };
 
   const handleDeleteTarea = async (id) => {
     if (window.confirm("¿Seguro que deseas eliminar esta tarea global?")) {
       const { error } = await supabase.from('tareas_estandar').delete().eq('id', id);
       if (!error) fetchData();
-      else alert("Error al eliminar tarea");
+      else window.__toast?.error("Error al eliminar tarea");
     }
   };
 
@@ -168,7 +168,7 @@ const GestorGlobal = () => {
 
     const { error } = await supabase.from('tareas_estandar').update({ name: newName, description: newDescription }).eq('id', task.id);
     if (!error) fetchData();
-    else alert("Error al editar tarea");
+    else window.__toast?.error("Error al editar tarea");
   };
 
   const renderClientes = () => {

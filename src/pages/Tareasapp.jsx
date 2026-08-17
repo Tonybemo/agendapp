@@ -121,7 +121,7 @@ const Tareasapp = () => {
 
   const handleSavePlanning = async () => {
     if (!newClientData.id) {
-      alert('Selecciona un cliente válido');
+      window.__toast?.success('Selecciona un cliente válido');
       return;
     }
     
@@ -169,7 +169,7 @@ const Tareasapp = () => {
       setNewClientData({ id: '', name: '', frecuencia: 'mensual', month: currentMonth });
       setSelectedTasks([]);
     } else {
-      alert("Error guardando en Supabase: " + error.message);
+      window.__toast?.error("Error guardando en Supabase: " + error.message);
     }
   };
 
