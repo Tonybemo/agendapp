@@ -82,7 +82,7 @@ const Catalogo = () => {
         lote: p.lote,
         hasWarning: p.has_warning || (p.plazo_seguridad && p.plazo_seguridad.toLowerCase() !== 'no aplica' && p.plazo_seguridad !== '0'),
         badge: p.badge || 'PRO',
-        pdfUrl: p.pdf_url
+        pdfUrl: p.ficha_sds_url || p.pdf_url
       }));
       setProducts(mapped);
     }

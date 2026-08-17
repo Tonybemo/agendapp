@@ -239,6 +239,42 @@ const UniversalForm = () => {
     
     const categoryId = catMap[data.categoria] || 'biocidas';
 
+    // Upload foto del producto
+    let imageUrl = null;
+    const fotoField = e.target.elements.foto_producto;
+    if (fotoField && fotoField.files && fotoField.files.length > 0) {
+      const file = fotoField.files[0];
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+      const filePath = `productos/${fileName}`;
+      
+      const { error: uploadError } = await supabase.storage.from('adjuntos').upload(filePath, file);
+      if (!uploadError) {
+        const { data: publicUrlData } = supabase.storage.from('adjuntos').getPublicUrl(filePath);
+        imageUrl = publicUrlData.publicUrl;
+      } else {
+        console.error("Error subiendo foto:", uploadError);
+      }
+    }
+
+    // Upload ficha de seguridad
+    let fichaSdsUrl = null;
+    const fichaField = e.target.elements.ficha_sds;
+    if (fichaField && fichaField.files && fichaField.files.length > 0) {
+      const file = fichaField.files[0];
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+      const filePath = `productos/${fileName}`;
+      
+      const { error: uploadError } = await supabase.storage.from('adjuntos').upload(filePath, file);
+      if (!uploadError) {
+        const { data: publicUrlData } = supabase.storage.from('adjuntos').getPublicUrl(filePath);
+        fichaSdsUrl = publicUrlData.publicUrl;
+      } else {
+        console.error("Error subiendo ficha:", uploadError);
+      }
+    }
+
     const newProduct = {
       nombre: data.nombre,
       categoria_id: categoryId,
@@ -249,7 +285,9 @@ const UniversalForm = () => {
       plazo_seguridad: data.plazo_seguridad,
       metodo_aplicacion: data.metodo_aplicacion,
       caducidad: data.caducidad,
-      has_warning: Boolean(data.plazo_seguridad && data.plazo_seguridad.toLowerCase() !== 'na' && data.plazo_seguridad.trim() !== '')
+      has_warning: Boolean(data.plazo_seguridad && data.plazo_seguridad.toLowerCase() !== 'na' && data.plazo_seguridad.trim() !== ''),
+      ...(imageUrl && { image_url: imageUrl }),
+      ...(fichaSdsUrl && { ficha_sds_url: fichaSdsUrl })
     };
 
     const { error } = await supabase.from('productos').insert([newProduct]);
