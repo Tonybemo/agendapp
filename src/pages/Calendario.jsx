@@ -124,7 +124,8 @@ const Calendario = () => {
                 }
               }
               if (!clientName) clientName = 'Tarea';
-              if (d) allRaw.push({ id: task.id, date: d, client: clientName, actKey: 'tarea', extra: task.name, rawItem: task });
+              // Skip auto-completed tasks (they already appear as treatments in the calendar)
+              if (d && !task.auto) allRaw.push({ id: task.id, date: d, client: clientName, actKey: 'tarea', extra: task.name, rawItem: task });
             }
           });
         }

@@ -162,8 +162,82 @@ const Tareasapp = () => {
       }));
     }
 
-    const { error } = await supabase.from('tareas_programadas').insert(toInsert);
+    const { data: insertedData, error } = await supabase.from('tareas_programadas').insert(toInsert).select();
     if (!error) {
+      // === ESCENARIO B: Auto-completar si ya existen tratamientos ===
+      try {
+        const taskToTreatmentMap = {
+          'hipercloracion': 'Hipercloracion', 'hipercloración': 'Hipercloracion',
+          'choque termico': 'Choque', 'choque térmico': 'Choque',
+          'limpieza torres': 'LimpTorres', 'limp. torres': 'LimpTorres',
+          'limpieza depositos': 'LimpDep', 'limp. depositos': 'LimpDep', 'limpieza depósitos': 'LimpDep'
+        };
+        const clientName = newClientData.name;
+        const now = new Date();
+        const mesesNombres = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+        // Buscar tratamientos del cliente en este mes
+        let treatQuery = supabase.from('aquapp_tratamientos').select('*');
+        if (cid) {
+          treatQuery = treatQuery.eq('cliente_id', cid);
+        } else if (clientName) {
+          treatQuery = treatQuery.ilike('cliente_nombre', clientName);
+        }
+        const { data: treatments } = await treatQuery;
+
+        if (treatments && treatments.length > 0 && insertedData) {
+          // Filtrar tratamientos del mes actual
+          const mesActualIdx = now.getMonth();
+          const añoActual = now.getFullYear();
+          const treatThisMonth = treatments.filter(tr => {
+            if (!tr.fecha) return false;
+            let d;
+            if (tr.fecha.includes('/')) {
+              const parts = tr.fecha.split('/');
+              d = new Date(parts[2], parseInt(parts[1]) - 1, parts[0]);
+            } else {
+              d = new Date(tr.fecha);
+            }
+            return d.getMonth() === mesActualIdx && d.getFullYear() === añoActual;
+          });
+
+          if (treatThisMonth.length > 0) {
+            const treatTypes = treatThisMonth.map(t => t.tipo_tratamiento);
+            
+            for (const inserted of insertedData) {
+              const mesInserted = inserted.mes;
+              if (mesInserted !== mesesNombres[mesActualIdx]) continue;
+              
+              const tasks = inserted.tareas_json || [];
+              let updated = false;
+              const newTasks = tasks.map(task => {
+                const taskLower = task.name.toLowerCase();
+                for (const [keyword, treatType] of Object.entries(taskToTreatmentMap)) {
+                  if (taskLower.includes(keyword) && treatTypes.includes(treatType) && task.status === 'pending') {
+                    updated = true;
+                    const treatDate = treatThisMonth.find(t => t.tipo_tratamiento === treatType);
+                    let dateStr = null;
+                    if (treatDate && treatDate.fecha) {
+                      dateStr = treatDate.fecha.includes('-') 
+                        ? treatDate.fecha.split('-').reverse().join('/') 
+                        : treatDate.fecha;
+                    }
+                    return { ...task, status: 'completed', date: dateStr, auto: true };
+                  }
+                }
+                return task;
+              });
+              if (updated) {
+                await supabase.from('tareas_programadas').update({ tareas_json: newTasks }).eq('id', inserted.id);
+              }
+            }
+          }
+        }
+      } catch (autoErr) {
+        console.error('Error en auto-completar retroactivo:', autoErr);
+      }
+      // === FIN AUTO-COMPLETAR ===
+
       fetchData();
       setIsModalOpen(false);
       setNewClientData({ id: '', name: '', frecuencia: 'mensual', month: currentMonth });
