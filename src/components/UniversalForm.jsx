@@ -1019,8 +1019,11 @@ const UniversalForm = () => {
         </div>
         
         <div className="uf-form-group">
-          <label>CONTACTO (TELÉFONO O NOMBRE)</label>
-          <input name="contacto" className="uf-input-basic" type="text" placeholder="Ej. 600123456 - Juan" />
+          <label>TIPO DE RESOLUCIÓN</label>
+          <select name="contacto" className="uf-select-basic" defaultValue="Presencial">
+            <option value="Presencial">Presencial</option>
+            <option value="Telefónicamente">Telefónicamente</option>
+          </select>
         </div>
 
         <div className="uf-form-group">

@@ -278,7 +278,7 @@ const Avisomap = () => {
                                 </div>
                                 {aviso.contacto && (
                                   <div className="aviso-loc" style={{marginTop: '8px', color: 'var(--text-muted)'}}>
-                                    <Phone size={14} color="var(--text-muted)" />
+                                    {aviso.contacto === 'Telefónicamente' ? <Phone size={14} color="var(--text-muted)" /> : <MapPin size={14} color="var(--text-muted)" />}
                                     <span>{aviso.contacto}</span>
                                   </div>
                                 )}
@@ -435,8 +435,11 @@ const Avisomap = () => {
                 </div>
               </div>
               <div>
-                <label style={{fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)'}}>CONTACTO</label>
-                <input type="text" value={editingAviso.contacto || ''} onChange={e => setEditingAviso({...editingAviso, contacto: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-input)'}} />
+                <label style={{fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)'}}>TIPO DE RESOLUCIÓN</label>
+                <select value={editingAviso.contacto || 'Presencial'} onChange={e => setEditingAviso({...editingAviso, contacto: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-input)', background: 'var(--bg-input)', color: 'var(--text-main)'}}>
+                  <option value="Presencial">Presencial</option>
+                  <option value="Telefónicamente">Telefónicamente</option>
+                </select>
               </div>
               <div>
                 <label style={{fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)'}}>PLAGAS (Separadas por comas)</label>

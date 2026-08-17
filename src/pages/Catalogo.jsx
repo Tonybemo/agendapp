@@ -232,6 +232,9 @@ const Catalogo = () => {
                 </button>
               </div>
             </div>
+            
+            {/* Spacer for mobile to prevent FAB and bottom nav from obscuring buttons */}
+            <div style={{height: '80px', display: 'block'}} className="mobile-only-spacer"></div>
           </div>
         ) : loading ? (
           <div style={{textAlign: 'center', padding: '40px', color: 'var(--text-muted)'}}>Cargando catálogo...</div>
@@ -254,6 +257,9 @@ const Catalogo = () => {
                   <div style={{display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '16px', flex: 1}}>
                     <span style={{fontSize: '0.8rem', color: 'var(--primary)', fontWeight: '700'}}>Lote: <strong>{product.lote}</strong></span>
                     <span style={{fontSize: '0.8rem', color: 'var(--text-muted)'}}>Nº Reg: <strong>{product.registro}</strong></span>
+                    {product.materiaActiva && (
+                      <span style={{fontSize: '0.8rem', color: 'var(--text-muted)'}}>M. Activa: <strong>{product.materiaActiva}</strong></span>
+                    )}
                   </div>
 
                   <div className={`product-status ${product.hasWarning ? 'warning' : 'safe'}`}>
