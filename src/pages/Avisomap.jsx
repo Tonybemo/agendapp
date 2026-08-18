@@ -288,20 +288,24 @@ const Avisomap = () => {
                               return true;
                             }).map(aviso => (
                               <div key={aviso.id} className="aviso-map-card">
-                                <h4>{aviso.direccion}{aviso.portal ? `, ${aviso.portal}` : ''}</h4>
-                                <div className="aviso-loc">
-                                  <MapPin size={14} color="var(--accent-avisomap)" />
-                                  <span>{aviso.localidad}</span>
-                                </div>
-                                <div style={{position: 'absolute', top: '16px', right: '16px', display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'flex-end', maxWidth: '60%'}}>
-                                  {(parsePlagas(aviso.plagas)).map(p => {
-                                    const pc = plagaColors[p] || { color: '#334155', bg: '#f1f5f9' };
-                                    return (
-                                      <div key={p} className="plaga-pill" style={{backgroundColor: pc.bg, color: pc.color, margin: 0, padding: '4px 10px'}}>
-                                        <Bug size={14} /> {p}
-                                      </div>
-                                    );
-                                  })}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+                                  <div>
+                                    <h4 style={{ margin: 0, paddingBottom: '4px' }}>{aviso.direccion}{aviso.portal ? `, ${aviso.portal}` : ''}</h4>
+                                    <div className="aviso-loc" style={{ marginBottom: '8px' }}>
+                                      <MapPin size={14} color="var(--accent-avisomap)" />
+                                      <span>{aviso.localidad}</span>
+                                    </div>
+                                  </div>
+                                  <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'flex-end', flexShrink: 0, marginTop: '-4px' }}>
+                                    {(parsePlagas(aviso.plagas)).map(p => {
+                                      const pc = plagaColors[p] || { color: '#334155', bg: '#f1f5f9' };
+                                      return (
+                                        <div key={p} className="plaga-pill" style={{backgroundColor: pc.bg, color: pc.color, margin: 0, padding: '4px 10px'}}>
+                                          <Bug size={14} /> {p}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
                                 </div>
                                 <div className="aviso-datetime" style={{marginTop: '12px'}}>
                                   <span><Calendar size={14} /> {aviso.fecha}</span>
