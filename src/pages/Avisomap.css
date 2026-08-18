@@ -1,4 +1,4 @@
-.avisomap-wrapper {
+﻿.avisomap-wrapper {
   display: flex;
   flex-direction: column;
   height: calc(100vh - 40px);
@@ -608,10 +608,10 @@ input[type="text"]:focus, textarea:focus {
 /* Mobile Adjustments */
 @media (max-width: 768px) {
   .avisos-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    padding-left: 10px;
-    padding-right: 10px;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding-left: 16px;
+    padding-right: 16px;
   }
   .aviso-map-card {
     padding: 14px;
@@ -647,3 +647,5 @@ input[type="text"]:focus, textarea:focus {
     padding: 10px 16px;
   }
 }
+
+.years-container { padding-bottom: 80px; }
