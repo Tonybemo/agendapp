@@ -21,6 +21,19 @@ const plagaColors = {
   'Chinches': { color: '#15803d', bg: '#dcfce7' },
 };
 
+const parsePlagas = (plagas) => {
+  if (Array.isArray(plagas)) return plagas;
+  if (typeof plagas === 'string') {
+    try { return JSON.parse(plagas); } catch {
+      if (plagas.startsWith('{') && plagas.endsWith('}')) {
+        return plagas.slice(1, -1).split(',').map(s => s.trim().replace(/^"|"$/g, '')).filter(Boolean);
+      }
+      return plagas.split(',').map(s => s.trim()).filter(Boolean);
+    }
+  }
+  return [];
+};
+
 const Avisomap = () => {
   const { isAdmin } = useAuth();
   const [activeTab, setActiveTab] = useState('historial');
@@ -146,7 +159,7 @@ const Avisomap = () => {
         yearsMap[y].months[m].count++;
         yearsMap[y].months[m].avisos.push(aviso);
         
-        const plagas = Array.isArray(aviso.plagas) ? aviso.plagas : [];
+        const plagas = parsePlagas(aviso.plagas);
         plagas.forEach(p => {
           if (!pStats[p]) pStats[p] = 0;
           pStats[p]++;
@@ -243,7 +256,7 @@ const Avisomap = () => {
                           <div className="avisos-grid">
                             {monthData.avisos.filter(aviso => {
                               if (localidadFilter && aviso.localidad !== localidadFilter) return false;
-                              const plagasArray = Array.isArray(aviso.plagas) ? aviso.plagas : [];
+                              const plagasArray = parsePlagas(aviso.plagas);
                               if (plagaFilter && !plagasArray.includes(plagaFilter)) return false;
                               if (searchQuery) {
                                 const searchLower = searchQuery.toLowerCase();
@@ -263,7 +276,7 @@ const Avisomap = () => {
                                   <span>{aviso.localidad}</span>
                                 </div>
                                 <div style={{position: 'absolute', top: '16px', right: '16px', display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'flex-end', maxWidth: '60%'}}>
-                                  {(Array.isArray(aviso.plagas) ? aviso.plagas : []).map(p => {
+                                  {(parsePlagas(aviso.plagas)).map(p => {
                                     const pc = plagaColors[p] || { color: '#334155', bg: '#f1f5f9' };
                                     return (
                                       <div key={p} className="plaga-pill" style={{backgroundColor: pc.bg, color: pc.color, margin: 0, padding: '4px 10px'}}>
@@ -300,7 +313,7 @@ const Avisomap = () => {
                                       {isAdmin && (
                                       <div className="admin-only" style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
                                         <Edit3 size={18} color="#14b8a6" style={{cursor: 'pointer'}} onClick={() => {
-                                      setEditingAviso({...aviso, plagasStr: (Array.isArray(aviso.plagas) ? aviso.plagas.join(', ') : String(aviso.plagas || ''))});
+                                      setEditingAviso({...aviso, plagasStr: parsePlagas(aviso.plagas).join(', ')});
                                         setAvisoFileName('');
                                       }} />
                                       <Trash2 size={18} color="#ef4444" style={{cursor: 'pointer'}} onClick={() => handleDeleteAviso(aviso.id)} />
