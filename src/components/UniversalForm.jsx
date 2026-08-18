@@ -465,6 +465,20 @@ const UniversalForm = () => {
       mat_a_4170: data.mat_a_4170
     };
 
+    // CHECK COD_ENVASE DUPLICATE
+    if (data.cod_envase && navigator.onLine) {
+      let query = supabase.from('aquapp_muestras').select('id, cliente_nombre').eq('cod_envase', data.cod_envase);
+      if (editingItem && editingItem.editType === 'muestra') {
+        query = query.neq('id', editingItem.id);
+      }
+      const { data: existing } = await query;
+      if (existing && existing.length > 0) {
+        window.__toast?.error(`El código de envase ${data.cod_envase} ya existe (Cliente: ${existing[0].cliente_nombre || 'Desconocido'}). Por favor revisa.`);
+        setIsSaving(false);
+        return;
+      }
+    }
+
     // OFFLINE CHECK HERE
     if (!navigator.onLine && !editingItem) {
       const queue = JSON.parse(localStorage.getItem('offline_muestras_queue') || '[]');
