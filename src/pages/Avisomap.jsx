@@ -22,16 +22,34 @@ const plagaColors = {
 };
 
 const parsePlagas = (plagas) => {
-  if (Array.isArray(plagas)) return plagas;
-  if (typeof plagas === 'string') {
-    try { return JSON.parse(plagas); } catch {
-      if (plagas.startsWith('{') && plagas.endsWith('}')) {
-        return plagas.slice(1, -1).split(',').map(s => s.trim().replace(/^"|"$/g, '')).filter(Boolean);
-      }
-      return plagas.split(',').map(s => s.trim()).filter(Boolean);
+  let arr = [];
+  if (Array.isArray(plagas)) {
+    arr = plagas;
+  } else if (typeof plagas === 'string') {
+    try {
+      const parsed = JSON.parse(plagas);
+      arr = Array.isArray(parsed) ? parsed : [parsed];
+    } catch {
+      let cleaned = plagas;
+      if (cleaned.startsWith('{') && cleaned.endsWith('}')) cleaned = cleaned.slice(1, -1);
+      if (cleaned.startsWith('[') && cleaned.endsWith(']')) cleaned = cleaned.slice(1, -1);
+      arr = cleaned.split(',');
     }
   }
-  return [];
+  
+  return arr.map(p => {
+    if (typeof p !== 'string') return String(p);
+    let cleaned = p.trim();
+    // In case the string inside the array is ALSO a json array like '["Roedores"]' or '["\"Avispas\""]'
+    if (cleaned.startsWith('[')) {
+      try { 
+        const inner = JSON.parse(cleaned);
+        if (Array.isArray(inner)) cleaned = inner.join(' ');
+      } catch (e) {}
+    }
+    // Remove all surrounding quotes, brackets and slashes
+    return cleaned.replace(/^\[?["'\\]+|["'\\]+\]?$/g, '').trim();
+  }).filter(Boolean);
 };
 
 const Avisomap = () => {
