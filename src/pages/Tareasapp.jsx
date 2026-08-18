@@ -236,6 +236,64 @@ const Tareasapp = () => {
       } catch (autoErr) {
         console.error('Error en auto-completar retroactivo:', autoErr);
       }
+
+      // === ESCENARIO B (MUESTRAS): Auto-completar si ya existen muestras ===
+      try {
+        const clientName = newClientData.name;
+        const now = new Date();
+        const mesesNombres = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+        const mesActualIdx = now.getMonth();
+        const añoActual = now.getFullYear();
+
+        // Buscar muestras del cliente
+        let muestraQuery = supabase.from('aquapp_muestras').select('*');
+        if (cid) {
+          muestraQuery = muestraQuery.eq('cliente_id', cid);
+        } else if (clientName) {
+          muestraQuery = muestraQuery.ilike('cliente_nombre', clientName);
+        }
+        const { data: muestras } = await muestraQuery;
+
+        if (muestras && muestras.length > 0 && insertedData) {
+          const muestrasThisMonth = muestras.filter(m => {
+            if (!m.fecha) return false;
+            let d;
+            if (m.fecha.includes('/')) {
+              const parts = m.fecha.split('/');
+              d = new Date(parts[2], parseInt(parts[1]) - 1, parts[0]);
+            } else {
+              d = new Date(m.fecha);
+            }
+            return d.getMonth() === mesActualIdx && d.getFullYear() === añoActual;
+          });
+
+          if (muestrasThisMonth.length > 0) {
+            const lastMuestra = muestrasThisMonth[muestrasThisMonth.length - 1];
+            let dateStr = lastMuestra.fecha;
+            if (dateStr && dateStr.includes('-')) {
+              dateStr = dateStr.split('-').reverse().join('/');
+            }
+
+            for (const inserted of insertedData) {
+              if (inserted.mes !== mesesNombres[mesActualIdx]) continue;
+              const tasks = inserted.tareas_json || [];
+              let updated = false;
+              const newTasks = tasks.map(task => {
+                if (task.status === 'pending' && task.name.toLowerCase().includes('muestra')) {
+                  updated = true;
+                  return { ...task, status: 'completed', date: dateStr, auto: true };
+                }
+                return task;
+              });
+              if (updated) {
+                await supabase.from('tareas_programadas').update({ tareas_json: newTasks }).eq('id', inserted.id);
+              }
+            }
+          }
+        }
+      } catch (autoErr) {
+        console.error('Error en auto-completar retroactivo muestras:', autoErr);
+      }
       // === FIN AUTO-COMPLETAR ===
 
       fetchData();

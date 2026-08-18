@@ -484,7 +484,62 @@ const UniversalForm = () => {
     }
 
     if (!error) {
-      window.__toast?.success(editingItem ? "Muestra actualizada" : "Muestra guardada en la nube");
+      // === AUTO-COMPLETAR TAREAS DE MUESTRAS ===
+      if (!(editingItem && editingItem.editType === 'muestra')) {
+        try {
+          const now = new Date();
+          const mesesNombres = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+          const mesActual = mesesNombres[now.getMonth()];
+          const añoActual = now.getFullYear();
+
+          let query = supabase.from('tareas_programadas')
+            .select('*, clientes(name)')
+            .eq('mes', mesActual)
+            .eq('año', añoActual);
+
+          if (clienteId) {
+            query = query.eq('cliente_id', clienteId);
+          }
+
+          const { data: tareasData } = await query;
+          
+          if (tareasData && tareasData.length > 0) {
+            let tareasDelCliente = tareasData;
+            if (!clienteId && clienteNombre) {
+              tareasDelCliente = tareasData.filter(t => {
+                if (t.frecuencia && t.frecuencia.includes(':')) {
+                  const tName = t.frecuencia.split(':').slice(1).join(':').trim().toLowerCase();
+                  return tName === clienteNombre.toLowerCase();
+                }
+                return false;
+              });
+            }
+
+            const todayStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+
+            for (const tarea of tareasDelCliente) {
+              const tasks = tarea.tareas_json || [];
+              let updated = false;
+              const newTasks = tasks.map(task => {
+                if (task.status === 'pending' && task.name.toLowerCase().includes('muestra')) {
+                  updated = true;
+                  return { ...task, status: 'completed', date: todayStr, auto: true };
+                }
+                return task;
+              });
+              if (updated) {
+                await supabase.from('tareas_programadas').update({ tareas_json: newTasks }).eq('id', tarea.id);
+                console.log(`Auto-completada tarea "muestras" de ${tarea.clientes?.name || clienteNombre}`);
+              }
+            }
+          }
+        } catch (autoErr) {
+          console.error('Error en auto-completar tareas de muestras:', autoErr);
+        }
+      }
+      // === FIN AUTO-COMPLETAR ===
+
+      window.__toast?.success(editingItem ? "Muestra actualizada" : "Muestra guardada y tareas actualizadas ✓");
       window.dispatchEvent(new CustomEvent('aquapp-refresh-data'));
       handleClose();
     } else {
