@@ -572,12 +572,10 @@ const Estadisticas = () => {
 
     const doc = new jsPDF('landscape');
     
-    // Titulo
     doc.setFontSize(18);
     doc.setTextColor(30, 41, 59);
     doc.text('Resumen de Jornada (' + workappFiltro.desde + ' al ' + workappFiltro.hasta + ')', 14, 22);
 
-    // Preparar datos
     const [dY, dM, dD] = workappFiltro.desde.split('-');
     const dateDesde = new Date(parseInt(dY), parseInt(dM) - 1, parseInt(dD));
     const [hY, hM, hD] = workappFiltro.hasta.split('-');
@@ -608,20 +606,85 @@ const Estadisticas = () => {
       return;
     }
 
-    const tableData = jornadasEnRango.map(j => {
-      let ruta = '';
-      if (Array.isArray(j.paradas)) {
-        ruta = j.paradas.join(', ');
-      } else if (typeof j.paradas === 'string') {
-        ruta = j.paradas;
+    const formatTime = (t) => {
+      if (!t) return '0.0h';
+      if (!t.includes(':')) {
+        let num = parseFloat(t) || 0;
+        return num.toFixed(1) + 'h';
       }
+      const parts = t.split(':');
+      let h = parseInt(parts[0], 10) || 0;
+      let m = parseInt(parts[1], 10) || 0;
+      let dec = h + (m / 60);
+      return dec.toFixed(1) + 'h';
+    };
+
+    const enrichParada = (parada, dateStr) => {
+      let details = [];
+      const trats = aquappTratamientosRaw.filter(t => t.fecha === dateStr && t.cliente === parada);
+      if (trats.length > 0) {
+        const tipos = [...new Set(trats.map(t => t.tipo_tratamiento || 'Tratamiento'))];
+        details.push(tipos.join('/'));
+      }
+
+      const muestras = aquappMuestrasRaw.filter(m => m.fecha === dateStr && m.cliente === parada);
+      if (muestras.length > 0) {
+        details.push('Muestras');
+      }
+
+      if (parada.toLowerCase().includes('aviso mapfre') || parada.toLowerCase().includes('mapfre')) {
+        const locMatch = parada.replace(/aviso mapfre/i, '').trim();
+        const avisos = avisomapAvisosRaw.filter(a => a.fecha === dateStr);
+        const matchingAvisos = locMatch 
+          ? avisos.filter(a => a.localidad && a.localidad.toLowerCase().includes(locMatch.toLowerCase()))
+          : avisos;
+        
+        if (matchingAvisos.length > 0) {
+          const addresses = matchingAvisos.map(a => (a.direccion || '') + ' ' + (a.localidad || '')).map(s => s.trim()).filter(Boolean);
+          if (addresses.length > 0) details.push(addresses.join(', '));
+        }
+      }
+
+      if (details.length > 0) {
+        return parada + ' (' + details.join(' + ') + ')';
+      }
+      return parada;
+    };
+
+    const tableData = jornadasEnRango.map(j => {
+      let paradasArr = [];
+      if (Array.isArray(j.paradas)) {
+        paradasArr = j.paradas;
+      } else if (typeof j.paradas === 'string') {
+        try {
+          const parsed = JSON.parse(j.paradas);
+          if (Array.isArray(parsed)) paradasArr = parsed;
+          else paradasArr = [j.paradas];
+        } catch {
+          let cleaned = j.paradas.replace(/^\["?|"?]$/g, '').replace(/","/g, '|||');
+          paradasArr = cleaned.split('|||');
+        }
+      }
+      
+      let ruta = paradasArr.map(p => enrichParada(p.trim(), j.fecha)).join(', ');
+
+      let fechaFmt = j.fecha;
+      const jDate = parseJornadaDate(j.fecha);
+      if (jDate) {
+        fechaFmt = String(jDate.getDate()).padStart(2, '0') + '/' + String(jDate.getMonth() + 1).padStart(2, '0') + '/' + jDate.getFullYear();
+      }
+
+      const hIni = (j.hora_inicio || '').substring(0, 5);
+      const hFin = (j.hora_fin || '').substring(0, 5);
+      const horario = (hIni || hFin) ? hIni + ' - ' + hFin : '';
+
       return [
-        j.fecha,
-        (j.hora_inicio || '') + ' - ' + (j.hora_fin || ''),
+        fechaFmt,
+        horario,
         j.matricula || '',
         ruta || 'Sin paradas',
-        j.horas_calculadas || '0',
-        j.horas_extras || '0'
+        formatTime(j.horas_calculadas),
+        formatTime(j.horas_extras)
       ];
     });
 
@@ -633,17 +696,18 @@ const Estadisticas = () => {
       headStyles: { fillColor: [139, 92, 246] },
       styles: { fontSize: 10, cellPadding: 4 },
       columnStyles: {
-        0: { cellWidth: 25 },
-        1: { cellWidth: 30 },
+        0: { cellWidth: 26 },
+        1: { cellWidth: 26 },
         2: { cellWidth: 30 },
         3: { cellWidth: 'auto' },
-        4: { cellWidth: 20 },
-        5: { cellWidth: 20 }
+        4: { cellWidth: 16 },
+        5: { cellWidth: 16 }
       },
     });
 
     doc.save('Jornada_' + workappFiltro.desde + '_al_' + workappFiltro.hasta + '.pdf');
   };
+
 
 
   const renderWorkappStats = () => (
@@ -827,6 +891,7 @@ const Estadisticas = () => {
 };
 
 export default Estadisticas;
+
 
 
 
