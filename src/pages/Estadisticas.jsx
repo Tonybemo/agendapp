@@ -655,19 +655,33 @@ const Estadisticas = () => {
           <Filter size={18} />
           <h3 style={{margin: 0}}>FILTRO DE FECHAS</h3>
         </div>
-        <div style={{display: 'flex', gap: '16px', marginBottom: '16px', flexWrap: 'wrap'}}>
-          <div style={{flex: '1 1 200px'}}>
-            <label style={{display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600', marginBottom: '6px'}}>Desde</label>
-            <div style={{display: 'flex', alignItems: 'center', background: 'var(--bg-card-hover)', border: '1px solid var(--border)', borderRadius: '8px', padding: '10px 12px'}}>
-              <input type="date" value={workappFiltro.desde} onChange={e => setWorkappFiltro({...workappFiltro, desde: e.target.value})} style={{border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '0.9rem'}} />
+        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '16px', marginBottom: '16px'}}>
+          <div style={{display: 'flex', gap: '16px', flexWrap: 'wrap', flex: '1 1 auto'}}>
+            <div style={{flex: '1 1 200px'}}>
+              <label style={{display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600', marginBottom: '6px'}}>Desde</label>
+              <div style={{display: 'flex', alignItems: 'center', background: 'var(--bg-card-hover)', border: '1px solid var(--border)', borderRadius: '8px', padding: '10px 12px'}}>
+                <input type="date" value={workappFiltro.desde} onChange={e => setWorkappFiltro({...workappFiltro, desde: e.target.value})} style={{border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '0.9rem'}} />
+              </div>
+            </div>
+            <div style={{flex: '1 1 200px'}}>
+              <label style={{display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600', marginBottom: '6px'}}>Hasta</label>
+              <div style={{display: 'flex', alignItems: 'center', background: 'var(--bg-card-hover)', border: '1px solid var(--border)', borderRadius: '8px', padding: '10px 12px'}}>
+                <input type="date" value={workappFiltro.hasta} onChange={e => setWorkappFiltro({...workappFiltro, hasta: e.target.value})} style={{border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '0.9rem'}} />
+              </div>
             </div>
           </div>
-          <div style={{flex: '1 1 200px'}}>
-            <label style={{display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600', marginBottom: '6px'}}>Hasta</label>
-            <div style={{display: 'flex', alignItems: 'center', background: 'var(--bg-card-hover)', border: '1px solid var(--border)', borderRadius: '8px', padding: '10px 12px'}}>
-              <input type="date" value={workappFiltro.hasta} onChange={e => setWorkappFiltro({...workappFiltro, hasta: e.target.value})} style={{border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '0.9rem'}} />
-            </div>
-          </div>
+          <button 
+            onClick={exportarJornadaPDF}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '8px', 
+              padding: '12px 20px', borderRadius: '8px', 
+              background: 'var(--primary)', color: 'white', 
+              border: 'none', fontWeight: 'bold', cursor: 'pointer',
+              boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+              height: 'fit-content'
+            }}>
+            <Download size={18} /> Exportar PDF
+          </button>
         </div>
       </div>
 
