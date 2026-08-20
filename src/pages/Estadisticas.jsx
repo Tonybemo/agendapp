@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 import { createPortal } from 'react-dom';
 import { 
   BarChart2, Droplet, MapPin, Briefcase, Bug, Wind, FlaskConical,
-  Calendar, TrendingUp, Filter, Search
+  Calendar, TrendingUp, Filter, Search, Download
 } from 'lucide-react';
 import { mockLocalidadStats } from '../data/mockAvisomap';
 import { supabase } from '../lib/supabase';
@@ -562,6 +564,88 @@ const Estadisticas = () => {
     </div>
   );
 
+  const exportarJornadaPDF = () => {
+    if (!workappFiltro.desde || !workappFiltro.hasta) {
+      window.__toast?.error("Debes seleccionar un rango de fechas.");
+      return;
+    }
+
+    const doc = new jsPDF('landscape');
+    
+    // Titulo
+    doc.setFontSize(18);
+    doc.setTextColor(30, 41, 59);
+    doc.text('Resumen de Jornada (' + workappFiltro.desde + ' al ' + workappFiltro.hasta + ')', 14, 22);
+
+    // Preparar datos
+    const [dY, dM, dD] = workappFiltro.desde.split('-');
+    const dateDesde = new Date(parseInt(dY), parseInt(dM) - 1, parseInt(dD));
+    const [hY, hM, hD] = workappFiltro.hasta.split('-');
+    const dateHasta = new Date(parseInt(hY), parseInt(hM) - 1, parseInt(hD));
+
+    const parseJornadaDate = (fecha) => {
+      if (!fecha) return null;
+      if (fecha.includes('-')) {
+        const [y, m, d] = fecha.split('-');
+        return new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+      } else if (fecha.includes('/')) {
+        const [d, m, y] = fecha.split('/');
+        return new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+      }
+      return null;
+    };
+
+    const jornadasEnRango = jornadas.filter(j => {
+      const jDate = parseJornadaDate(j.fecha);
+      if (!jDate) return false;
+      return jDate >= dateDesde && jDate <= dateHasta;
+    }).sort((a, b) => {
+      return parseJornadaDate(a.fecha) - parseJornadaDate(b.fecha); 
+    });
+
+    if (jornadasEnRango.length === 0) {
+      window.__toast?.warning("No hay jornadas en ese rango de fechas.");
+      return;
+    }
+
+    const tableData = jornadasEnRango.map(j => {
+      let ruta = '';
+      if (Array.isArray(j.paradas)) {
+        ruta = j.paradas.join(', ');
+      } else if (typeof j.paradas === 'string') {
+        ruta = j.paradas;
+      }
+      return [
+        j.fecha,
+        (j.hora_inicio || '') + ' - ' + (j.hora_fin || ''),
+        j.matricula || '',
+        ruta || 'Sin paradas',
+        j.horas_calculadas || '0',
+        j.horas_extras || '0'
+      ];
+    });
+
+    doc.autoTable({
+      startY: 30,
+      head: [['Fecha', 'Horario', 'Vehiculo', 'Ruta / Paradas', 'Horas', 'Extras']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: { fillColor: [139, 92, 246] },
+      styles: { fontSize: 10, cellPadding: 4 },
+      columnStyles: {
+        0: { cellWidth: 25 },
+        1: { cellWidth: 30 },
+        2: { cellWidth: 30 },
+        3: { cellWidth: 'auto' },
+        4: { cellWidth: 20 },
+        5: { cellWidth: 20 }
+      },
+    });
+
+    doc.save('Jornada_' + workappFiltro.desde + '_al_' + workappFiltro.hasta + '.pdf');
+  };
+
+
   const renderWorkappStats = () => (
     <div className="stats-section animate-fade-in">
       
@@ -729,3 +813,7 @@ const Estadisticas = () => {
 };
 
 export default Estadisticas;
+
+
+
+
