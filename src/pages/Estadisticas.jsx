@@ -699,12 +699,12 @@ const enrichParada = (parada, dateStr) => {
       headStyles: { fillColor: [139, 92, 246] },
       styles: { fontSize: 10, cellPadding: 4 },
       columnStyles: {
-        0: { cellWidth: 26 },
+        0: { cellWidth: 24 },
         1: { cellWidth: 26 },
-        2: { cellWidth: 30 },
+        2: { cellWidth: 32 },
         3: { cellWidth: 'auto' },
-        4: { cellWidth: 16 },
-        5: { cellWidth: 16 }
+        4: { cellWidth: 20 },
+        5: { cellWidth: 20 }
       },
     });
 
@@ -894,6 +894,7 @@ const enrichParada = (parada, dateStr) => {
 };
 
 export default Estadisticas;
+
 
 
 
