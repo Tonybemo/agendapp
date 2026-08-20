@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import { createPortal } from 'react-dom';
 import { 
   BarChart2, Droplet, MapPin, Briefcase, Bug, Wind, FlaskConical,
@@ -224,7 +224,7 @@ const Estadisticas = () => {
           
           // Unificar variantes de roedores
           const lowerP = cleanP.toLowerCase();
-          if (lowerP.includes('rata') || lowerP.includes('raton') || lowerP.includes('ratón') || lowerP.includes('roedor')) {
+          if (lowerP.includes('rata') || lowerP.includes('raton') || lowerP.includes('ratÃ³n') || lowerP.includes('roedor')) {
             cleanP = 'Roedores';
           }
 
@@ -351,7 +351,7 @@ const Estadisticas = () => {
       <div className="stats-chart-card" style={{padding: '20px', marginBottom: '24px'}}>
         <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', color: '#0ea5e9'}}>
           <Filter size={18} />
-          <h3 style={{margin: 0}}>FILTRO POR AÑO</h3>
+          <h3 style={{margin: 0}}>FILTRO POR AÃ‘O</h3>
         </div>
         <div style={{display: 'flex', alignItems: 'center', background: 'var(--bg-card-hover)', border: '1px solid var(--border)', borderRadius: '8px', padding: '10px 12px'}}>
           <Calendar size={16} color="var(--text-muted)" style={{marginRight: '8px'}} />
@@ -414,15 +414,15 @@ const Estadisticas = () => {
         </ResponsiveContainer>
       </div>
 
-      {/* Resumen Tratamientos por Cliente (Tabla Dinámica) */}
+      {/* Resumen Tratamientos por Cliente (Tabla DinÃ¡mica) */}
       <div className="stats-chart-card" style={{overflowX: 'auto'}}>
         <h3 style={{color: '#0ea5e9', textTransform: 'uppercase'}}><Briefcase size={18} style={{marginRight: '8px', verticalAlign: 'text-bottom'}} /> Resumen por Cliente</h3>
         <div className="stats-legend" style={{marginBottom: '16px'}}>
-          <span><div className="legend-dot" style={{background:'#a855f7'}}></div> Hipercloración</span>
+          <span><div className="legend-dot" style={{background:'#a855f7'}}></div> HipercloraciÃ³n</span>
           <span><div className="legend-dot" style={{background:'#f43f5e'}}></div> Choque</span>
           <span><div className="legend-dot" style={{background:'#3b82f6'}}></div> L. Torres</span>
-          <span><div className="legend-dot" style={{background:'#10b981'}}></div> L. Depósitos</span>
-          <span><div className="legend-dot" style={{background:'#fcd34d'}}></div> M. Estándar</span>
+          <span><div className="legend-dot" style={{background:'#10b981'}}></div> L. DepÃ³sitos</span>
+          <span><div className="legend-dot" style={{background:'#fcd34d'}}></div> M. EstÃ¡ndar</span>
           <span><div className="legend-dot" style={{background:'#f97316'}}></div> M. Torre</span>
           <span><div className="legend-dot" style={{background:'#06b6d4'}}></div> M. Piscina/Jac.</span>
         </div>
@@ -439,7 +439,7 @@ const Estadisticas = () => {
             <tbody>
               {aquappStats.clientTableData?.length === 0 ? (
                 <tr>
-                  <td colSpan="13" style={{textAlign: 'center', color: 'var(--text-muted)'}}>No hay datos para el año {aquappYearFilter}</td>
+                  <td colSpan="13" style={{textAlign: 'center', color: 'var(--text-muted)'}}>No hay datos para el aÃ±o {aquappYearFilter}</td>
                 </tr>
               ) : (
                 aquappStats.clientTableData?.map((client, idx) => (
@@ -486,7 +486,7 @@ const Estadisticas = () => {
       <div className="stats-chart-card" style={{padding: '20px', marginBottom: '24px'}}>
         <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', color: '#10b981'}}>
           <Filter size={18} />
-          <h3 style={{margin: 0}}>FILTRO POR AÑO</h3>
+          <h3 style={{margin: 0}}>FILTRO POR AÃ‘O</h3>
         </div>
         <div style={{display: 'flex', alignItems: 'center', background: 'var(--bg-card-hover)', border: '1px solid var(--border)', borderRadius: '8px', padding: '10px 12px'}}>
           <Calendar size={16} color="var(--text-muted)" style={{marginRight: '8px'}} />
@@ -495,7 +495,7 @@ const Estadisticas = () => {
             onChange={(e) => setAvisomapYearFilter(e.target.value)}
             style={{border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '0.9rem', color: 'var(--text-secondary)'}}
           >
-            <option value="Todos">Histórico (Todos los años)</option>
+            <option value="Todos">HistÃ³rico (Todos los aÃ±os)</option>
             {avisomapStats.availableYears?.map(y => (
               <option key={y} value={y}>{y}</option>
             ))}
@@ -513,7 +513,7 @@ const Estadisticas = () => {
           <Bug size={20} color="#22c55e" />
           <div>
             <h3>Tipo de Plaga</h3>
-            <p className="stats-subtitle">Distribución por tipo</p>
+            <p className="stats-subtitle">DistribuciÃ³n por tipo</p>
           </div>
         </div>
         {avisomapStats.plagas.length === 0 ? (
@@ -524,7 +524,7 @@ const Estadisticas = () => {
               <div key={stat.name} className="stats-bar-item">
                 <div className="stats-bar-info">
                   <span><Bug size={14} color="var(--text-muted)"/> {stat.name}</span>
-                  <span className="stats-bar-numbers">{stat.count} avisos · <strong>{stat.percentage}%</strong></span>
+                  <span className="stats-bar-numbers">{stat.count} avisos Â· <strong>{stat.percentage}%</strong></span>
                 </div>
                 <div className="stats-bar-bg">
                   <div className="stats-bar-fill" style={{width: `${stat.percentage}%`, backgroundColor: stat.color}}></div>
@@ -540,7 +540,7 @@ const Estadisticas = () => {
           <MapPin size={20} color="#22c55e" />
           <div>
             <h3>Por Localidad</h3>
-            <p className="stats-subtitle">Distribución geográfica</p>
+            <p className="stats-subtitle">DistribuciÃ³n geogrÃ¡fica</p>
           </div>
         </div>
         {avisomapStats.localidades.length === 0 ? (
@@ -551,7 +551,7 @@ const Estadisticas = () => {
               <div key={stat.name} className="stats-bar-item">
                 <div className="stats-bar-info">
                   <span>{stat.name}</span>
-                  <span className="stats-bar-numbers">{stat.count} avisos · <strong>{stat.percentage}%</strong></span>
+                  <span className="stats-bar-numbers">{stat.count} avisos Â· <strong>{stat.percentage}%</strong></span>
                 </div>
                 <div className="stats-bar-bg">
                   <div className="stats-bar-fill" style={{width: `${stat.percentage}%`, backgroundColor: stat.color}}></div>
@@ -625,7 +625,7 @@ const Estadisticas = () => {
       ];
     });
 
-    doc.autoTable({
+    autoTable(doc, {
       startY: 30,
       head: [['Fecha', 'Horario', 'Vehiculo', 'Ruta / Paradas', 'Horas', 'Extras']],
       body: tableData,
@@ -697,13 +697,13 @@ const Estadisticas = () => {
         </div>
         <div className="stats-total-card">
           <span className="stats-total-value" style={{color: '#10b981'}}>{workappResultados.importe}</span>
-          <span className="stats-total-label">IMPORTE (11€/H)</span>
+          <span className="stats-total-label">IMPORTE (11â‚¬/H)</span>
         </div>
       </div>
 
-      {/* Extras últimos 6 meses */}
+      {/* Extras Ãºltimos 6 meses */}
       <div className="stats-chart-card" style={{height: '350px'}}>
-        <h3 style={{color: '#6366f1', textTransform: 'uppercase'}}><Calendar size={18} style={{marginRight: '8px', verticalAlign: 'text-bottom'}} /> Extras Últimos 6 Meses</h3>
+        <h3 style={{color: '#6366f1', textTransform: 'uppercase'}}><Calendar size={18} style={{marginRight: '8px', verticalAlign: 'text-bottom'}} /> Extras Ãšltimos 6 Meses</h3>
         <ResponsiveContainer width="100%" height="85%">
           <BarChart
             data={workappResultados.monthlyExtras}
@@ -722,9 +722,9 @@ const Estadisticas = () => {
         </ResponsiveContainer>
       </div>
 
-        {/* Horas extras por día */}
+        {/* Horas extras por dÃ­a */}
       <div className="stats-chart-card" style={{height: '350px'}}>
-        <h3 style={{color: '#6366f1', textTransform: 'uppercase'}}><BarChart2 size={18} style={{marginRight: '8px', verticalAlign: 'text-bottom'}} /> Horas Extras por Día</h3>
+        <h3 style={{color: '#6366f1', textTransform: 'uppercase'}}><BarChart2 size={18} style={{marginRight: '8px', verticalAlign: 'text-bottom'}} /> Horas Extras por DÃ­a</h3>
         {workappResultados.chartData.length === 0 ? (
           <p style={{textAlign: 'center', color: 'var(--text-muted)'}}>No hay horas extras en este rango.</p>
         ) : (
@@ -744,9 +744,9 @@ const Estadisticas = () => {
         )}
       </div>
 
-      {/* Importe por día */}
+      {/* Importe por dÃ­a */}
       <div className="stats-chart-card" style={{height: '350px'}}>
-        <h3 style={{color: '#6366f1', textTransform: 'uppercase'}}><span style={{fontWeight: 'bold', fontSize: '1.2rem', marginRight: '8px'}}>$</span> Importe (€) por Día</h3>
+        <h3 style={{color: '#6366f1', textTransform: 'uppercase'}}><span style={{fontWeight: 'bold', fontSize: '1.2rem', marginRight: '8px'}}>$</span> Importe (â‚¬) por DÃ­a</h3>
         {workappResultados.chartData.length === 0 ? (
           <p style={{textAlign: 'center', color: 'var(--text-muted)'}}>Sin importe en este rango.</p>
         ) : (
@@ -763,7 +763,7 @@ const Estadisticas = () => {
                 itemStyle={{color: '#fff'}}
               />
               <Legend verticalAlign="top" wrapperStyle={{paddingBottom: '20px'}} />
-              <Bar dataKey="importe" name="Importe (€)" fill="#34d399" radius={[4, 4, 0, 0]} barSize={18} />
+              <Bar dataKey="importe" name="Importe (â‚¬)" fill="#34d399" radius={[4, 4, 0, 0]} barSize={18} />
             </BarChart>
           </ResponsiveContainer>
         )}
@@ -775,7 +775,7 @@ const Estadisticas = () => {
     <div className="estadisticas-container animate-fade-in">
       <div className="estadisticas-header">
         <BarChart2 size={28} color="#6366f1"/>
-        <h1>Gráficos y Estadísticas</h1>
+        <h1>GrÃ¡ficos y EstadÃ­sticas</h1>
       </div>
 
       {/* Section Tabs */}
@@ -827,6 +827,7 @@ const Estadisticas = () => {
 };
 
 export default Estadisticas;
+
 
 
 
