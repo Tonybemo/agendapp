@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { createPortal } from 'react-dom';
@@ -11,6 +11,38 @@ import { supabase } from '../lib/supabase';
 import { mockWorkappData } from '../data/mockWorkapp';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
 import './Estadisticas.css';
+
+const parsePlagas = (plagas) => {
+  let arr = [];
+  if (Array.isArray(plagas)) {
+    arr = plagas;
+  } else if (typeof plagas === 'string') {
+    try {
+      const parsed = JSON.parse(plagas);
+      arr = Array.isArray(parsed) ? parsed : [parsed];
+    } catch {
+      let cleaned = plagas;
+      if (cleaned.startsWith('{') && cleaned.endsWith('}')) cleaned = cleaned.slice(1, -1);
+      if (cleaned.startsWith('[') && cleaned.endsWith(']')) cleaned = cleaned.slice(1, -1);
+      arr = cleaned.split(',');
+    }
+  }
+  
+  return arr.map(p => {
+    if (typeof p !== 'string') return String(p);
+    let cleaned = p.trim();
+    while (cleaned.startsWith('[') && cleaned.endsWith(']')) {
+      try {
+        const inner = JSON.parse(cleaned);
+        if (Array.isArray(inner)) cleaned = inner.join(' ');
+        else cleaned = String(inner);
+      } catch (e) {
+        cleaned = cleaned.slice(1, -1);
+      }
+    }
+    return cleaned.replace(/^[\[\]"'\\\s]+|[\[\]"'\\\s]+$/g, '').trim();
+  }).filter(Boolean);
+};
 
 const Estadisticas = () => {
   const [activeSection, setActiveSection] = useState('aquapp');
@@ -215,9 +247,7 @@ const Estadisticas = () => {
       const lStats = {};
 
       filtered.forEach(aviso => {
-        let plagas = [];
-        if (Array.isArray(aviso.plagas)) plagas = aviso.plagas;
-        else if (typeof aviso.plagas === 'string') plagas = aviso.plagas.split(',').map(s => s.trim()).filter(Boolean);
+        const plagas = parsePlagas(aviso.plagas);
 
         plagas.forEach(p => {
           let cleanP = p.charAt(0).toUpperCase() + p.slice(1).toLowerCase();
@@ -351,7 +381,7 @@ const Estadisticas = () => {
       <div className="stats-chart-card" style={{padding: '20px', marginBottom: '24px'}}>
         <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', color: '#0ea5e9'}}>
           <Filter size={18} />
-          <h3 style={{margin: 0}}>FILTRO POR A�O</h3>
+          <h3 style={{margin: 0}}>FILTRO POR AÑO</h3>
         </div>
         <div style={{display: 'flex', alignItems: 'center', background: 'var(--bg-card-hover)', border: '1px solid var(--border)', borderRadius: '8px', padding: '10px 12px'}}>
           <Calendar size={16} color="var(--text-muted)" style={{marginRight: '8px'}} />
@@ -486,7 +516,7 @@ const Estadisticas = () => {
       <div className="stats-chart-card" style={{padding: '20px', marginBottom: '24px'}}>
         <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', color: '#10b981'}}>
           <Filter size={18} />
-          <h3 style={{margin: 0}}>FILTRO POR A�O</h3>
+          <h3 style={{margin: 0}}>FILTRO POR AÑO</h3>
         </div>
         <div style={{display: 'flex', alignItems: 'center', background: 'var(--bg-card-hover)', border: '1px solid var(--border)', borderRadius: '8px', padding: '10px 12px'}}>
           <Calendar size={16} color="var(--text-muted)" style={{marginRight: '8px'}} />
@@ -524,7 +554,7 @@ const Estadisticas = () => {
               <div key={stat.name} className="stats-bar-item">
                 <div className="stats-bar-info">
                   <span><Bug size={14} color="var(--text-muted)"/> {stat.name}</span>
-                  <span className="stats-bar-numbers">{stat.count} avisos Â· <strong>{stat.percentage}%</strong></span>
+                  <span className="stats-bar-numbers">{stat.count} avisos · <strong>{stat.percentage}%</strong></span>
                 </div>
                 <div className="stats-bar-bg">
                   <div className="stats-bar-fill" style={{width: `${stat.percentage}%`, backgroundColor: stat.color}}></div>
@@ -551,7 +581,7 @@ const Estadisticas = () => {
               <div key={stat.name} className="stats-bar-item">
                 <div className="stats-bar-info">
                   <span>{stat.name}</span>
-                  <span className="stats-bar-numbers">{stat.count} avisos Â· <strong>{stat.percentage}%</strong></span>
+                  <span className="stats-bar-numbers">{stat.count} avisos · <strong>{stat.percentage}%</strong></span>
                 </div>
                 <div className="stats-bar-bg">
                   <div className="stats-bar-fill" style={{width: `${stat.percentage}%`, backgroundColor: stat.color}}></div>
@@ -764,13 +794,13 @@ const enrichParada = (parada, dateStr) => {
         </div>
         <div className="stats-total-card">
           <span className="stats-total-value" style={{color: '#10b981'}}>{workappResultados.importe}</span>
-          <span className="stats-total-label">IMPORTE (11�/H)</span>
+          <span className="stats-total-label">IMPORTE (11€/H)</span>
         </div>
       </div>
 
       {/* Extras últimos 6 meses */}
       <div className="stats-chart-card" style={{height: '350px'}}>
-        <h3 style={{color: '#6366f1', textTransform: 'uppercase'}}><Calendar size={18} style={{marginRight: '8px', verticalAlign: 'text-bottom'}} /> Extras �ltimos 6 Meses</h3>
+        <h3 style={{color: '#6366f1', textTransform: 'uppercase'}}><Calendar size={18} style={{marginRight: '8px', verticalAlign: 'text-bottom'}} /> Extras Últimos 6 Meses</h3>
         <ResponsiveContainer width="100%" height="85%">
           <BarChart
             data={workappResultados.monthlyExtras}
@@ -813,7 +843,7 @@ const enrichParada = (parada, dateStr) => {
 
       {/* Importe por día */}
       <div className="stats-chart-card" style={{height: '350px'}}>
-        <h3 style={{color: '#6366f1', textTransform: 'uppercase'}}><span style={{fontWeight: 'bold', fontSize: '1.2rem', marginRight: '8px'}}>$</span> Importe (�) por Día</h3>
+        <h3 style={{color: '#6366f1', textTransform: 'uppercase'}}><span style={{fontWeight: 'bold', fontSize: '1.2rem', marginRight: '8px'}}>$</span> Importe (€) por Día</h3>
         {workappResultados.chartData.length === 0 ? (
           <p style={{textAlign: 'center', color: 'var(--text-muted)'}}>Sin importe en este rango.</p>
         ) : (
@@ -830,7 +860,7 @@ const enrichParada = (parada, dateStr) => {
                 itemStyle={{color: '#fff'}}
               />
               <Legend verticalAlign="top" wrapperStyle={{paddingBottom: '20px'}} />
-              <Bar dataKey="importe" name="Importe (�)" fill="#34d399" radius={[4, 4, 0, 0]} barSize={18} />
+              <Bar dataKey="importe" name="Importe (€)" fill="#34d399" radius={[4, 4, 0, 0]} barSize={18} />
             </BarChart>
           </ResponsiveContainer>
         )}
