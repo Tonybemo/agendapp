@@ -649,40 +649,57 @@ const Estadisticas = () => {
       return dec.toFixed(1) + 'h';
     };
 
-const enrichParada = (parada, dateStr) => {
-  let details = [];
-  const pLower = parada.toLowerCase();
+    const isSameDate = (d1, d2) => {
+      if (!d1 || !d2) return false;
+      if (d1 === d2) return true;
+      const dt1 = parseJornadaDate(d1);
+      const dt2 = parseJornadaDate(d2);
+      if (!dt1 || !dt2) return false;
+      return dt1.getFullYear() === dt2.getFullYear() &&
+             dt1.getMonth() === dt2.getMonth() &&
+             dt1.getDate() === dt2.getDate();
+    };
 
-  const trats = aquappTratamientosRaw.filter(t => t.fecha === dateStr && t.cliente_nombre && t.cliente_nombre.toLowerCase() === pLower);
-  if (trats.length > 0) {
-    const tipos = [...new Set(trats.map(t => t.tipo_tratamiento || 'Tratamiento'))];
-    details.push(tipos.join('/'));
-  }
+    const enrichParada = (parada, dateStr) => {
+      let details = [];
+      const pLower = parada.toLowerCase();
 
-  const muestras = aquappMuestrasRaw.filter(m => m.fecha === dateStr && m.cliente_nombre && m.cliente_nombre.toLowerCase() === pLower);
-  if (muestras.length > 0) {
-    details.push('Muestras');
-  }
+      const trats = aquappTratamientosRaw.filter(t => isSameDate(t.fecha, dateStr) && t.cliente_nombre && t.cliente_nombre.toLowerCase() === pLower);
+      if (trats.length > 0) {
+        const tipos = [...new Set(trats.map(t => t.tipo_tratamiento || 'Tratamiento'))];
+        details.push(tipos.join('/'));
+      }
 
-  if (pLower.includes('aviso mapfre') || pLower.includes('mapfre')) {
-    const locMatch = pLower.replace(/aviso mapfre/g, '').replace(/mapfre/g, '').trim();
-    const avisos = avisomapAvisosRaw.filter(a => a.fecha === dateStr);
-    const matchingAvisos = locMatch 
-      ? avisos.filter(a => a.localidad && a.localidad.toLowerCase().includes(locMatch))
-      : avisos;
-    
-    if (matchingAvisos.length > 0) {
-      const addresses = matchingAvisos.map(a => (a.direccion || '') + ' ' + (a.localidad || '')).map(s => s.trim()).filter(Boolean);
-      if (addresses.length > 0) details.push(addresses.join(', '));
-    }
-  }
+      const muestras = aquappMuestrasRaw.filter(m => isSameDate(m.fecha, dateStr) && m.cliente_nombre && m.cliente_nombre.toLowerCase() === pLower);
+      if (muestras.length > 0) {
+        details.push('Muestras');
+      }
 
-  if (details.length > 0) {
-    return parada + ' (' + details.join(' + ') + ')';
-  }
-  return parada;
-};
+      if (pLower.includes('aviso mapfre') || pLower.includes('mapfre')) {
+        const locMatch = pLower.replace(/aviso mapfre/g, '').replace(/mapfre/g, '').trim();
+        const avisos = avisomapAvisosRaw.filter(a => isSameDate(a.fecha, dateStr));
+        const matchingAvisos = locMatch 
+          ? avisos.filter(a => a.localidad && a.localidad.toLowerCase().includes(locMatch))
+          : avisos;
+        
+        if (matchingAvisos.length > 0) {
+          const addresses = matchingAvisos.map(a => {
+            const dir = (a.direccion || '').trim();
+            const loc = (a.localidad || '').trim();
+            if (dir && loc && !dir.toLowerCase().includes(loc.toLowerCase())) {
+              return `${dir} (${loc})`;
+            }
+            return dir || loc;
+          }).filter(Boolean);
+          if (addresses.length > 0) details.push(addresses.join(' | '));
+        }
+      }
 
+      if (details.length > 0) {
+        return parada + ' (' + details.join(' + ') + ')';
+      }
+      return parada;
+    };
 
     const tableData = jornadasEnRango.map(j => {
       let paradasArr = [];
@@ -704,7 +721,10 @@ const enrichParada = (parada, dateStr) => {
       let fechaFmt = j.fecha;
       const jDate = parseJornadaDate(j.fecha);
       if (jDate) {
-        fechaFmt = String(jDate.getDate()).padStart(2, '0') + '/' + String(jDate.getMonth() + 1).padStart(2, '0') + '/' + jDate.getFullYear();
+        const dd = String(jDate.getDate()).padStart(2, '0');
+        const mm = String(jDate.getMonth() + 1).padStart(2, '0');
+        const yy = String(jDate.getFullYear()).slice(-2);
+        fechaFmt = `${dd}/${mm}/${yy}`;
       }
 
       const hIni = (j.hora_inicio || '').substring(0, 5);
@@ -727,14 +747,14 @@ const enrichParada = (parada, dateStr) => {
       body: tableData,
       theme: 'grid',
       headStyles: { fillColor: [139, 92, 246] },
-      styles: { fontSize: 10, cellPadding: 4 },
+      styles: { fontSize: 9.5, cellPadding: 3 },
       columnStyles: {
-        0: { cellWidth: 24 },
-        1: { cellWidth: 26 },
-        2: { cellWidth: 32 },
+        0: { cellWidth: 22, halign: 'center' },
+        1: { cellWidth: 26, halign: 'center' },
+        2: { cellWidth: 28, halign: 'center' },
         3: { cellWidth: 'auto' },
-        4: { cellWidth: 20 },
-        5: { cellWidth: 20 }
+        4: { cellWidth: 18, halign: 'center' },
+        5: { cellWidth: 18, halign: 'center' }
       },
     });
 
