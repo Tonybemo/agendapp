@@ -103,9 +103,9 @@ const Layout = ({ children }) => {
   const visibleNavItems = isAdmin ? navItems : navItems.filter(item => item.public);
 
   const bottomNavItems = [
-    { path: '/', label: 'Inicio', icon: <LayoutDashboard size={24} /> },
+    { path: '/', label: 'Dashboard', icon: <BarChart2 size={24} /> },
+    { path: '/inicio', label: 'Inicio', icon: <LayoutDashboard size={24} /> },
     { path: '/calendario', label: 'Calendario', icon: <CalendarIcon size={24} /> },
-    { path: '/estadisticas', label: 'Estadísticas', icon: <BarChart2 size={24} /> },
   ];
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);

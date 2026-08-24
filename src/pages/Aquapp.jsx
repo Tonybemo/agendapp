@@ -28,7 +28,12 @@ const ColorMap = {
 
 const Aquapp = () => {
   const { isAdmin } = useAuth();
-  const [activeTab, setActiveTab] = useState('historial');
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get('tab');
+    return tab || 'historial';
+  });
   const [currentView, setCurrentView] = useState('historial'); 
   const [selectedClient, setSelectedClient] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
