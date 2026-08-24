@@ -201,38 +201,70 @@
   }
 }
 
-/* ── Monthly Summary Card ─────────────────────────────────────────── */
-.monthly-summary-card {
-  background: var(--bg-card);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-md);
-  padding: 20px;
-  margin-bottom: 28px;
-}
-
-.monthly-selector {
+/* ── Dashboard Modern Top Bar & Month Navigator ───────────────────────── */
+.dashboard-top-nav {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin-bottom: 18px;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
 }
 
-.month-label {
-  font-size: 1.1rem;
+.month-selector-modern {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-card-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: var(--radius-lg);
+  padding: 8px 12px;
+  box-shadow: var(--shadow-sm);
+  flex: 1;
+  max-width: 420px;
+}
+
+.month-display-modern {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.month-display-modern h2 {
+  margin: 0;
+  font-size: 1.25rem;
   font-weight: 800;
   color: var(--text-main);
-  min-width: 160px;
-  text-align: center;
+  letter-spacing: -0.3px;
 }
 
-.month-nav-btn {
+.month-today-badge {
+  background: var(--primary-light);
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-pill);
+  padding: 2px 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.month-today-badge:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.month-nav-btn-modern {
   background: var(--bg-card-hover);
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  width: 36px;
-  height: 36px;
+  border-radius: var(--radius-md);
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -240,161 +272,180 @@
   color: var(--text-muted);
   transition: all 0.2s;
 }
-.month-nav-btn:hover {
+
+.month-nav-btn-modern:hover {
   background: var(--primary);
   color: white;
   border-color: var(--primary);
 }
 
-.month-today-btn {
-  background: var(--primary-light);
-  color: var(--primary);
-  border: 1px solid var(--primary);
-  border-radius: var(--radius-pill);
-  padding: 4px 14px;
-  font-size: 0.8rem;
-  font-weight: 700;
+.month-nav-btn-modern:active {
+  transform: scale(0.94);
+}
+
+.dashboard-settings-btn {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+  color: var(--text-muted);
   transition: all 0.2s;
 }
-.month-today-btn:hover {
-  background: var(--primary);
-  color: white;
-}
 
-.monthly-stat-cards {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 10px;
-  margin-bottom: 16px;
-}
-
-.monthly-stat-item {
-  background: var(--stat-bg, #f0f9ff);
-  border-radius: var(--radius-md);
-  padding: 14px 8px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  border: 1px solid transparent;
-}
-.monthly-stat-item:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.1);
-  border-color: var(--stat-color);
-}
-.monthly-stat-item:active {
-  transform: scale(0.96);
-  opacity: 0.85;
-}
-.monthly-stat-item {
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-}
-
-.monthly-stat-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.monthly-stat-value {
-  font-size: 1.6rem;
-  font-weight: 900;
-  color: var(--stat-color, var(--text-main));
-  line-height: 1;
-}
-
-.monthly-stat-label {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  text-align: center;
-}
-
-/* Hours bar */
-.monthly-hours-bar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0;
-  background: var(--bg-card-hover);
-  border-radius: var(--radius-md);
-  padding: 12px 16px;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.monthly-hours-divider {
-  width: 1px;
-  height: 28px;
-  background: var(--border);
-  margin: 0 12px;
-}
-
-.monthly-hours-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.monthly-hours-main {
-  font-size: 1.15rem;
-  font-weight: 800;
+.dashboard-settings-btn:hover {
   color: var(--text-main);
+  border-color: var(--border-input);
 }
 
-.monthly-hours-extras {
-  font-size: 1.15rem;
+/* ── Dashboard Stat Cards (matching Inicio dash-card) ─────────────────── */
+.dash-card-stat {
+  padding: 18px 16px;
+  justify-content: space-between;
+}
+
+.dash-card-header-stat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.dash-card-header-stat .dash-card-icon-wrapper {
+  margin-bottom: 0;
+  width: 48px;
+  height: 48px;
+}
+
+.dash-stat-number {
+  font-size: 1.85rem;
   font-weight: 900;
-  color: #f43f5e;
+  line-height: 1;
   letter-spacing: -0.5px;
 }
 
-.extras-label {
-  color: #f43f5e !important;
-  font-weight: 700 !important;
+/* ── Workapp Featured Wide Banner ─────────────────────────────────────── */
+.dash-card-workapp-banner {
+  grid-column: 1 / -1;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 22px;
 }
 
-.monthly-hours-extras-group {
-  background: rgba(244, 63, 94, 0.08);
-  border-radius: var(--radius-sm);
-  padding: 4px 10px;
+.dash-card-workapp-top {
+  display: flex;
+  align-items: center;
+  width: 100%;
 }
 
-.monthly-hours-importe {
+.dash-card-workapp-top .dash-card-icon-wrapper {
+  width: 56px;
+  height: 56px;
+  margin-bottom: 0;
+  margin-right: 18px;
+  flex-shrink: 0;
+}
+
+.dash-workapp-metrics-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-light);
+}
+
+.dash-metric-chip {
+  background: var(--bg-card-hover);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dash-metric-value {
+  display: block;
   font-size: 1.15rem;
   font-weight: 800;
-  color: #10b981;
+  color: var(--text-main);
+  line-height: 1.1;
 }
 
-.euro-icon {
-  font-weight: 900;
-  font-size: 1rem;
-  color: #10b981;
-}
-
-.monthly-hours-label {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  font-weight: 600;
+.dash-metric-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
   text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+  margin-top: 2px;
 }
 
-/* Mobile tweaks */
+.dash-metric-chip-extras {
+  background: rgba(244, 63, 94, 0.08);
+  border-color: rgba(244, 63, 94, 0.25);
+}
+
+.text-extras {
+  color: #f43f5e !important;
+  font-weight: 900 !important;
+}
+
+.label-extras {
+  color: #f43f5e !important;
+}
+
+.dash-metric-chip-money {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.25);
+}
+
+.text-money {
+  color: #10b981 !important;
+  font-weight: 900 !important;
+}
+
+.label-money {
+  color: #10b981 !important;
+}
+
+.dash-metric-euro {
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: #10b981;
+}
+
 @media (max-width: 600px) {
-  .monthly-stat-cards {
+  .dashboard-top-nav {
+    margin-bottom: 18px;
+  }
+  .month-selector-modern {
+    max-width: 100%;
+  }
+  .dash-workapp-metrics-row {
     grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
   }
-  .monthly-stat-value {
-    font-size: 1.3rem;
+  .dash-metric-chip {
+    padding: 8px 8px;
+    gap: 6px;
   }
-  .monthly-hours-divider {
-    margin: 0 8px;
+  .dash-metric-value {
+    font-size: 0.95rem;
+  }
+  .dash-metric-label {
+    font-size: 0.65rem;
+  }
+  .dash-card-stat {
+    padding: 14px 12px;
+  }
+  .dash-stat-number {
+    font-size: 1.6rem;
   }
 }
