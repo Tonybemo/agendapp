@@ -60,8 +60,8 @@ function AppContent() {
           <Route path="/login" element={<Login />} />
           
           {/* Public Routes (Read-only for guests) */}
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/inicio" element={<Inicio />} />
+          <Route path="/" element={<Inicio />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/aquapp" element={<Aquapp />} />
           <Route path="/avisomap" element={<Avisomap />} />
           <Route path="/calendario" element={<Calendario />} />

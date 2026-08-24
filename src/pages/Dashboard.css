@@ -286,6 +286,14 @@
   box-shadow: 0 6px 16px rgba(0,0,0,0.1);
   border-color: var(--stat-color);
 }
+.monthly-stat-item:active {
+  transform: scale(0.96);
+  opacity: 0.85;
+}
+.monthly-stat-item {
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
 
 .monthly-stat-icon {
   display: flex;

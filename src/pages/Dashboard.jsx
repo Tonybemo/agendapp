@@ -181,7 +181,7 @@ const Dashboard = () => {
   ];
 
   const statCards = monthStats ? [
-    { label: 'Tratamientos', value: monthStats.tratamientos, icon: <FlaskConical size={20} color="#0ea5e9" />, color: '#0ea5e9', bg: '#e0f2fe', path: '/aquapp' },
+    { label: 'Tratamientos', value: monthStats.tratamientos, icon: <FlaskConical size={20} color="#0ea5e9" />, color: '#0ea5e9', bg: '#e0f2fe', path: '/aquapp?tab=tratamientos' },
     { label: 'Muestras', value: monthStats.muestras, icon: <Droplet size={20} color="#10b981" />, color: '#10b981', bg: '#d1fae5', path: '/aquapp' },
     { label: 'Avisos', value: monthStats.avisos, icon: <MapPin size={20} color="#22c55e" />, color: '#22c55e', bg: '#dcfce7', path: '/avisomap' },
     { label: 'Jornadas', value: monthStats.jornadasDias, icon: <Briefcase size={20} color="#8b5cf6" />, color: '#8b5cf6', bg: '#ede9fe', path: '/workapp' },

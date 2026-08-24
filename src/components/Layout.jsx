@@ -90,6 +90,7 @@ const Layout = ({ children }) => {
 
   const navItems = [
     { path: '/', label: 'Inicio', icon: <LayoutDashboard size={20} />, public: true },
+    { path: '/dashboard', label: 'Dashboard Mensual', icon: <BarChart2 size={20} />, public: true },
     { path: '/calendario', label: 'Calendario Global', icon: <CalendarIcon size={20} />, public: true },
     { path: '/aquapp', label: 'Muestras y Tratamientos', icon: <Droplet size={20} />, public: true },
     { path: '/avisomap', label: 'Avisos Mapfre', icon: <MapPin size={20} />, public: true },
@@ -103,8 +104,8 @@ const Layout = ({ children }) => {
   const visibleNavItems = isAdmin ? navItems : navItems.filter(item => item.public);
 
   const bottomNavItems = [
-    { path: '/', label: 'Dashboard', icon: <BarChart2 size={24} /> },
-    { path: '/inicio', label: 'Inicio', icon: <LayoutDashboard size={24} /> },
+    { path: '/dashboard', label: 'Dashboard', icon: <BarChart2 size={24} /> },
+    { path: '/', label: 'Inicio', icon: <LayoutDashboard size={24} /> },
     { path: '/calendario', label: 'Calendario', icon: <CalendarIcon size={24} /> },
   ];
 
