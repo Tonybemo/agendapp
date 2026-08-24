@@ -302,9 +302,23 @@
   border-color: var(--border-input);
 }
 
+/* ── Dashboard Grid Summary ─────────────────────────────────────────── */
+.dashboard-grid-summary {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .dashboard-grid-summary {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+  }
+}
+
 /* ── Dashboard Stat Cards (matching Inicio dash-card) ─────────────────── */
 .dash-card-stat {
-  padding: 18px 16px;
+  padding: 20px 18px;
   justify-content: space-between;
 }
 
@@ -329,10 +343,11 @@
 }
 
 /* ── Workapp Featured Wide Banner ─────────────────────────────────────── */
+.dash-card.dash-card-workapp-banner,
 .dash-card-workapp-banner {
-  grid-column: 1 / -1;
-  flex-direction: column;
-  align-items: stretch;
+  grid-column: 1 / -1 !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
   padding: 22px;
 }
 

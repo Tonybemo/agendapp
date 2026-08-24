@@ -52,7 +52,7 @@ const Dashboard = () => {
         supabase.from('aquapp_muestras').select('fecha'),
         supabase.from('avisomap_avisos').select('fecha'),
         supabase.from('workapp_jornadas').select('fecha, horas_calculadas, horas_extras'),
-        supabase.from('tareas_programadas').select('tareas_json'),
+        supabase.from('tareas_programadas').select('mes, año, tareas_json'),
       ]);
 
       const trat = (tratRes.data || []).filter(r => isInMonth(r.fecha, year, month));
@@ -67,15 +67,20 @@ const Dashboard = () => {
         totalExtras += parseTimeToHours(j.horas_extras);
       });
 
+      const monthName = MONTH_NAMES[month];
       let tareasTotal = 0;
       let tareasCompletadas = 0;
       (tareasRes.data || []).forEach(row => {
-        let tasks = [];
-        try { tasks = typeof row.tareas_json === 'string' ? JSON.parse(row.tareas_json) : (row.tareas_json || []); } catch {}
-        tasks.forEach(t => {
-          tareasTotal++;
-          if (t.status === 'completed') tareasCompletadas++;
-        });
+        const matchMes = row.mes && row.mes.toLowerCase() === monthName.toLowerCase();
+        const matchAno = !row.año || String(row.año) === String(year);
+        if (matchMes && matchAno) {
+          let tasks = [];
+          try { tasks = typeof row.tareas_json === 'string' ? JSON.parse(row.tareas_json) : (row.tareas_json || []); } catch {}
+          tasks.forEach(t => {
+            tareasTotal++;
+            if (t.status === 'completed') tareasCompletadas++;
+          });
+        }
       });
       const tareasPct = tareasTotal > 0 ? Math.round((tareasCompletadas / tareasTotal) * 100) : 0;
 
@@ -116,7 +121,6 @@ const Dashboard = () => {
       id: 'tratamientos',
       title: 'Tratamientos',
       value: monthStats ? monthStats.tratamientos : '...',
-      description: 'Tratamientos realizados',
       icon: <FlaskConical size={28} color="#0284c7" />,
       path: '/aquapp?tab=tratamientos',
       bgColor: 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)',
@@ -126,7 +130,6 @@ const Dashboard = () => {
       id: 'muestras',
       title: 'Muestras',
       value: monthStats ? monthStats.muestras : '...',
-      description: 'Muestras recogidas',
       icon: <Droplet size={28} color="#059669" />,
       path: '/aquapp',
       bgColor: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)',
@@ -136,7 +139,6 @@ const Dashboard = () => {
       id: 'avisomap',
       title: 'Avisos Mapfre',
       value: monthStats ? monthStats.avisos : '...',
-      description: 'Avisos de plagas',
       icon: <MapPin size={28} color="#16a34a" />,
       path: '/avisomap',
       bgColor: 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)',
@@ -146,7 +148,6 @@ const Dashboard = () => {
       id: 'tareas',
       title: 'Tareas',
       value: monthStats ? `${monthStats.tareasPct}%` : '...',
-      description: monthStats ? `${monthStats.tareasCompletadas} de ${monthStats.tareasTotal} hechas` : 'Visitas mensuales',
       icon: <CalendarCheck size={28} color="var(--accent-tareas)" />,
       path: '/tareas',
       bgColor: 'linear-gradient(135deg, #ffe4e6 0%, #fecdd3 100%)',
@@ -186,8 +187,8 @@ const Dashboard = () => {
         )}
       </div>
 
-      {/* Grid of 4 Cards (2x2 on mobile, filling full width) */}
-      <div className="dashboard-grid">
+      {/* Grid of 4 Cards */}
+      <div className="dashboard-grid-summary">
         {statCards.map((card) => (
           <div
             key={card.id}
@@ -204,14 +205,13 @@ const Dashboard = () => {
             </div>
             <div className="dash-card-content">
               <h3>{card.title}</h3>
-              <p>{card.description}</p>
             </div>
           </div>
         ))}
 
         {/* Featured Wide Card: Workapp & Hours Summary */}
         <div
-          className="dash-card featured dash-card-workapp-banner"
+          className="dash-card dash-card-workapp-banner"
           onClick={() => navigate('/workapp')}
         >
           <div className="dash-card-workapp-top">
@@ -219,16 +219,13 @@ const Dashboard = () => {
               <Briefcase size={28} color="var(--accent-workapp)" />
             </div>
             <div className="dash-card-content" style={{ flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <h3 style={{ margin: 0, fontSize: '1.25rem' }}>Workapp · Jornada</h3>
-                <span className="dash-stat-number" style={{ color: '#7c3aed', fontSize: '1.5rem', fontWeight: 900 }}>
-                  {monthStats ? `${monthStats.jornadasDias} días` : '...'}
-                </span>
-              </div>
-              <p style={{ margin: '4px 0 0 0' }}>Jornada laboral, descansos y cálculo de extras</p>
+              <h3 style={{ margin: 0, fontSize: '1.25rem' }}>Workapp · Jornada</h3>
             </div>
-            <div className="dash-card-arrow">
-              <ChevronRight size={20} color="var(--text-muted)" strokeWidth={3} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span className="dash-stat-number" style={{ color: '#7c3aed', fontSize: '1.5rem', fontWeight: 900 }}>
+                {monthStats ? `${monthStats.jornadasDias} días` : '...'}
+              </span>
+              <ChevronRight size={20} color="var(--text-muted)" strokeWidth={2.5} />
             </div>
           </div>
 
