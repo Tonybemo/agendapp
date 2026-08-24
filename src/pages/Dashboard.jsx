@@ -1,13 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Droplet, MapPin, Briefcase, BookOpen, CalendarCheck, ChevronRight, BarChart2, Calendar, LayoutDashboard, Settings, Search, User, X } from 'lucide-react';
+import { Droplet, MapPin, Briefcase, BookOpen, CalendarCheck, ChevronRight, BarChart2, Calendar, Settings, Search, User, X, ChevronLeft, FlaskConical, Clock, TrendingUp } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import './Dashboard.css';
+
+const MONTH_NAMES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
 const Dashboard = () => {
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
+
+  const now = new Date();
+  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
+  const [monthStats, setMonthStats] = useState(null);
+  const [loadingStats, setLoadingStats] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -16,26 +24,6 @@ const Dashboard = () => {
   const [clientDetails, setClientDetails] = useState(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [expandedYears, setExpandedYears] = useState({});
-
-  useEffect(() => {
-    const searchClientes = async () => {
-      if (!searchQuery.trim() || searchQuery.length < 2) {
-        setSearchResults([]);
-        return;
-      }
-      setIsSearching(true);
-      const { data } = await supabase
-        .from('clientes')
-        .select('id, name')
-        .ilike('name', `%${searchQuery}%`)
-        .limit(5);
-      setSearchResults(data || []);
-      setIsSearching(false);
-    };
-    
-    const timer = setTimeout(searchClientes, 300);
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
 
   const parseDateForSort = (fechaStr) => {
     if (!fechaStr) return new Date(0);
@@ -54,141 +42,158 @@ const Dashboard = () => {
     return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
   };
 
+  const parseTimeToHours = (t) => {
+    if (!t) return 0;
+    if (!String(t).includes(':')) return parseFloat(t) || 0;
+    const parts = String(t).split(':');
+    return (parseInt(parts[0], 10) || 0) + (parseInt(parts[1], 10) || 0) / 60;
+  };
+
+  const isInMonth = (fechaStr, year, month) => {
+    if (!fechaStr) return false;
+    const d = parseDateForSort(fechaStr);
+    if (isNaN(d.getTime())) return false;
+    return d.getFullYear() === year && d.getMonth() === month;
+  };
+
+  const fetchMonthStats = useCallback(async (year, month) => {
+    setLoadingStats(true);
+    try {
+      const [tratRes, muestrasRes, avisosRes, jornadasRes, tareasRes] = await Promise.all([
+        supabase.from('aquapp_tratamientos').select('fecha'),
+        supabase.from('aquapp_muestras').select('fecha'),
+        supabase.from('avisomap_avisos').select('fecha'),
+        supabase.from('workapp_jornadas').select('fecha, horas_calculadas, horas_extras'),
+        supabase.from('tareas_programadas').select('tareas_json'),
+      ]);
+
+      const trat = (tratRes.data || []).filter(r => isInMonth(r.fecha, year, month));
+      const muestras = (muestrasRes.data || []).filter(r => isInMonth(r.fecha, year, month));
+      const avisos = (avisosRes.data || []).filter(r => isInMonth(r.fecha, year, month));
+      const jornadas = (jornadasRes.data || []).filter(r => isInMonth(r.fecha, year, month));
+
+      let totalHoras = 0;
+      let totalExtras = 0;
+      jornadas.forEach(j => {
+        totalHoras += parseTimeToHours(j.horas_calculadas);
+        totalExtras += parseTimeToHours(j.horas_extras);
+      });
+
+      let tareasTotal = 0;
+      let tareasCompletadas = 0;
+      (tareasRes.data || []).forEach(row => {
+        let tasks = [];
+        try { tasks = typeof row.tareas_json === 'string' ? JSON.parse(row.tareas_json) : (row.tareas_json || []); } catch {}
+        tasks.forEach(t => {
+          tareasTotal++;
+          if (t.status === 'completed') tareasCompletadas++;
+        });
+      });
+      const tareasPct = tareasTotal > 0 ? Math.round((tareasCompletadas / tareasTotal) * 100) : 0;
+
+      setMonthStats({
+        tratamientos: trat.length,
+        muestras: muestras.length,
+        avisos: avisos.length,
+        jornadasDias: jornadas.length,
+        totalHoras: totalHoras.toFixed(1),
+        totalExtras: totalExtras.toFixed(1),
+        importe: (totalHoras * 11).toFixed(0),
+        tareasPct,
+        tareasCompletadas,
+        tareasTotal,
+      });
+    } catch (e) {
+      console.error('Error fetching month stats', e);
+    }
+    setLoadingStats(false);
+  }, []);
+
+  useEffect(() => {
+    fetchMonthStats(selectedYear, selectedMonth);
+  }, [selectedYear, selectedMonth, fetchMonthStats]);
+
+  const prevMonth = () => {
+    if (selectedMonth === 0) { setSelectedMonth(11); setSelectedYear(y => y - 1); }
+    else setSelectedMonth(m => m - 1);
+  };
+  const nextMonth = () => {
+    if (selectedMonth === 11) { setSelectedMonth(0); setSelectedYear(y => y + 1); }
+    else setSelectedMonth(m => m + 1);
+  };
+  const goToday = () => { setSelectedYear(now.getFullYear()); setSelectedMonth(now.getMonth()); };
+
+  useEffect(() => {
+    const searchClientes = async () => {
+      if (!searchQuery.trim() || searchQuery.length < 2) { setSearchResults([]); return; }
+      setIsSearching(true);
+      const { data } = await supabase.from('clientes').select('id, name').ilike('name', `%${searchQuery}%`).limit(5);
+      setSearchResults(data || []);
+      setIsSearching(false);
+    };
+    const timer = setTimeout(searchClientes, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   const handleSelectClient = async (cliente) => {
     setSelectedClient(cliente);
     setSearchQuery('');
     setSearchResults([]);
     setLoadingDetails(true);
-    
     const [muestrasRes, tratRes] = await Promise.all([
       supabase.from('aquapp_muestras').select('fecha').eq('cliente_id', cliente.id),
       supabase.from('aquapp_tratamientos').select('*').eq('cliente_id', cliente.id).order('fecha', { ascending: false }).limit(3)
     ]);
-    
     let resumenMuestras = [];
     if (muestrasRes.data) {
-      const mesesNombres = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
       const conteoMap = new Map();
-      
       muestrasRes.data.forEach(m => {
         const d = parseDateForSort(m.fecha);
         if (!isNaN(d.getTime())) {
           const year = d.getFullYear().toString();
           const sortKey = `${year}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-          const label = mesesNombres[d.getMonth()];
-          
-          if (!conteoMap.has(year)) {
-            conteoMap.set(year, new Map());
-          }
-          
+          const label = MONTH_NAMES[d.getMonth()];
+          if (!conteoMap.has(year)) conteoMap.set(year, new Map());
           const yearMap = conteoMap.get(year);
-          if (!yearMap.has(sortKey)) {
-            yearMap.set(sortKey, { label, count: 0, sortKey });
-          }
+          if (!yearMap.has(sortKey)) yearMap.set(sortKey, { label, count: 0, sortKey });
           yearMap.get(sortKey).count++;
         }
       });
-      
       const yearsSorted = Array.from(conteoMap.keys()).sort((a, b) => b.localeCompare(a));
-      resumenMuestras = yearsSorted.map(year => {
-        const months = Array.from(conteoMap.get(year).values()).sort((a, b) => b.sortKey.localeCompare(a.sortKey));
-        return { year, months };
-      });
+      resumenMuestras = yearsSorted.map(year => ({
+        year,
+        months: Array.from(conteoMap.get(year).values()).sort((a, b) => b.sortKey.localeCompare(a.sortKey))
+      }));
     }
-
     setExpandedYears({});
-
-    setClientDetails({
-      muestrasResumen: resumenMuestras,
-      tratamientos: tratRes.data || []
-    });
+    setClientDetails({ muestrasResumen: resumenMuestras, tratamientos: tratRes.data || [] });
     setLoadingDetails(false);
   };
 
   const accessCards = [
-    {
-      id: 'aquapp',
-      title: 'Aquapp',
-      description: 'Gestión integral de muestras, torres y tratamientos.',
-      icon: <Droplet size={28} color="var(--accent-aquapp)" />,
-      path: '/aquapp',
-      bgColor: 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)',
-      featured: true
-    },
-    {
-      id: 'tareas',
-        adminOnly: true,
-      title: 'Tareas',
-      description: 'Visitas mensuales.',
-      icon: <CalendarCheck size={28} color="var(--accent-tareas)" />,
-      path: '/tareas',
-      bgColor: 'linear-gradient(135deg, #ffe4e6 0%, #fecdd3 100%)',
-      featured: true
-    },
-    {
-      id: 'workapp',
-        adminOnly: true,
-      title: 'Workapp',
-      description: 'Jornada laboral y descansos.',
-      icon: <Briefcase size={28} color="var(--accent-workapp)" />,
-      path: '/workapp',
-      bgColor: 'linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%)',
-      featured: true
-    },
-    {
-      id: 'avisomap',
-      title: 'Avisomap',
-      description: 'Registro de avisos de plagas.',
-      icon: <MapPin size={24} color="var(--accent-avisomap)" />,
-      path: '/avisomap',
-      bgColor: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)',
-    },
-    {
-      id: 'catalogo',
-        adminOnly: true,
-      title: 'Catálogo',
-      description: 'Fichas y productos.',
-      icon: <BookOpen size={24} color="var(--accent-catalogo)" />,
-      path: '/catalogo',
-      bgColor: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-    },
-    {
-      id: 'estadisticas',
-        adminOnly: true,
-      title: 'Estadísticas',
-      description: 'Métricas globales.',
-      icon: <BarChart2 size={24} color="var(--accent-estadisticas)" />,
-      path: '/estadisticas',
-      bgColor: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)',
-    },
-    {
-      id: 'calendario',
-      title: 'Calendario',
-      description: 'Agenda global.',
-      icon: <Calendar size={24} color="var(--accent-calendario)" />,
-      path: '/calendario',
-      bgColor: 'linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%)',
-    }
+    { id: 'aquapp', title: 'Aquapp', description: 'Gestión integral de muestras, torres y tratamientos.', icon: <Droplet size={28} color="var(--accent-aquapp)" />, path: '/aquapp', bgColor: 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)', featured: true },
+    { id: 'tareas', adminOnly: true, title: 'Tareas', description: 'Visitas mensuales.', icon: <CalendarCheck size={28} color="var(--accent-tareas)" />, path: '/tareas', bgColor: 'linear-gradient(135deg, #ffe4e6 0%, #fecdd3 100%)', featured: true },
+    { id: 'workapp', adminOnly: true, title: 'Workapp', description: 'Jornada laboral y descansos.', icon: <Briefcase size={28} color="var(--accent-workapp)" />, path: '/workapp', bgColor: 'linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%)', featured: true },
+    { id: 'avisomap', title: 'Avisomap', description: 'Registro de avisos de plagas.', icon: <MapPin size={24} color="var(--accent-avisomap)" />, path: '/avisomap', bgColor: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)' },
+    { id: 'catalogo', adminOnly: true, title: 'Catálogo', description: 'Fichas y productos.', icon: <BookOpen size={24} color="var(--accent-catalogo)" />, path: '/catalogo', bgColor: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)' },
+    { id: 'estadisticas', adminOnly: true, title: 'Estadísticas', description: 'Métricas globales.', icon: <BarChart2 size={24} color="var(--accent-estadisticas)" />, path: '/estadisticas', bgColor: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)' },
+    { id: 'calendario', title: 'Calendario', description: 'Agenda global.', icon: <Calendar size={24} color="var(--accent-calendario)" />, path: '/calendario', bgColor: 'linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%)' }
   ];
+
+  const statCards = monthStats ? [
+    { label: 'Tratamientos', value: monthStats.tratamientos, icon: <FlaskConical size={20} color="#0ea5e9" />, color: '#0ea5e9', bg: '#e0f2fe', path: '/aquapp' },
+    { label: 'Muestras', value: monthStats.muestras, icon: <Droplet size={20} color="#10b981" />, color: '#10b981', bg: '#d1fae5', path: '/aquapp' },
+    { label: 'Avisos', value: monthStats.avisos, icon: <MapPin size={20} color="#22c55e" />, color: '#22c55e', bg: '#dcfce7', path: '/avisomap' },
+    { label: 'Jornadas', value: monthStats.jornadasDias, icon: <Briefcase size={20} color="#8b5cf6" />, color: '#8b5cf6', bg: '#ede9fe', path: '/workapp' },
+    { label: 'Tareas', value: `${monthStats.tareasPct}%`, icon: <CalendarCheck size={20} color="#f43f5e" />, color: '#f43f5e', bg: '#ffe4e6', path: '/tareas' },
+  ] : [];
 
   return (
     <div className="dashboard-container animate-fade-in">
       <div className="dashboard-header" style={{display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-start'}}>
-        <button 
+        <button
           onClick={() => navigate('/gestor')}
-          style={{
-            background: 'var(--bg-card)', 
-            border: '1px solid var(--border)', 
-            borderRadius: 'var(--radius-md)', 
-            padding: '10px', 
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: 'var(--shadow-sm)',
-            color: 'var(--text-muted)',
-            transition: 'all 0.2s'
-          }}
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-sm)', color: 'var(--text-muted)', transition: 'all 0.2s' }}
           title="Gestor Global (Avanzado)"
           onMouseOver={(e) => { e.currentTarget.style.color = 'var(--text-main)'; e.currentTarget.style.borderColor = 'var(--border-input)'; }}
           onMouseOut={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
@@ -197,118 +202,111 @@ const Dashboard = () => {
         </button>
       </div>
 
-        <div className="dashboard-search-wrapper" style={{
-          maxWidth: '680px',
-          margin: '0 auto 32px auto',
-          position: 'relative',
-          zIndex: 50
-        }}>
-          <div style={{
-            display: 'flex', alignItems: 'center',
-            background: 'var(--bg-card-glass)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
-            borderRadius: 'var(--radius-md)', border: '1px solid var(--border-light)',
-            boxShadow: 'var(--shadow-md)',
-            padding: '14px 20px', transition: 'all 0.3s ease'
-          }}>
-            <Search size={22} color="var(--accent-aquapp)" style={{ marginRight: '14px', flexShrink: 0 }} />
-            <input 
-              type="text" 
-              placeholder="Buscar cliente para ver ficha..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                width: '100%', border: 'none', outline: 'none',
-                background: 'transparent', fontSize: '1rem', color: 'var(--text-main)', fontWeight: '500'
-              }}
-            />
-          </div>
-          
-          {/* Resultados flotantes */}
-          {searchQuery.length >= 2 && (
-            <div style={{
-              position: 'absolute', top: '100%', left: 0, right: 0, marginTop: '8px',
-              background: 'var(--bg-card)', borderRadius: 'var(--radius-md)', boxShadow: 'var(--shadow-lg)',
-              overflow: 'hidden', border: '1px solid var(--border)'
-            }}>
-              {isSearching ? (
-                <div style={{padding: '16px', textAlign: 'center', color: 'var(--text-muted)'}}>Buscando...</div>
-              ) : searchResults.length === 0 ? (
-                <div style={{padding: '16px', textAlign: 'center', color: 'var(--text-muted)'}}>No se encontraron clientes</div>
-              ) : (
-                searchResults.map(c => (
-                  <div key={c.id} 
-                    onClick={() => handleSelectClient(c)}
-                    style={{
-                      padding: '14px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center',
-                      borderBottom: '1px solid var(--border-light)', background: 'var(--bg-card)'
-                    }}
-                    onMouseOver={(e) => e.currentTarget.style.background = 'var(--bg-card-hover)'}
-                    onMouseOut={(e) => e.currentTarget.style.background = 'var(--bg-card)'}
-                  >
-                    <User size={18} color="var(--text-muted)" style={{marginRight: '12px'}} />
-                    <span style={{fontWeight: '600', color: 'var(--text-main)'}}>{c.name}</span>
-                  </div>
-                ))
-              )}
-            </div>
+      {/* Monthly Summary */}
+      <div className="monthly-summary-card">
+        <div className="monthly-selector">
+          <button className="month-nav-btn" onClick={prevMonth}><ChevronLeft size={20} /></button>
+          <span className="month-label">{MONTH_NAMES[selectedMonth]} {selectedYear}</span>
+          <button className="month-nav-btn" onClick={nextMonth}><ChevronRight size={20} /></button>
+          {(selectedYear !== now.getFullYear() || selectedMonth !== now.getMonth()) && (
+            <button className="month-today-btn" onClick={goToday}>Hoy</button>
           )}
         </div>
 
+        <div className="monthly-stat-cards">
+          {loadingStats ? (
+            <div style={{padding: '24px', color: 'var(--text-muted)', textAlign: 'center', gridColumn: '1/-1'}}>Cargando...</div>
+          ) : statCards.map(s => (
+            <div
+              key={s.label}
+              className="monthly-stat-item"
+              style={{'--stat-color': s.color, '--stat-bg': s.bg}}
+              onClick={() => navigate(s.path)}
+            >
+              <div className="monthly-stat-icon">{s.icon}</div>
+              <div className="monthly-stat-value">{s.value}</div>
+              <div className="monthly-stat-label">{s.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {monthStats && (
+          <div className="monthly-hours-bar">
+            <div className="monthly-hours-item">
+              <Clock size={15} color="var(--text-muted)" />
+              <span className="monthly-hours-main">{monthStats.totalHoras}h</span>
+              <span className="monthly-hours-label">trabajadas</span>
+            </div>
+            <div className="monthly-hours-divider" />
+            <div className="monthly-hours-item monthly-hours-extras-group">
+              <TrendingUp size={15} color="#f43f5e" />
+              <span className="monthly-hours-extras">{monthStats.totalExtras}h</span>
+              <span className="monthly-hours-label extras-label">extras</span>
+            </div>
+            <div className="monthly-hours-divider" />
+            <div className="monthly-hours-item">
+              <span className="euro-icon">€</span>
+              <span className="monthly-hours-importe">{monthStats.importe}</span>
+              <span className="monthly-hours-label">importe</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Client search */}
+      <div className="dashboard-search-wrapper" style={{ maxWidth: '680px', margin: '0 auto 32px auto', position: 'relative', zIndex: 50 }}>
+        <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-card-glass)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-light)', boxShadow: 'var(--shadow-md)', padding: '14px 20px', transition: 'all 0.3s ease' }}>
+          <Search size={22} color="var(--accent-aquapp)" style={{ marginRight: '14px', flexShrink: 0 }} />
+          <input
+            type="text"
+            placeholder="Buscar cliente para ver ficha..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ width: '100%', border: 'none', outline: 'none', background: 'transparent', fontSize: '1rem', color: 'var(--text-main)', fontWeight: '500' }}
+          />
+        </div>
+        {searchQuery.length >= 2 && (
+          <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, marginTop: '8px', background: 'var(--bg-card)', borderRadius: 'var(--radius-md)', boxShadow: 'var(--shadow-lg)', overflow: 'hidden', border: '1px solid var(--border)' }}>
+            {isSearching ? (
+              <div style={{padding: '16px', textAlign: 'center', color: 'var(--text-muted)'}}>Buscando...</div>
+            ) : searchResults.length === 0 ? (
+              <div style={{padding: '16px', textAlign: 'center', color: 'var(--text-muted)'}}>No se encontraron clientes</div>
+            ) : (
+              searchResults.map(c => (
+                <div key={c.id} onClick={() => handleSelectClient(c)} style={{ padding: '14px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', borderBottom: '1px solid var(--border-light)', background: 'var(--bg-card)' }} onMouseOver={(e) => e.currentTarget.style.background = 'var(--bg-card-hover)'} onMouseOut={(e) => e.currentTarget.style.background = 'var(--bg-card)'} >
+                  <User size={18} color="var(--text-muted)" style={{marginRight: '12px'}} />
+                  <span style={{fontWeight: '600', color: 'var(--text-main)'}}>{c.name}</span>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* App grid */}
       <div className="dashboard-grid">
         {accessCards.map((card) => (
-          <div 
-            key={card.id} 
-            className={`dash-card ${card.featured ? 'featured' : ''}`} 
-            onClick={() => navigate(card.path)}
-          >
-            <div className="dash-card-icon-wrapper" style={{ background: card.bgColor }}>
-              {card.icon}
-            </div>
-            <div className="dash-card-content">
-              <h3>{card.title}</h3>
-              <p>{card.description}</p>
-            </div>
-            {card.featured && (
-              <div className="dash-card-arrow">
-                <ChevronRight size={20} color="var(--text-muted)" strokeWidth={3} />
-              </div>
-            )}
+          <div key={card.id} className={`dash-card ${card.featured ? 'featured' : ''}`} onClick={() => navigate(card.path)}>
+            <div className="dash-card-icon-wrapper" style={{ background: card.bgColor }}>{card.icon}</div>
+            <div className="dash-card-content"><h3>{card.title}</h3><p>{card.description}</p></div>
+            {card.featured && (<div className="dash-card-arrow"><ChevronRight size={20} color="var(--text-muted)" strokeWidth={3} /></div>)}
           </div>
         ))}
       </div>
 
       {/* Modal Ficha Cliente */}
       {selectedClient && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-          backgroundColor: 'var(--bg-modal-overlay)', backdropFilter: 'blur(4px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 10000, padding: '20px'
-        }} onClick={() => setSelectedClient(null)}>
-          <div style={{
-            background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', width: '100%', maxWidth: '600px',
-            maxHeight: '85vh', overflowY: 'auto', boxShadow: 'var(--shadow-xl)',
-            display: 'flex', flexDirection: 'column'
-          }} onClick={e => e.stopPropagation()}>
-            <div style={{
-              padding: '24px', borderBottom: '1px solid var(--border)', display: 'flex',
-              justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0,
-              background: 'var(--bg-card)', zIndex: 10, borderRadius: 'var(--radius-lg) var(--radius-lg) 0 0'
-            }}>
-              <h2 style={{margin: 0, fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '10px'}}>
-                <User size={24} color="var(--accent-aquapp)" />
-                {selectedClient.name}
-              </h2>
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'var(--bg-modal-overlay)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000, padding: '20px' }} onClick={() => setSelectedClient(null)}>
+          <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', width: '100%', maxWidth: '600px', maxHeight: '85vh', overflowY: 'auto', boxShadow: 'var(--shadow-xl)', display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
+            <div style={{ padding: '24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: 'var(--bg-card)', zIndex: 10, borderRadius: 'var(--radius-lg) var(--radius-lg) 0 0' }}>
+              <h2 style={{margin: 0, fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '10px'}}><User size={24} color="var(--accent-aquapp)" />{selectedClient.name}</h2>
               <button onClick={() => setSelectedClient(null)} style={{background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)'}}><X size={24}/></button>
             </div>
-            
             <div style={{padding: '24px'}}>
               {loadingDetails ? (
                 <div style={{textAlign: 'center', color: 'var(--text-muted)', padding: '40px 0'}}>Cargando ficha...</div>
               ) : clientDetails && (
                 <div style={{display: 'flex', flexDirection: 'column', gap: '24px'}}>
-                  
-                  {/* Tratamientos */}
                   <div>
                     <h3 style={{fontSize: '1rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px'}}><Droplet size={16} color="var(--accent-aquapp)"/> Últimos Tratamientos</h3>
                     {clientDetails.tratamientos.length === 0 ? <p style={{color: 'var(--text-faint)', fontSize: '0.9rem', margin: 0}}>No hay tratamientos recientes.</p> : (
@@ -321,8 +319,6 @@ const Dashboard = () => {
                       </div>
                     )}
                   </div>
-                  
-                  {/* Muestras (Resumen) */}
                   <div>
                     <h3 style={{fontSize: '1rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px'}}><Droplet size={16} color="var(--accent-avisomap)"/> Resumen de Muestras</h3>
                     {clientDetails.muestrasResumen.length === 0 ? <p style={{color: 'var(--text-faint)', fontSize: '0.9rem', margin: 0}}>No hay muestras registradas.</p> : (
@@ -331,20 +327,13 @@ const Dashboard = () => {
                           const isExpanded = expandedYears[yearGroup.year];
                           return (
                             <div key={yearGroup.year} style={{background: 'var(--bg-card-hover)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', overflow: 'hidden'}}>
-                              <div 
-                                onClick={() => setExpandedYears(prev => ({...prev, [yearGroup.year]: !prev[yearGroup.year]}))}
-                                style={{
-                                  padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                                  cursor: 'pointer', background: isExpanded ? 'var(--bg-main)' : 'transparent', transition: 'background 0.2s'
-                                }}
-                              >
+                              <div onClick={() => setExpandedYears(prev => ({...prev, [yearGroup.year]: !prev[yearGroup.year]}))} style={{ padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', background: isExpanded ? 'var(--bg-main)' : 'transparent', transition: 'background 0.2s' }}>
                                 <strong style={{color: 'var(--text-main)'}}>Año {yearGroup.year}</strong>
                                 <span style={{display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 'bold'}}>
                                   {yearGroup.months.reduce((acc, curr) => acc + curr.count, 0)} muestras
                                   <ChevronRight size={18} style={{transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s'}} />
                                 </span>
                               </div>
-                              
                               {isExpanded && (
                                 <div style={{padding: '0 16px 12px 16px', display: 'flex', flexDirection: 'column', gap: '8px'}}>
                                   {yearGroup.months.map((m, idx) => (
@@ -363,7 +352,6 @@ const Dashboard = () => {
                       </div>
                     )}
                   </div>
-                  
                 </div>
               )}
             </div>

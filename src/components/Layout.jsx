@@ -105,6 +105,7 @@ const Layout = ({ children }) => {
   const bottomNavItems = [
     { path: '/', label: 'Inicio', icon: <LayoutDashboard size={24} /> },
     { path: '/calendario', label: 'Calendario', icon: <CalendarIcon size={24} /> },
+    { path: '/estadisticas', label: 'Estadísticas', icon: <BarChart2 size={24} /> },
   ];
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
