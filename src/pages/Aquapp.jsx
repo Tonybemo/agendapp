@@ -4,6 +4,7 @@ import {
   Wind, Thermometer, Calendar, Search, ChevronDown, ChevronUp, ChevronRight,
   FlaskConical, Factory, SprayCan, Edit3, Trash2, Clock, Plus, BookOpen, Bug, Box, Download, BarChart2, CheckCircle2, Zap, Waves, Folder
 } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import './Aquapp.css';
@@ -37,6 +38,15 @@ const Aquapp = () => {
   const [currentView, setCurrentView] = useState('historial'); 
   const [selectedClient, setSelectedClient] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get('tab');
+    if (tab) {
+      setActiveTab(tab);
+      setCurrentView('historial');
+    }
+  }, [location.search]);
   
   // Supabase states
   const getMonthColor = (month) => {
