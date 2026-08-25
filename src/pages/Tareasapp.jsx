@@ -68,6 +68,18 @@ const Tareasapp = () => {
   const [loading, setLoading] = useState(true);
   const [tasksOpen, setTasksOpen] = useState(false);
 
+  const availableTaskOptions = useMemo(() => {
+    const set = new Set(defaultTasksList);
+    tareas.forEach(t => {
+      (t.tasks || []).forEach(item => {
+        if (item.name && !item.name.startsWith('Semana ')) {
+          set.add(item.name);
+        }
+      });
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [defaultTasksList, tareas]);
+
   React.useEffect(() => {
     fetchData();
   }, [currentYear]);
@@ -603,19 +615,23 @@ const Tareasapp = () => {
                   <select 
                     style={{width: '100%', appearance: 'none', background: 'transparent', border: 'none', padding: '12px', fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-muted)', outline: 'none', cursor: 'pointer', textAlign: 'center'}}
                     onChange={(e) => {
-                      if (e.target.value) {
+                      if (e.target.value === '__custom__') {
+                        const customTask = window.prompt('Introduce el nombre de la nueva actuación:');
+                        if (customTask && customTask.trim()) {
+                          addTask(tarea.id, customTask.trim());
+                        }
+                        e.target.value = "";
+                      } else if (e.target.value) {
                         addTask(tarea.id, e.target.value);
                         e.target.value = ""; // Reset
                       }
                     }}
                   >
                     <option value="">+ Añadir actuación desglosada</option>
-                    <option value="Recogida Muestras">Recogida Muestras</option>
-                    <option value="Mantenimiento Torres">Mantenimiento Torres</option>
-                    <option value="Revisión Portacebos">Revisión Portacebos</option>
-                    <option value="Revisión Insectocutores">Revisión Insectocutores</option>
-                    <option value="Auditoría Sanitaria">Auditoría Sanitaria</option>
-                    <option value="Limpieza Depósitos">Limpieza Depósitos</option>
+                    {availableTaskOptions.map((tName) => (
+                      <option key={tName} value={tName}>{tName}</option>
+                    ))}
+                    <option value="__custom__">✏️ Otra actuación personalizada...</option>
                   </select>
                 </div>
               </div>
