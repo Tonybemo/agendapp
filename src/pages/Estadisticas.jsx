@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { 
   BarChart2, Droplet, MapPin, Briefcase, Bug, Wind, FlaskConical,
   Calendar, TrendingUp, Filter, Search, Download, Users, Trophy,
-  ChevronDown, ChevronUp, X
+  ChevronDown, ChevronUp, X, Clock, Zap, Euro, Car
 } from 'lucide-react';
 import { mockLocalidadStats } from '../data/mockAvisomap';
 import { supabase } from '../lib/supabase';
@@ -144,6 +144,77 @@ const Estadisticas = () => {
     chartData: [],
     monthlyExtras: []
   });
+
+  const [jornadaSearchQuery, setJornadaSearchQuery] = useState('');
+
+  const setDatePreset = (preset) => {
+    const now = new Date();
+    let start, end;
+    const formatYMD = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    
+    if (preset === 'este_mes') {
+      start = new Date(now.getFullYear(), now.getMonth(), 1);
+      end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    } else if (preset === 'mes_anterior') {
+      start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      end = new Date(now.getFullYear(), now.getMonth(), 0);
+    } else if (preset === 'ultimos_3_meses') {
+      start = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+      end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    } else if (preset === 'este_ano') {
+      start = new Date(now.getFullYear(), 0, 1);
+      end = new Date(now.getFullYear(), 11, 31);
+    }
+    
+    if (start && end) {
+      setWorkappFiltro({ desde: formatYMD(start), hasta: formatYMD(end) });
+    }
+  };
+
+  const parseJDateHelper = (fecha) => {
+    if (!fecha) return null;
+    if (fecha.includes('-')) {
+      const [y, m, d] = fecha.split('-');
+      return new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+    } else if (fecha.includes('/')) {
+      const [d, m, y] = fecha.split('/');
+      return new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+    }
+    return null;
+  };
+
+  const jornadasEnRangoDetalle = useMemo(() => {
+    if (!workappFiltro.desde || !workappFiltro.hasta || !jornadas || jornadas.length === 0) return [];
+    
+    const [dY, dM, dD] = workappFiltro.desde.split('-');
+    const dateDesde = new Date(parseInt(dY), parseInt(dM) - 1, parseInt(dD));
+    const [hY, hM, hD] = workappFiltro.hasta.split('-');
+    const dateHasta = new Date(parseInt(hY), parseInt(hM) - 1, parseInt(hD));
+
+    return jornadas.filter(j => {
+      const jDate = parseJDateHelper(j.fecha);
+      if (!jDate) return false;
+      const inRange = jDate >= dateDesde && jDate <= dateHasta;
+      if (!inRange) return false;
+
+      if (jornadaSearchQuery.trim()) {
+        const q = jornadaSearchQuery.toLowerCase();
+        const matchFecha = (j.fecha || '').toLowerCase().includes(q);
+        const matchMatricula = (j.matricula || '').toLowerCase().includes(q);
+        const matchParadas = typeof j.paradas === 'string' 
+          ? j.paradas.toLowerCase().includes(q) 
+          : Array.isArray(j.paradas) 
+            ? j.paradas.some(p => String(p).toLowerCase().includes(q)) 
+            : false;
+        return matchFecha || matchMatricula || matchParadas;
+      }
+      return true;
+    }).sort((a, b) => {
+      const da = parseJDateHelper(a.fecha);
+      const db = parseJDateHelper(b.fecha);
+      return db - da;
+    });
+  }, [jornadas, workappFiltro, jornadaSearchQuery]);
 
   React.useEffect(() => {
     const fetchJornadas = async () => {
@@ -1008,125 +1079,308 @@ const Estadisticas = () => {
 
   const renderWorkappStats = () => (
     <div className="stats-section animate-fade-in">
-      
-      {/* Filtro de Fechas */}
-      <div className="stats-chart-card" style={{padding: '20px'}}>
-        <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', color: '#6366f1'}}>
-          <Filter size={18} />
-          <h3 style={{margin: 0}}>FILTRO DE FECHAS</h3>
-        </div>
-        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '16px', marginBottom: '16px'}}>
-          <div style={{display: 'flex', gap: '16px', flexWrap: 'wrap', flex: '1 1 auto'}}>
-            <div style={{flex: '1 1 200px'}}>
-              <label style={{display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600', marginBottom: '6px'}}>Desde</label>
-              <div style={{display: 'flex', alignItems: 'center', background: 'var(--bg-card-hover)', border: '1px solid var(--border)', borderRadius: '8px', padding: '10px 12px'}}>
-                <input type="date" value={workappFiltro.desde} onChange={e => setWorkappFiltro({...workappFiltro, desde: e.target.value})} style={{border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '0.9rem'}} />
-              </div>
-            </div>
-            <div style={{flex: '1 1 200px'}}>
-              <label style={{display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600', marginBottom: '6px'}}>Hasta</label>
-              <div style={{display: 'flex', alignItems: 'center', background: 'var(--bg-card-hover)', border: '1px solid var(--border)', borderRadius: '8px', padding: '10px 12px'}}>
-                <input type="date" value={workappFiltro.hasta} onChange={e => setWorkappFiltro({...workappFiltro, hasta: e.target.value})} style={{border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '0.9rem'}} />
-              </div>
-            </div>
+      {/* Filtro de Fechas y Presets */}
+      <div className="stats-chart-card workapp-filter-card">
+        <div className="workapp-filter-header">
+          <div className="stats-year-title" style={{ color: '#8b5cf6' }}>
+            <Filter size={18} color="#8b5cf6" />
+            <h3>PERIODO DE ANÁLISIS</h3>
           </div>
+          
           <button 
+            type="button"
             onClick={exportarJornadaPDF}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '8px', 
-              padding: '12px 20px', borderRadius: '8px', 
-              background: 'var(--primary)', color: 'white', 
-              border: 'none', fontWeight: 'bold', cursor: 'pointer',
-              boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-              height: 'fit-content'
-            }}>
-            <Download size={18} /> Exportar PDF
+            className="btn-export-pdf"
+          >
+            <Download size={16} />
+            <span>Exportar PDF</span>
           </button>
         </div>
-      </div>
 
-      {/* Totals */}
-      <div className="stats-totals-row">
-        <div className="stats-total-card">
-          <span className="stats-total-value">{workappResultados.totalHoras}</span>
-          <span className="stats-total-label">TOTAL HORAS</span>
-        </div>
-        <div className="stats-total-card">
-          <span className="stats-total-value" style={{color: '#f43f5e'}}>{workappResultados.totalExtras}</span>
-          <span className="stats-total-label">HORAS EXTRAS</span>
-        </div>
-        <div className="stats-total-card">
-          <span className="stats-total-value" style={{color: '#10b981'}}>{workappResultados.importe}</span>
-          <span className="stats-total-label">IMPORTE (11€/H)</span>
-        </div>
-      </div>
-
-      {/* Extras últimos 6 meses */}
-      <div className="stats-chart-card" style={{height: '350px'}}>
-        <h3 style={{color: '#6366f1', textTransform: 'uppercase'}}><Calendar size={18} style={{marginRight: '8px', verticalAlign: 'text-bottom'}} /> Extras Últimos 6 Meses</h3>
-        <ResponsiveContainer width="100%" height="85%">
-          <BarChart
-            data={workappResultados.monthlyExtras}
-            margin={{ top: 20, right: 10, left: -20, bottom: 5 }}
+        {/* Quick Presets */}
+        <div className="workapp-presets-bar">
+          <button 
+            type="button" 
+            className="workapp-preset-btn"
+            onClick={() => setDatePreset('este_mes')}
           >
-            <XAxis dataKey="label" tick={{fontSize: 12}} />
-            <YAxis />
-            <RechartsTooltip wrapperStyle={{ fontSize: window.innerWidth <= 768 ? '0.75rem' : '0.9rem' }} 
-              cursor={{fill: 'rgba(0,0,0,0.05)'}} 
-              contentStyle={{backgroundColor: '#222', color: '#fff', borderRadius: '6px', border: 'none'}}
-              itemStyle={{color: '#fff'}}
-            />
-            <Legend verticalAlign="top" wrapperStyle={{paddingBottom: '20px'}} />
-            <Bar dataKey="value" name="Horas Extras" fill="#8b5cf6" radius={[4, 4, 0, 0]} barSize={24} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+            Este Mes
+          </button>
+          <button 
+            type="button" 
+            className="workapp-preset-btn"
+            onClick={() => setDatePreset('mes_anterior')}
+          >
+            Mes Anterior
+          </button>
+          <button 
+            type="button" 
+            className="workapp-preset-btn"
+            onClick={() => setDatePreset('ultimos_3_meses')}
+          >
+            Últimos 3 Meses
+          </button>
+          <button 
+            type="button" 
+            className="workapp-preset-btn"
+            onClick={() => setDatePreset('este_ano')}
+          >
+            Año Completo
+          </button>
+        </div>
 
-        {/* Horas extras por día */}
-      <div className="stats-chart-card" style={{height: '350px'}}>
-        <h3 style={{color: '#6366f1', textTransform: 'uppercase'}}><BarChart2 size={18} style={{marginRight: '8px', verticalAlign: 'text-bottom'}} /> Horas Extras por Día</h3>
-        {workappResultados.chartData.length === 0 ? (
-          <p style={{textAlign: 'center', color: 'var(--text-muted)'}}>No hay horas extras en este rango.</p>
-        ) : (
-          <ResponsiveContainer width="100%" height="85%">
-            <BarChart
-              data={workappResultados.chartData}
-              layout="vertical"
-              margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
-            >
-              <XAxis type="number" />
-              <YAxis dataKey="date" type="category" width={60} tick={{fontSize: 12}} />
-              <RechartsTooltip wrapperStyle={{ fontSize: window.innerWidth <= 768 ? '0.75rem' : '0.9rem' }} cursor={{fill: 'rgba(0,0,0,0.05)'}} contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
-              <Legend />
-              <Bar dataKey="value" name="Horas Extras" fill="#fb7185" radius={[0, 4, 4, 0]} barSize={12} />
-            </BarChart>
-          </ResponsiveContainer>
-        )}
-      </div>
-
-      {/* Importe por día */}
-      <div className="stats-chart-card" style={{height: '350px'}}>
-        <h3 style={{color: '#6366f1', textTransform: 'uppercase'}}><span style={{fontWeight: 'bold', fontSize: '1.2rem', marginRight: '8px'}}>$</span> Importe (€) por Día</h3>
-        {workappResultados.chartData.length === 0 ? (
-          <p style={{textAlign: 'center', color: 'var(--text-muted)'}}>Sin importe en este rango.</p>
-        ) : (
-          <ResponsiveContainer width="100%" height="85%">
-            <BarChart
-              data={workappResultados.chartData.map(d => ({...d, importe: d.value * 11}))}
-              margin={{ top: 20, right: 10, left: -20, bottom: 40 }}
-            >
-              <XAxis dataKey="date" tick={{fontSize: 12, angle: -45, textAnchor: 'end'}} interval={0} />
-              <YAxis />
-              <RechartsTooltip wrapperStyle={{ fontSize: window.innerWidth <= 768 ? '0.75rem' : '0.9rem' }} 
-                cursor={{fill: 'rgba(0,0,0,0.05)'}} 
-                contentStyle={{backgroundColor: '#222', color: '#fff', borderRadius: '6px', border: 'none'}}
-                itemStyle={{color: '#fff'}}
+        {/* Date Inputs */}
+        <div className="workapp-dates-wrap">
+          <div className="workapp-date-field">
+            <label>Desde</label>
+            <div className="workapp-date-input-wrap">
+              <Calendar size={15} color="var(--text-muted)" />
+              <input 
+                type="date" 
+                value={workappFiltro.desde} 
+                onChange={e => setWorkappFiltro({...workappFiltro, desde: e.target.value})} 
               />
-              <Legend verticalAlign="top" wrapperStyle={{paddingBottom: '20px'}} />
-              <Bar dataKey="importe" name="Importe (€)" fill="#34d399" radius={[4, 4, 0, 0]} barSize={18} />
-            </BarChart>
-          </ResponsiveContainer>
-        )}
+            </div>
+          </div>
+
+          <div className="workapp-date-field">
+            <label>Hasta</label>
+            <div className="workapp-date-input-wrap">
+              <Calendar size={15} color="var(--text-muted)" />
+              <input 
+                type="date" 
+                value={workappFiltro.hasta} 
+                onChange={e => setWorkappFiltro({...workappFiltro, hasta: e.target.value})} 
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Top 3 KPI Cards */}
+      <div className="stats-kpi-grid">
+        <div className="stats-kpi-card">
+          <div className="stats-kpi-icon-wrap" style={{ background: 'rgba(139, 92, 246, 0.12)', color: '#8b5cf6' }}>
+            <Clock size={24} />
+          </div>
+          <div className="stats-kpi-info">
+            <span className="stats-kpi-label">HORAS TRABAJADAS</span>
+            <span className="stats-kpi-val">{workappResultados.totalHoras} h</span>
+          </div>
+        </div>
+
+        <div className="stats-kpi-card">
+          <div className="stats-kpi-icon-wrap" style={{ background: 'rgba(244, 63, 94, 0.12)', color: '#f43f5e' }}>
+            <Zap size={24} />
+          </div>
+          <div className="stats-kpi-info">
+            <span className="stats-kpi-label">HORAS EXTRAS</span>
+            <span className="stats-kpi-val" style={{ color: '#f43f5e' }}>{workappResultados.totalExtras} h</span>
+          </div>
+        </div>
+
+        <div className="stats-kpi-card">
+          <div className="stats-kpi-icon-wrap" style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#10b981' }}>
+            <Euro size={24} />
+          </div>
+          <div className="stats-kpi-info">
+            <span className="stats-kpi-label">IMPORTE EXTRAS (11€/H)</span>
+            <span className="stats-kpi-val" style={{ color: '#10b981' }}>{workappResultados.importe} €</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Modern Charts Grid (2 columns on desktop) */}
+      <div className="stats-charts-row">
+        {/* Extras Últimos 6 Meses */}
+        <div className="stats-chart-card modern-chart-card">
+          <div className="modern-chart-header">
+            <Calendar size={18} color="#8b5cf6" />
+            <h3>EXTRAS ÚLTIMOS 6 MESES</h3>
+          </div>
+          <div style={{ width: '100%', height: '240px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={workappResultados.monthlyExtras}
+                margin={{ top: 25, right: 10, left: 10, bottom: 5 }}
+              >
+                <XAxis 
+                  dataKey="label" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fill: 'var(--text-muted)', fontSize: 11, fontWeight: 600 }} 
+                />
+                <YAxis hide={true} domain={[0, 'dataMax + 2']} />
+                <RechartsTooltip 
+                  cursor={{ fill: 'rgba(139, 92, 246, 0.08)', radius: 6 }} 
+                  contentStyle={{ backgroundColor: 'var(--bg-card)', color: 'var(--text-main)', borderRadius: '12px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-md)', fontSize: '0.85rem' }}
+                />
+                <Bar dataKey="value" name="Horas Extras" fill="#8b5cf6" radius={[6, 6, 0, 0]} barSize={24}>
+                  <LabelList dataKey="value" position="top" fill="var(--text-secondary)" fontSize={11} fontWeight={700} formatter={(val) => val > 0 ? `${val}h` : ''} />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Horas Extras por Día */}
+        <div className="stats-chart-card modern-chart-card">
+          <div className="modern-chart-header">
+            <Zap size={18} color="#f43f5e" />
+            <h3>HORAS EXTRAS POR DÍA</h3>
+          </div>
+          <div style={{ width: '100%', height: '240px' }}>
+            {workappResultados.chartData.length === 0 ? (
+              <div className="client-empty-state" style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                <p style={{ fontWeight: 700, color: 'var(--text-muted)', margin: 0 }}>Sin horas extras en el rango</p>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-faint)', marginTop: '4px' }}>No hay registros con horas extras en este periodo.</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={workappResultados.chartData}
+                  margin={{ top: 25, right: 10, left: 10, bottom: 5 }}
+                >
+                  <XAxis 
+                    dataKey="date" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fill: 'var(--text-muted)', fontSize: 10, fontWeight: 600 }} 
+                  />
+                  <YAxis hide={true} domain={[0, 'dataMax + 1.5']} />
+                  <RechartsTooltip 
+                    cursor={{ fill: 'rgba(244, 63, 94, 0.08)', radius: 6 }} 
+                    contentStyle={{ backgroundColor: 'var(--bg-card)', color: 'var(--text-main)', borderRadius: '12px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-md)', fontSize: '0.85rem' }}
+                  />
+                  <Bar dataKey="value" name="Horas Extras" fill="#f43f5e" radius={[6, 6, 0, 0]} barSize={workappResultados.chartData.length > 12 ? 14 : 22}>
+                    <LabelList dataKey="value" position="top" fill="var(--text-secondary)" fontSize={10} fontWeight={700} formatter={(val) => val > 0 ? `${val}h` : ''} />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Detalle Diario de Jornadas (Tarjeta Interactiva) */}
+      <div className="stats-chart-card client-summary-card">
+        <div className="client-summary-header">
+          <div className="client-summary-title">
+            <Briefcase size={20} color="#8b5cf6" />
+            <h2>DETALLE DE JORNADAS</h2>
+            <span className="client-count-pill" style={{ background: 'rgba(139, 92, 246, 0.12)', color: '#8b5cf6' }}>
+              {jornadasEnRangoDetalle.length}
+            </span>
+          </div>
+
+          <div className="client-search-box">
+            <Search size={16} color="var(--text-muted)" />
+            <input 
+              type="text" 
+              placeholder="Buscar por matrícula, parada o fecha..." 
+              value={jornadaSearchQuery}
+              onChange={(e) => setJornadaSearchQuery(e.target.value)}
+            />
+            {jornadaSearchQuery && (
+              <button 
+                type="button" 
+                className="btn-clear-search" 
+                onClick={() => setJornadaSearchQuery('')}
+                title="Borrar búsqueda"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="jornadas-detail-list">
+          {jornadasEnRangoDetalle.length === 0 ? (
+            <div className="client-empty-state">
+              <p style={{ fontWeight: 700, color: 'var(--text-muted)', margin: 0 }}>No hay jornadas en el periodo seleccionado</p>
+              <p style={{ fontSize: '0.82rem', color: 'var(--text-faint)', marginTop: '4px' }}>
+                Prueba a ajustar las fechas del filtro o el término de búsqueda.
+              </p>
+            </div>
+          ) : (
+            jornadasEnRangoDetalle.map((j, idx) => {
+              let paradasArr = [];
+              if (Array.isArray(j.paradas)) {
+                paradasArr = j.paradas;
+              } else if (typeof j.paradas === 'string') {
+                try {
+                  const parsed = JSON.parse(j.paradas);
+                  if (Array.isArray(parsed)) paradasArr = parsed;
+                  else paradasArr = [j.paradas];
+                } catch {
+                  let cleaned = j.paradas.replace(/^\["?|"?]$/g, '').replace(/","/g, '|||');
+                  paradasArr = cleaned.split('|||');
+                }
+              }
+
+              const jDate = parseJDateHelper(j.fecha);
+              const dateLabel = jDate 
+                ? jDate.toLocaleDateString('es-ES', { weekday: 'short', day: '2-digit', month: 'short' })
+                : j.fecha;
+              const hIni = (j.hora_inicio || '').substring(0, 5);
+              const hFin = (j.hora_fin || '').substring(0, 5);
+              const horario = (hIni || hFin) ? `${hIni} - ${hFin}` : '';
+              const extras = parseFloat(j.horas_extras) || 0;
+
+              return (
+                <div key={j.id || idx} className="jornada-item-card">
+                  <div className="jornada-item-header">
+                    <div className="jornada-item-left">
+                      <span className="jornada-date-badge">
+                        <Calendar size={14} />
+                        {dateLabel}
+                      </span>
+                      {horario && (
+                        <span className="jornada-schedule-badge">
+                          <Clock size={13} />
+                          {horario}
+                        </span>
+                      )}
+                      {j.matricula && (
+                        <span className="jornada-matricula-badge">
+                          <Car size={13} />
+                          {j.matricula}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="jornada-item-right">
+                      <span className="jornada-hours-badge">
+                        {formatTime(j.horas_calculadas)}
+                      </span>
+                      {extras > 0 && (
+                        <span className="jornada-extras-badge">
+                          <Zap size={12} />
+                          +{formatTime(j.horas_extras)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {paradasArr.length > 0 && (
+                    <div className="jornada-paradas-wrap">
+                      {paradasArr.map((p, pIdx) => {
+                        const trimmed = (typeof p === 'string' ? p : String(p)).trim();
+                        if (!trimmed) return null;
+                        return (
+                          <span key={pIdx} className="jornada-parada-tag">
+                            <MapPin size={11} color="#8b5cf6" />
+                            {trimmed}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
       </div>
     </div>
   );
