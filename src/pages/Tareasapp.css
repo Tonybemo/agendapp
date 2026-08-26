@@ -415,11 +415,12 @@
 
 .tf-task-row {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 10px 8px;
+  justify-content: space-between;
+  padding: 8px 10px;
   border-radius: var(--radius-sm);
   transition: background-color 0.2s;
+  gap: 8px;
 }
 
 .tf-task-row:hover {
@@ -433,16 +434,27 @@
 .tf-task-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   cursor: pointer;
   flex: 1;
+  min-width: 0;
 }
 
 .empty-circle {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   border: 2px solid var(--border-input);
+  flex-shrink: 0;
+}
+
+.tf-task-name {
+  font-size: 0.88rem;
+  color: var(--text-main);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .tf-task-row.completed .tf-task-name {
@@ -453,6 +465,20 @@
 .tf-task-row.skipped .tf-task-name {
   color: var(--text-faint);
   font-style: italic;
+}
+
+.tf-task-date-input {
+  background: rgba(99, 102, 241, 0.08);
+  color: var(--accent-tareas);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: var(--radius-pill);
+  padding: 3px 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  outline: none;
+  font-family: inherit;
+  flex-shrink: 0;
 }
 
 .tf-task-date {
@@ -466,9 +492,11 @@
 
 .tf-task-right {
   display: flex;
-  gap: 8px;
+  align-items: center;
+  gap: 6px;
   opacity: 0.4;
   transition: opacity 0.2s;
+  flex-shrink: 0;
 }
 
 .tf-task-row:hover .tf-task-right {
@@ -568,7 +596,7 @@
 .mini-cal-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 2px;
+  gap: 3px;
 }
 
 .mini-cal-cell {
@@ -577,14 +605,13 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-muted);
   border-radius: 6px;
   border: none;
   background: transparent;
   cursor: pointer;
-  position: relative;
   transition: all 0.15s ease;
   padding: 0;
 }
@@ -600,17 +627,8 @@
 
 .mini-cal-cell.has-tasks {
   font-weight: 800;
-  color: var(--text-main);
-  background: rgba(16, 185, 129, 0.1);
-}
-
-.mini-cal-dot {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background-color: #10b981;
-  position: absolute;
-  bottom: 2px;
+  color: #059669;
+  background: rgba(16, 185, 129, 0.14);
 }
 
 .mini-cal-cell.selected {
@@ -618,10 +636,6 @@
   color: white !important;
   font-weight: 800;
   box-shadow: 0 2px 8px rgba(79, 70, 229, 0.35);
-}
-
-.mini-cal-cell.selected .mini-cal-dot {
-  background-color: white;
 }
 
 /* ── Day Filter Banner ────────────────────────────────────────────────── */
@@ -658,6 +672,10 @@
 .btn-clear-day-filter:hover {
   background: #4f46e5;
   color: white;
+}
+
+.mobile-cal-btn {
+  display: none;
 }
 
 .cal-days-badge {

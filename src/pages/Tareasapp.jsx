@@ -55,7 +55,6 @@ const MiniCalendar = ({ currentMonth, currentYear, completedTasksByDay, selected
               title={count > 0 ? `${d} de ${currentMonth}: ${count} actuación(es)` : `${d} de ${currentMonth}`}
             >
               <span>{d}</span>
-              {count > 0 && <span className="mini-cal-dot" />}
             </button>
           );
         })}
@@ -733,40 +732,28 @@ const Tareasapp = () => {
                     >
                       <div className="tf-task-left" onClick={() => toggleTask(tarea.id, task.id)}>
                         {task.status === 'completed' ? (
-                          <CheckCircle2 size={20} color="#22c55e" className="check-icon" />
+                          <CheckCircle2 size={18} color="#22c55e" className="check-icon" />
                         ) : task.status === 'skipped' ? (
-                          <MinusCircle size={20} color="#94a3b8" className="check-icon" />
+                          <MinusCircle size={18} color="#94a3b8" className="check-icon" />
                         ) : (
                           <div className="empty-circle"></div>
                         )}
                         <span className="tf-task-name">{task.name}</span>
-                        {task.date && (
-                          <input 
-                            type="date" 
-                            style={{
-                              background: 'rgba(99, 102, 241, 0.1)',
-                              color: 'var(--accent-tareas)',
-                              border: 'none',
-                              borderRadius: '12px',
-                              padding: '4px 8px',
-                              fontSize: '0.75rem',
-                              fontWeight: '600',
-                              cursor: 'pointer',
-                              outline: 'none',
-                              fontFamily: 'inherit',
-                              marginLeft: '8px'
-                            }}
-                            value={(() => {
-                              if (task.date === 'Hoy') return new Date().toISOString().split('T')[0];
-                              const parts = task.date.split('/');
-                              if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
-                              return '';
-                            })()}
-                            onClick={(e) => e.stopPropagation()}
-                            onChange={(e) => changeTaskDate(tarea.id, task.id, e.target.value)} 
-                          />
-                        )}
                       </div>
+                      {task.date && (
+                        <input 
+                          type="date" 
+                          className="tf-task-date-input"
+                          value={(() => {
+                            if (task.date === 'Hoy') return new Date().toISOString().split('T')[0];
+                            const parts = task.date.split('/');
+                            if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+                            return '';
+                          })()}
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={(e) => changeTaskDate(tarea.id, task.id, e.target.value)} 
+                        />
+                      )}
                       <div className="tf-task-right">
                         <Trash2 size={14} className="action-icon" style={{cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); deleteTask(tarea.id, task.id); }} />
                       </div>
