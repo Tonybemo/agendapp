@@ -153,23 +153,27 @@ const UniversalForm = () => {
     const [hI, mI] = inicio.split(':').map(Number);
     const [hF, mF] = fin.split(':').map(Number);
     const totalMinutos = (hF * 60 + mF) - (hI * 60 + mI);
-    const totalHoras = totalMinutos / 60;
-    const horasCalc = totalHoras.toFixed(1) + 'h';
+    const hCalc = Math.floor(totalMinutos / 60);
+    const mCalc = totalMinutos % 60;
+    const horasCalc = `${hCalc}:${String(mCalc).padStart(2, '0')}h`;
+
     const [y, m, d] = data.fecha.split('-');
     const dateObj = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
     const dayOfWeek = dateObj.getDay(); // 0 = Domingo, 1-4 = L-J, 5 = Viernes, 6 = Sábado
     
-    let jornadaBase = 8;
+    let minutosBase = 8 * 60; // 480 min Lunes a Jueves
     if (dayOfWeek >= 1 && dayOfWeek <= 4) {
-      jornadaBase = 8; // Lunes a Jueves
+      minutosBase = 8 * 60;
     } else if (dayOfWeek === 5) {
-      jornadaBase = 6.5; // Viernes
+      minutosBase = 6.5 * 60; // 390 min Viernes
     } else {
-      jornadaBase = 0; // Sábado y Domingo (todo extra)
+      minutosBase = 0; // Sábado y Domingo
     }
     
-    const extras = Math.max(0, totalHoras - jornadaBase);
-    const horasExtras = extras > 0 ? '+' + extras.toFixed(1) + 'h ext' : '0.0h';
+    const minutosExtras = Math.max(0, totalMinutos - minutosBase);
+    const hExt = Math.floor(minutosExtras / 60);
+    const mExt = minutosExtras % 60;
+    const horasExtras = minutosExtras > 0 ? `+${hExt}:${String(mExt).padStart(2, '0')}h ext` : '0:00h';
     
     let fechaGuardar = data.fecha;
     if (fechaGuardar && fechaGuardar.includes('-')) {

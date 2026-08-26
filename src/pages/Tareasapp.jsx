@@ -3,11 +3,66 @@ import { createPortal } from 'react-dom';
 import { 
   CheckCircle2, Circle, Edit3, Trash2, Plus, Search, 
   Settings, MessageSquare, MoreVertical, LayoutGrid, Calendar as CalendarIcon,
-  MinusCircle
+  MinusCircle, X
 } from 'lucide-react';
 import { mockTareas, months } from '../data/mockTareas';
 import { supabase } from '../lib/supabase';
 import './Tareasapp.css';
+
+// Mini Calendar Component for filtering tasks by completed day
+const MiniCalendar = ({ currentMonth, currentYear, completedTasksByDay, selectedDayFilter, onSelectDay }) => {
+  const monthNamesList = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const monthIdx = monthNamesList.indexOf(currentMonth);
+  const daysInMonth = new Date(currentYear, monthIdx + 1, 0).getDate();
+  
+  let firstDayIndex = new Date(currentYear, monthIdx, 1).getDay(); // 0 is Sun, 1 is Mon...
+  firstDayIndex = firstDayIndex === 0 ? 6 : firstDayIndex - 1; // 0=Mon, 6=Sun
+
+  const blanks = Array.from({ length: firstDayIndex }, (_, i) => i);
+  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+
+  return (
+    <div className="mini-cal-widget">
+      <div className="mini-cal-header">
+        <span>{currentMonth.toLowerCase()} {currentYear}</span>
+        {selectedDayFilter && (
+          <button 
+            type="button"
+            className="mini-cal-clear" 
+            onClick={(e) => { e.stopPropagation(); onSelectDay(null); }} 
+            title="Limpiar filtro de día"
+          >
+            ✕ Limpiar
+          </button>
+        )}
+      </div>
+      <div className="mini-cal-weekdays">
+        <span>l</span><span>m</span><span>x</span><span>j</span><span>v</span><span>s</span><span>d</span>
+      </div>
+      <div className="mini-cal-grid">
+        {blanks.map(b => (
+          <div key={`b-${b}`} className="mini-cal-cell blank" />
+        ))}
+        {days.map(d => {
+          const count = completedTasksByDay[d] || 0;
+          const isSelected = selectedDayFilter === d;
+          return (
+            <button
+              key={d}
+              type="button"
+              className={`mini-cal-cell day ${count > 0 ? 'has-tasks' : ''} ${isSelected ? 'selected' : ''}`}
+              onClick={() => onSelectDay(isSelected ? null : d)}
+              title={count > 0 ? `${d} de ${currentMonth}: ${count} actuación(es)` : `${d} de ${currentMonth}`}
+            >
+              <span>{d}</span>
+              {count > 0 && <span className="mini-cal-dot" />}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
 
 // Removed static clientesGlobales, we fetch them from DB
 
@@ -67,6 +122,13 @@ const Tareasapp = () => {
   const [selectedTasks, setSelectedTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [tasksOpen, setTasksOpen] = useState(false);
+  const [selectedDayFilter, setSelectedDayFilter] = useState(null);
+  const [showMobileCal, setShowMobileCal] = useState(false);
+
+  // Reset day filter when month or year changes
+  React.useEffect(() => {
+    setSelectedDayFilter(null);
+  }, [currentMonth, currentYear]);
 
   const availableTaskOptions = useMemo(() => {
     const set = new Set(defaultTasksList);
@@ -395,7 +457,30 @@ const Tareasapp = () => {
   };
 
   const tareasDelMes = tareas.filter(t => t.month === currentMonth);
-  
+  const monthIdx = mesesNombres.indexOf(currentMonth);
+
+  // Map of completed tasks per day of the selected month
+  const completedTasksByDay = useMemo(() => {
+    const map = {};
+    tareasDelMes.forEach(t => {
+      (t.tasks || []).forEach(task => {
+        if (task.status === 'completed' && task.date) {
+          const cleanDate = task.date.replace(/-/g, '/');
+          const parts = cleanDate.split('/');
+          if (parts.length === 3) {
+            const dayNum = parseInt(parts[0], 10);
+            const mNum = parseInt(parts[1], 10) - 1;
+            const yNum = parseInt(parts[2], 10);
+            if (mNum === monthIdx && (!yNum || yNum === currentYear)) {
+              map[dayNum] = (map[dayNum] || 0) + 1;
+            }
+          }
+        }
+      });
+    });
+    return map;
+  }, [tareasDelMes, monthIdx, currentYear]);
+
   // Stats calculations based ONLY on current month
   const totalActuaciones = tareasDelMes.reduce((acc, t) => acc + t.tasks.length, 0);
   const actuacionesCompletadas = tareasDelMes.reduce((acc, t) => acc + getProgressInfo(t).completedOrSkipped, 0);
@@ -405,14 +490,31 @@ const Tareasapp = () => {
   const pendientesCount = totalActuaciones - actuacionesCompletadas;
   const globalProgress = totalActuaciones === 0 ? 0 : Math.round((actuacionesCompletadas / totalActuaciones) * 100);
 
-  // Apply visual filter and search
+  // Apply visual filter, day filter, and search
   const currentTareas = tareasDelMes.filter(t => {
     // 1. Search filter
     if (searchQuery && !t.clientName.toLowerCase().includes(searchQuery.toLowerCase()) && !t.tasks.some(task => task.name.toLowerCase().includes(searchQuery.toLowerCase()))) {
       return false;
     }
+
+    // 2. Day filter (if a specific day is clicked in mini calendar)
+    if (selectedDayFilter) {
+      const hasTaskOnDay = t.tasks.some(task => {
+        if (task.status !== 'completed' || !task.date) return false;
+        const cleanDate = task.date.replace(/-/g, '/');
+        const parts = cleanDate.split('/');
+        if (parts.length === 3) {
+          const d = parseInt(parts[0], 10);
+          const m = parseInt(parts[1], 10) - 1;
+          const y = parseInt(parts[2], 10);
+          return d === selectedDayFilter && m === monthIdx && (!y || y === currentYear);
+        }
+        return false;
+      });
+      if (!hasTaskOnDay) return false;
+    }
     
-    // 2. Status filter
+    // 3. Status filter
     if (filter === 'Todos') return true;
     const isCompleted = getProgressInfo(t).percentage === 100;
     if (filter === 'Completos') return isCompleted;
@@ -422,7 +524,7 @@ const Tareasapp = () => {
 
   return (
     <div className="taskflow-container animate-fade-in">
-      {/* Secondary Sidebar for Months */}
+      {/* Secondary Sidebar for Months & Mini Calendar */}
       <aside className="taskflow-sidebar">
         <p className="sidebar-subtitle">PLANIFICACIÓN MENSUAL</p>
         
@@ -462,10 +564,22 @@ const Tareasapp = () => {
           })}
         </div>
 
+        {/* Desktop Mini Calendar Widget */}
+        <div className="desktop-mini-cal-wrapper">
+          <p className="section-label" style={{ marginTop: '16px' }}>CALENDARIO DEL MES</p>
+          <MiniCalendar 
+            currentMonth={currentMonth} 
+            currentYear={currentYear} 
+            completedTasksByDay={completedTasksByDay} 
+            selectedDayFilter={selectedDayFilter} 
+            onSelectDay={setSelectedDayFilter} 
+          />
+        </div>
+
         <button 
           className="btn-nueva-planificacion" 
           onClick={() => setIsModalOpen(true)}
-          style={{background: 'var(--accent-workapp)', color: 'var(--text-on-primary)', border: 'none', padding: '12px 16px', borderRadius: '12px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', boxShadow: 'var(--shadow-md)', marginTop: '20px', width: '100%'}}
+          style={{background: 'var(--accent-workapp)', color: 'var(--text-on-primary)', border: 'none', padding: '12px 16px', borderRadius: '12px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', boxShadow: 'var(--shadow-md)', marginTop: '16px', width: 'calc(100% - 40px)', margin: '16px 20px 0 20px'}}
         >
           <Plus size={20} /> Añadir Planificación
         </button>
@@ -512,8 +626,8 @@ const Tareasapp = () => {
 
           <div className="filter-pills">
             <button 
-              className={`pill-btn ${filter === 'Todos' ? 'active' : ''}`}
-              onClick={() => setFilter('Todos')}
+              className={`pill-btn ${filter === 'Todos' && !selectedDayFilter ? 'active' : ''}`}
+              onClick={() => { setFilter('Todos'); setSelectedDayFilter(null); }}
             >
               Todos ({totalActuaciones})
             </button>
@@ -529,8 +643,57 @@ const Tareasapp = () => {
             >
               Completos ({completadosCount})
             </button>
+
+            {/* Mobile Mini Calendar Toggle Button */}
+            <button 
+              type="button"
+              className={`pill-btn mobile-cal-btn ${selectedDayFilter || showMobileCal ? 'active' : ''}`}
+              onClick={() => setShowMobileCal(!showMobileCal)}
+            >
+              <CalendarIcon size={14} style={{ marginRight: '4px' }} />
+              {selectedDayFilter ? `Día ${selectedDayFilter}` : 'Días'}
+              {Object.keys(completedTasksByDay).length > 0 && (
+                <span className="cal-days-badge">{Object.keys(completedTasksByDay).length}</span>
+              )}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Mini Calendar dropdown */}
+        {showMobileCal && (
+          <div className="mobile-mini-cal-container animate-fade-in">
+            <MiniCalendar 
+              currentMonth={currentMonth} 
+              currentYear={currentYear} 
+              completedTasksByDay={completedTasksByDay} 
+              selectedDayFilter={selectedDayFilter} 
+              onSelectDay={(day) => {
+                setSelectedDayFilter(day);
+                if (day !== null) setShowMobileCal(false);
+              }} 
+            />
+          </div>
+        )}
+
+        {/* Day Filter Banner */}
+        {selectedDayFilter && (
+          <div className="day-filter-banner animate-fade-in">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <CalendarIcon size={18} color="var(--accent-tareas)" />
+              <span>
+                Mostrando actuaciones realizadas el <strong>{selectedDayFilter} de {currentMonth} {currentYear}</strong>
+                {' '}(<strong>{completedTasksByDay[selectedDayFilter] || 0}</strong> {completedTasksByDay[selectedDayFilter] === 1 ? 'actuación' : 'actuaciones'})
+              </span>
+            </div>
+            <button 
+              type="button"
+              className="btn-clear-day-filter" 
+              onClick={() => setSelectedDayFilter(null)}
+            >
+              <X size={14} /> Ver todo el mes
+            </button>
+          </div>
+        )}
 
         {/* Grid of Cards */}
         <div className="taskflow-grid">

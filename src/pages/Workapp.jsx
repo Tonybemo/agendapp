@@ -17,20 +17,22 @@ const formatTime = (t) => {
   return `${parts[0]}:${parts[1] || '00'}`;
 };
 
-// Converts stored hour values like "8.0h", "+1.5h ext", "8:00:00", "07:30" to "HH:MM" display format
+// Converts stored hour values like "8.0h", "+1.5h ext", "8:45h", "+0:45h ext", "8:00:00", "07:30" to "HH:MM" display format
 const formatHoursDisplay = (val) => {
   if (!val || val === '-') return null;
   let totalMinutes = 0;
   const str = String(val).trim();
   
-  // Format: "HH:MM:SS" or "HH:MM" (time-like)
+  // Format: "HH:MM:SS" or "HH:MM" or "8:45h" or "+0:45h ext"
   if (str.includes(':')) {
-    const parts = str.split(':');
-    const h = parseInt(parts[0], 10) || 0;
-    const m = parseInt(parts[1], 10) || 0;
-    totalMinutes = h * 60 + m;
+    const match = str.match(/(\d+):(\d+)/);
+    if (match) {
+      const h = parseInt(match[1], 10) || 0;
+      const m = parseInt(match[2], 10) || 0;
+      totalMinutes = h * 60 + m;
+    }
   } else {
-    // Format: "8.0h", "+1.5h ext", "0.0h", plain number
+    // Legacy format: "8.0h", "+1.5h ext", "0.0h", plain decimal number
     const num = parseFloat(str.replace(/[^0-9.\-]/g, '')) || 0;
     totalMinutes = Math.round(num * 60);
   }
@@ -361,24 +363,28 @@ const Workapp = () => {
     const [hI, mI] = (editForm.hora_inicio || '07:00').split(':').map(Number);
     const [hF, mF] = (editForm.hora_fin || '15:00').split(':').map(Number);
     const totalMinutos = (hF * 60 + mF) - (hI * 60 + mI);
-    const totalHoras = totalMinutos / 60;
-    const horasCalc = totalHoras.toFixed(1) + 'h';
+    const hCalc = Math.floor(totalMinutos / 60);
+    const mCalc = totalMinutos % 60;
+    const horasCalc = `${hCalc}:${String(mCalc).padStart(2, '0')}h`;
+
     let fechaToCalc = editForm.fecha; // Está en formato YYYY-MM-DD del input
     const [y, m, d] = fechaToCalc.split('-');
     const dateObj = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
     const dayOfWeek = dateObj.getDay();
     
-    let jornadaBase = 8;
+    let minutosBase = 8 * 60;
     if (dayOfWeek >= 1 && dayOfWeek <= 4) {
-      jornadaBase = 8; // Lunes a Jueves
+      minutosBase = 8 * 60; // Lunes a Jueves
     } else if (dayOfWeek === 5) {
-      jornadaBase = 6.5; // Viernes
+      minutosBase = 6.5 * 60; // Viernes
     } else {
-      jornadaBase = 0; // Sábado y Domingo
+      minutosBase = 0; // Sábado y Domingo
     }
 
-    const extras = Math.max(0, totalHoras - jornadaBase);
-    const horasExtras = extras > 0 ? '+' + extras.toFixed(1) + 'h ext' : '0.0h';
+    const minutosExtras = Math.max(0, totalMinutos - minutosBase);
+    const hExt = Math.floor(minutosExtras / 60);
+    const mExt = minutosExtras % 60;
+    const horasExtras = minutosExtras > 0 ? `+${hExt}:${String(mExt).padStart(2, '0')}h ext` : '0:00h';
 
     let fechaGuardar = editForm.fecha;
     if (fechaGuardar && fechaGuardar.includes('-')) {
