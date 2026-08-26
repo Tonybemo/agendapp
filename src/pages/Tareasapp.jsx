@@ -649,8 +649,8 @@ const Tareasapp = () => {
               className={`pill-btn mobile-cal-btn ${selectedDayFilter || showMobileCal ? 'active' : ''}`}
               onClick={() => setShowMobileCal(!showMobileCal)}
             >
-              <CalendarIcon size={14} style={{ marginRight: '4px' }} />
-              {selectedDayFilter ? `Día ${selectedDayFilter}` : 'Días'}
+              <CalendarIcon size={14} style={{ marginRight: '6px' }} />
+              {selectedDayFilter ? `Día ${selectedDayFilter}` : 'Calendario'}
               {Object.keys(completedTasksByDay).length > 0 && (
                 <span className="cal-days-badge">{Object.keys(completedTasksByDay).length}</span>
               )}

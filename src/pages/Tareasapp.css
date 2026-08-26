@@ -675,7 +675,7 @@
 }
 
 .mobile-cal-btn {
-  display: none;
+  display: none !important;
 }
 
 .cal-days-badge {
@@ -699,8 +699,12 @@
 
 /* Mobile Adjustments */
 @media (max-width: 768px) {
+  .mobile-cal-btn {
+    display: inline-flex !important;
+    align-items: center;
+  }
   .desktop-mini-cal-wrapper {
-    display: none;
+    display: none !important;
   }
   .taskflow-sidebar {
     width: 100%;
@@ -742,6 +746,9 @@
     margin-left: 0;
     width: 100%;
     overflow-x: auto;
+    display: flex;
+    gap: 8px;
+    padding-bottom: 4px;
   }
   .taskflow-grid {
     padding: 16px;
@@ -751,5 +758,11 @@
   }
   .mobile-mini-cal-container {
     padding: 0 16px 16px 16px;
+    display: flex;
+    justify-content: center;
+  }
+  .mobile-mini-cal-container .mini-cal-widget {
+    width: 100%;
+    max-width: 340px;
   }
 }
