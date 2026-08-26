@@ -1,16 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { createPortal } from 'react-dom';
 import { 
   BarChart2, Droplet, MapPin, Briefcase, Bug, Wind, FlaskConical,
-  Calendar, TrendingUp, Filter, Search, Download
+  Calendar, TrendingUp, Filter, Search, Download, Users, Trophy,
+  ChevronDown, ChevronUp, X
 } from 'lucide-react';
 import { mockLocalidadStats } from '../data/mockAvisomap';
 import { supabase } from '../lib/supabase';
 import { mockWorkappData } from '../data/mockWorkapp';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, LabelList } from 'recharts';
 import './Estadisticas.css';
+
+const TREATMENT_TYPES = [
+  { id: 'Hipercloracion', label: 'Hipercloración', color: '#a855f7' },
+  { id: 'Choque', label: 'Choque', color: '#f43f5e' },
+  { id: 'LimpTorres', label: 'L. Torres', color: '#3b82f6' },
+  { id: 'LimpDep', label: 'L. Depósitos', color: '#10b981' },
+  { id: 'Estandar', label: 'M. Estándar', color: '#eab308' },
+  { id: 'Torre', label: 'M. Torre', color: '#f97316' },
+  { id: 'Piscina/Jacuzzi', label: 'M. Piscina/Jac.', color: '#06b6d4' }
+];
+
+const TREATMENT_COLOR_MAP = {
+  'Hipercloracion': '#a855f7',
+  'Choque': '#f43f5e',
+  'LimpTorres': '#3b82f6',
+  'LimpDep': '#10b981',
+  'Estandar': '#eab308',
+  'Torre': '#f97316',
+  'Piscina/Jacuzzi': '#06b6d4',
+  'Piscina': '#06b6d4',
+  'Jacuzzi': '#06b6d4'
+};
+
+const TREATMENT_LABEL_MAP = {
+  'Hipercloracion': 'Hipercloración',
+  'Choque': 'Choque',
+  'LimpTorres': 'L. Torres',
+  'LimpDep': 'L. Depósitos',
+  'Estandar': 'M. Estándar',
+  'Torre': 'M. Torre',
+  'Piscina/Jacuzzi': 'M. Piscina/Jac.'
+};
 
 const parsePlagas = (plagas) => {
   let arr = [];
@@ -58,12 +91,31 @@ const Estadisticas = () => {
   const [aquappMuestrasRaw, setAquappMuestrasRaw] = useState([]);
   const [aquappTratamientosRaw, setAquappTratamientosRaw] = useState([]);
   const [aquappYearFilter, setAquappYearFilter] = useState(() => localStorage.getItem('est_aquapp_year') || new Date().getFullYear().toString());
+  const [clientSearchQuery, setClientSearchQuery] = useState('');
+  const [selectedTreatmentFilters, setSelectedTreatmentFilters] = useState([]);
+  const [expandedClients, setExpandedClients] = useState({});
   const [aquappStats, setAquappStats] = useState({
     availableYears: [],
     muestrasChartData: [],
     tratamientosChartData: [],
-    clientTableData: []
+    clientTableData: [],
+    totalClientes: 0,
+    totalTratamientos: 0,
+    mesPico: '-'
   });
+
+  const toggleTreatmentFilter = (typeId) => {
+    setSelectedTreatmentFilters(prev => 
+      prev.includes(typeId) ? prev.filter(t => t !== typeId) : [...prev, typeId]
+    );
+  };
+
+  const toggleClientExpand = (clientName) => {
+    setExpandedClients(prev => ({
+      ...prev,
+      [clientName]: !prev[clientName]
+    }));
+  };
 
   // Avisomap State
   const [avisomapAvisosRaw, setAvisomapAvisosRaw] = useState([]);
@@ -171,6 +223,7 @@ const Estadisticas = () => {
           else if (tLower.includes('choque')) evType = 'Choque';
           else if (tLower.includes('torre')) evType = 'LimpTorres';
           else if (tLower.includes('dep')) evType = 'LimpDep';
+          else evType = 'Hipercloracion';
         } else {
           if (tLower.includes('torre')) evType = 'Torre';
           else if (tLower.includes('pisci') || tLower.includes('jac')) evType = 'Piscina/Jacuzzi';
@@ -178,7 +231,7 @@ const Estadisticas = () => {
         }
 
         if (!arr.some(a => a.group === group && a.type === evType)) {
-          arr.push({ group, type: evType });
+          arr.push({ group, type: evType, rawType });
         }
       };
 
@@ -212,6 +265,21 @@ const Estadisticas = () => {
         }
       });
 
+      let totalTratamientosCount = 0;
+      let peakMonth = 'ENE';
+      let maxActivity = 0;
+
+      months.forEach((m, idx) => {
+        const mClients = mData[idx].ClientesSet.size;
+        const tCount = tData[idx].Hipercloracion + tData[idx].Choque + tData[idx].LimpTorres + tData[idx].LimpDep;
+        totalTratamientosCount += tCount;
+        const monthActivity = mClients + tCount;
+        if (monthActivity > maxActivity) {
+          maxActivity = monthActivity;
+          peakMonth = m.toUpperCase();
+        }
+      });
+
       const finalMData = mData.map(d => ({ mes: d.mes, Clientes: d.ClientesSet.size }));
       const clientTableArray = Object.keys(clientTable).map(name => ({
           name,
@@ -222,10 +290,31 @@ const Estadisticas = () => {
         availableYears: yearsArr,
         muestrasChartData: finalMData,
         tratamientosChartData: tData,
-        clientTableData: clientTableArray
+        clientTableData: clientTableArray,
+        totalClientes: clientTableArray.length,
+        totalTratamientos: totalTratamientosCount,
+        mesPico: maxActivity > 0 ? peakMonth : '-'
       });
     }
   }, [aquappMuestrasRaw, aquappTratamientosRaw, aquappYearFilter]);
+
+  const filteredClientList = useMemo(() => {
+    return (aquappStats.clientTableData || []).filter(client => {
+      // 1. Search by name
+      if (clientSearchQuery && !client.name.toLowerCase().includes(clientSearchQuery.toLowerCase())) {
+        return false;
+      }
+      // 2. Filter by selected treatment types
+      if (selectedTreatmentFilters.length > 0) {
+        const clientEvents = client.months.flat();
+        const hasSelectedType = selectedTreatmentFilters.some(filterType => 
+          clientEvents.some(ev => ev.type === filterType)
+        );
+        if (!hasSelectedType) return false;
+      }
+      return true;
+    });
+  }, [aquappStats.clientTableData, clientSearchQuery, selectedTreatmentFilters]);
 
   React.useEffect(() => {
     if (avisomapAvisosRaw.length > 0) {
@@ -377,135 +466,289 @@ const Estadisticas = () => {
 
   const renderAquappStats = () => (
     <div className="stats-section animate-fade-in">
-      
-      <div className="stats-chart-card" style={{padding: '20px', marginBottom: '24px'}}>
-        <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', color: '#0ea5e9'}}>
-          <Filter size={18} />
-          <h3 style={{margin: 0}}>FILTRO POR AÑO</h3>
-        </div>
-        <div style={{display: 'flex', alignItems: 'center', background: 'var(--bg-card-hover)', border: '1px solid var(--border)', borderRadius: '8px', padding: '10px 12px'}}>
-          <Calendar size={16} color="var(--text-muted)" style={{marginRight: '8px'}} />
-          <select 
-            value={aquappYearFilter} 
-            onChange={(e) => setAquappYearFilter(e.target.value)}
-            style={{border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '0.9rem', color: 'var(--text-secondary)'}}
-          >
-            {aquappStats.availableYears?.length === 0 ? (
-               <option value={new Date().getFullYear().toString()}>{new Date().getFullYear()}</option>
-            ) : (
-               aquappStats.availableYears?.map(y => (
-                 <option key={y} value={y}>{y}</option>
-               ))
-            )}
-          </select>
-        </div>
-      </div>
-
-      {/* Actividad de Clientes */}
-      <div className="stats-chart-card" style={{height: '350px'}}>
-        <h3 style={{color: '#0ea5e9', textTransform: 'uppercase'}}><Droplet size={18} style={{marginRight: '8px', verticalAlign: 'text-bottom'}} /> Clientes Atendidos</h3>
-        <ResponsiveContainer width="100%" height="85%">
-          <BarChart
-            data={aquappStats.muestrasChartData}
-            margin={{ top: 20, right: 10, left: -20, bottom: 5 }}
-          >
-            <XAxis dataKey="mes" tick={{fontSize: 12}} />
-            <YAxis allowDecimals={false} />
-            <RechartsTooltip wrapperStyle={{ fontSize: window.innerWidth <= 768 ? '0.75rem' : '0.9rem' }} 
-              cursor={{fill: 'rgba(0,0,0,0.05)'}} 
-              contentStyle={{backgroundColor: '#222', color: '#fff', borderRadius: '6px', border: 'none'}}
-              itemStyle={{color: '#fff'}}
-            />
-            <Bar dataKey="Clientes" fill="#0ea5e9" radius={[4, 4, 0, 0]} barSize={24} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Tratamientos Realizados */}
-      <div className="stats-chart-card" style={{height: '350px'}}>
-        <h3 style={{color: '#0ea5e9', textTransform: 'uppercase'}}><FlaskConical size={18} style={{marginRight: '8px', verticalAlign: 'text-bottom'}} /> Tratamientos Realizados</h3>
-        <ResponsiveContainer width="100%" height="85%">
-          <BarChart
-            data={aquappStats.tratamientosChartData}
-            margin={{ top: 20, right: 10, left: -20, bottom: 5 }}
-          >
-            <XAxis dataKey="mes" tick={{fontSize: 12}} />
-            <YAxis allowDecimals={false} />
-            <RechartsTooltip wrapperStyle={{ fontSize: window.innerWidth <= 768 ? '0.75rem' : '0.9rem' }} 
-              cursor={{fill: 'rgba(0,0,0,0.05)'}} 
-              contentStyle={{backgroundColor: '#222', color: '#fff', borderRadius: '6px', border: 'none'}}
-            />
-            <Legend verticalAlign="top" wrapperStyle={{paddingBottom: '20px', fontSize: '0.85rem'}} />
-            <Bar dataKey="Hipercloracion" stackId="a" fill="#a855f7" />
-            <Bar dataKey="Choque" stackId="a" fill="#f43f5e" />
-            <Bar dataKey="LimpTorres" stackId="a" fill="#3b82f6" />
-            <Bar dataKey="LimpDep" stackId="a" fill="#10b981" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Resumen Tratamientos por Cliente (Tabla Dinámica) */}
-      <div className="stats-chart-card" style={{overflowX: 'auto'}}>
-        <h3 style={{color: '#0ea5e9', textTransform: 'uppercase'}}><Briefcase size={18} style={{marginRight: '8px', verticalAlign: 'text-bottom'}} /> Resumen por Cliente</h3>
-        <div className="stats-legend" style={{marginBottom: '16px'}}>
-          <span><div className="legend-dot" style={{background:'#a855f7'}}></div> Hipercloración</span>
-          <span><div className="legend-dot" style={{background:'#f43f5e'}}></div> Choque</span>
-          <span><div className="legend-dot" style={{background:'#3b82f6'}}></div> L. Torres</span>
-          <span><div className="legend-dot" style={{background:'#10b981'}}></div> L. Depósitos</span>
-          <span><div className="legend-dot" style={{background:'#fcd34d'}}></div> M. Estándar</span>
-          <span><div className="legend-dot" style={{background:'#f97316'}}></div> M. Torre</span>
-          <span><div className="legend-dot" style={{background:'#06b6d4'}}></div> M. Piscina/Jac.</span>
-        </div>
-        <div className="stats-table-responsive">
-          <table className="stats-mini-table">
-            <thead>
-              <tr>
-                <th style={{minWidth: '150px'}}>CLIENTE</th>
-                {['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'].map(m => (
-                  <th key={m} style={{minWidth: '40px', textAlign: 'center'}}>{m}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {aquappStats.clientTableData?.length === 0 ? (
-                <tr>
-                  <td colSpan="13" style={{textAlign: 'center', color: 'var(--text-muted)'}}>No hay datos para el año {aquappYearFilter}</td>
-                </tr>
+      {/* Year Filter Header */}
+      <div className="stats-chart-card stats-year-selector-card">
+        <div className="stats-year-selector-inner">
+          <div className="stats-year-title">
+            <Filter size={18} color="#0ea5e9" />
+            <h3>AÑO DE ANÁLISIS</h3>
+          </div>
+          <div className="stats-year-dropdown-wrap">
+            <Calendar size={16} color="var(--text-muted)" style={{marginRight: '8px'}} />
+            <select 
+              value={aquappYearFilter} 
+              onChange={(e) => setAquappYearFilter(e.target.value)}
+              className="stats-year-select"
+            >
+              {aquappStats.availableYears?.length === 0 ? (
+                 <option value={new Date().getFullYear().toString()}>{new Date().getFullYear()}</option>
               ) : (
-                aquappStats.clientTableData?.map((client, idx) => (
-                  <tr key={idx}>
-                    <td style={{fontWeight: '600', color: 'var(--text-secondary)'}}>{client.name}</td>
-                    {client.months.map((events, mIdx) => (
-                      <td key={mIdx} style={{textAlign: 'center'}}>
-                        <div style={{display: 'flex', gap: '2px', justifyContent: 'center', flexWrap: 'wrap'}}>
-                          {events.map((ev, eIdx) => {
-                            let bg = '#cbd5e1';
-                            if (ev.group === 'tratamiento') {
-                              if (ev.type === 'Hipercloracion') bg = '#a855f7';
-                              else if (ev.type === 'Choque') bg = '#f43f5e';
-                              else if (ev.type === 'LimpTorres') bg = '#3b82f6';
-                              else if (ev.type === 'LimpDep') bg = '#10b981';
-                            } else {
-                              if (ev.type === 'Estandar') bg = '#fcd34d';
-                              else if (ev.type === 'Torre') bg = '#f97316';
-                              else if (ev.type === 'Piscina' || ev.type === 'Jacuzzi') bg = '#06b6d4';
-                            }
-                            return <div 
-                              key={eIdx} 
-                              className="legend-dot-cell" 
-                              style={{background: bg, width: '10px', height: '10px', borderRadius: '50%', display: 'inline-block'}}
-                              onMouseEnter={(e) => setTableTooltip({ visible: true, x: e.clientX, y: e.clientY, text: `${ev.group === 'tratamiento' ? 'Tratamiento' : 'Muestra'}: ${ev.type}` })}
-                              onMouseLeave={() => setTableTooltip(prev => ({ ...prev, visible: false }))}
-                            ></div>;
+                 aquappStats.availableYears?.map(y => (
+                   <option key={y} value={y}>{y}</option>
+                 ))
+              )}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Top 3 KPI Cards */}
+      <div className="stats-kpi-grid">
+        <div className="stats-kpi-card">
+          <div className="stats-kpi-icon-wrap" style={{ background: 'rgba(14, 165, 233, 0.12)', color: '#0ea5e9' }}>
+            <Users size={24} />
+          </div>
+          <div className="stats-kpi-info">
+            <span className="stats-kpi-label">CLIENTES ATENDIDOS</span>
+            <span className="stats-kpi-val">{aquappStats.totalClientes || 0}</span>
+          </div>
+        </div>
+
+        <div className="stats-kpi-card">
+          <div className="stats-kpi-icon-wrap" style={{ background: 'rgba(168, 85, 247, 0.12)', color: '#a855f7' }}>
+            <FlaskConical size={24} />
+          </div>
+          <div className="stats-kpi-info">
+            <span className="stats-kpi-label">TRATAMIENTOS</span>
+            <span className="stats-kpi-val">{aquappStats.totalTratamientos || 0}</span>
+          </div>
+        </div>
+
+        <div className="stats-kpi-card">
+          <div className="stats-kpi-icon-wrap" style={{ background: 'rgba(245, 158, 11, 0.12)', color: '#f59e0b' }}>
+            <Trophy size={24} />
+          </div>
+          <div className="stats-kpi-info">
+            <span className="stats-kpi-label">MES PICO</span>
+            <span className="stats-kpi-val">{aquappStats.mesPico || '-'}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Modern Charts Grid (2 columns on desktop) */}
+      <div className="stats-charts-row">
+        {/* Actividad de Clientes */}
+        <div className="stats-chart-card modern-chart-card">
+          <div className="modern-chart-header">
+            <Droplet size={18} color="#0ea5e9" />
+            <h3>CLIENTES ATENDIDOS</h3>
+          </div>
+          <div style={{ width: '100%', height: '240px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={aquappStats.muestrasChartData}
+                margin={{ top: 25, right: 10, left: 10, bottom: 5 }}
+              >
+                <XAxis 
+                  dataKey="mes" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fill: 'var(--text-muted)', fontSize: 11, fontWeight: 600 }} 
+                />
+                <YAxis hide={true} domain={[0, 'dataMax + 4']} />
+                <RechartsTooltip 
+                  cursor={{ fill: 'rgba(14, 165, 233, 0.08)', radius: 6 }} 
+                  contentStyle={{ backgroundColor: 'var(--bg-card)', color: 'var(--text-main)', borderRadius: '12px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-md)', fontSize: '0.85rem' }}
+                />
+                <Bar dataKey="Clientes" fill="#0ea5e9" radius={[6, 6, 0, 0]} barSize={22}>
+                  <LabelList dataKey="Clientes" position="top" fill="var(--text-secondary)" fontSize={11} fontWeight={700} formatter={(val) => val > 0 ? val : ''} />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Tratamientos Realizados */}
+        <div className="stats-chart-card modern-chart-card">
+          <div className="modern-chart-header">
+            <FlaskConical size={18} color="#a855f7" />
+            <h3>TRATAMIENTOS REALIZADOS</h3>
+          </div>
+          <div style={{ width: '100%', height: '240px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={aquappStats.tratamientosChartData}
+                margin={{ top: 20, right: 10, left: 10, bottom: 5 }}
+              >
+                <XAxis 
+                  dataKey="mes" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fill: 'var(--text-muted)', fontSize: 11, fontWeight: 600 }} 
+                />
+                <YAxis hide={true} />
+                <RechartsTooltip 
+                  cursor={{ fill: 'rgba(168, 85, 247, 0.08)', radius: 6 }} 
+                  contentStyle={{ backgroundColor: 'var(--bg-card)', color: 'var(--text-main)', borderRadius: '12px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-md)', fontSize: '0.85rem' }}
+                />
+                <Legend verticalAlign="top" wrapperStyle={{ paddingBottom: '12px', fontSize: '0.75rem', fontWeight: 600 }} />
+                <Bar dataKey="Hipercloracion" name="Hipercloración" stackId="a" fill="#a855f7" />
+                <Bar dataKey="Choque" name="Choque" stackId="a" fill="#f43f5e" />
+                <Bar dataKey="LimpTorres" name="L. Torres" stackId="a" fill="#3b82f6" />
+                <Bar dataKey="LimpDep" name="L. Depósitos" stackId="a" fill="#10b981" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      {/* Resumen por Cliente (Nuevo Acordeón Interactivo) */}
+      <div className="stats-chart-card client-summary-card">
+        {/* Card Header with Search */}
+        <div className="client-summary-header">
+          <div className="client-summary-title">
+            <Briefcase size={20} color="#0ea5e9" />
+            <h2>RESUMEN POR CLIENTE</h2>
+            <span className="client-count-pill">{filteredClientList.length}</span>
+          </div>
+
+          <div className="client-search-box">
+            <Search size={16} color="var(--text-muted)" />
+            <input 
+              type="text" 
+              placeholder="Buscar cliente..." 
+              value={clientSearchQuery}
+              onChange={(e) => setClientSearchQuery(e.target.value)}
+            />
+            {clientSearchQuery && (
+              <button 
+                type="button" 
+                className="btn-clear-search" 
+                onClick={() => setClientSearchQuery('')}
+                title="Borrar búsqueda"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Treatment Filter Chips */}
+        <div className="treatment-chips-bar">
+          {TREATMENT_TYPES.map(t => {
+            const isSelected = selectedTreatmentFilters.includes(t.id);
+            return (
+              <button
+                key={t.id}
+                type="button"
+                className={`treatment-filter-chip ${isSelected ? 'active' : ''}`}
+                style={{
+                  backgroundColor: isSelected ? t.color : `${t.color}18`,
+                  color: isSelected ? '#ffffff' : t.color,
+                  borderColor: isSelected ? t.color : `${t.color}40`
+                }}
+                onClick={() => toggleTreatmentFilter(t.id)}
+              >
+                <span className="chip-color-dot" style={{ backgroundColor: isSelected ? '#ffffff' : t.color }} />
+                <span>{t.label}</span>
+              </button>
+            );
+          })}
+          {selectedTreatmentFilters.length > 0 && (
+            <button 
+              type="button"
+              className="btn-clear-treatment-filters"
+              onClick={() => setSelectedTreatmentFilters([])}
+            >
+              ✕ Borrar filtros
+            </button>
+          )}
+        </div>
+
+        {/* Client Accordion List */}
+        <div className="client-accordion-list">
+          {filteredClientList.length === 0 ? (
+            <div className="client-empty-state">
+              <p style={{ fontWeight: 700, color: 'var(--text-muted)', margin: 0 }}>No se encontraron clientes</p>
+              <p style={{ fontSize: '0.82rem', color: 'var(--text-faint)', marginTop: '4px' }}>
+                Prueba a cambiar el texto de búsqueda o los filtros de tratamiento.
+              </p>
+            </div>
+          ) : (
+            filteredClientList.map(client => {
+              const isExpanded = !!expandedClients[client.name];
+              const allEvents = client.months.flat();
+              const totalTreatments = allEvents.length;
+              const distinctTypes = Array.from(new Set(allEvents.map(e => e.type)));
+
+              return (
+                <div key={client.name} className={`client-accordion-item ${isExpanded ? 'expanded' : ''}`}>
+                  {/* Collapsed Header */}
+                  <div 
+                    className="client-accordion-header"
+                    onClick={() => toggleClientExpand(client.name)}
+                    role="button"
+                    tabIndex={0}
+                    aria-expanded={isExpanded}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleClientExpand(client.name); }}}
+                  >
+                    <span className="client-name-text">{client.name}</span>
+
+                    <div className="client-header-right">
+                      {/* Distinct Treatment Dots */}
+                      <div className="client-treatment-dots">
+                        {distinctTypes.map(tType => (
+                          <span 
+                            key={tType} 
+                            className="client-type-dot"
+                            style={{ backgroundColor: TREATMENT_COLOR_MAP[tType] || '#64748b' }}
+                            title={TREATMENT_LABEL_MAP[tType] || tType}
+                          />
+                        ))}
+                      </div>
+
+                      {/* Badge count */}
+                      <span className="client-treatment-badge">
+                        {totalTreatments} {totalTreatments === 1 ? 'tratamiento' : 'tratamientos'}
+                      </span>
+
+                      {/* Chevron */}
+                      <span className="client-chevron-icon">
+                        {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Expanded Body: Timeline ENE-DIC */}
+                  {isExpanded && (
+                    <div className="client-accordion-body animate-fade-in">
+                      <div className="client-timeline-container">
+                        <div className="client-timeline-months-header">
+                          {['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'].map(m => (
+                            <span key={m} className="timeline-month-label">{m}</span>
+                          ))}
+                        </div>
+
+                        <div className="client-timeline-grid">
+                          {['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'].map((mStr, idx) => {
+                            const mEvents = client.months[idx] || [];
+                            return (
+                              <div key={mStr} className={`timeline-grid-cell ${mEvents.length > 0 ? 'has-events' : ''}`}>
+                                {mEvents.map((ev, eIdx) => {
+                                  const color = TREATMENT_COLOR_MAP[ev.type] || '#64748b';
+                                  const label = TREATMENT_LABEL_MAP[ev.type] || ev.type;
+                                  return (
+                                    <span 
+                                      key={eIdx}
+                                      className="timeline-badge-pill"
+                                      style={{ backgroundColor: color }}
+                                      title={`${mStr} · ${label}`}
+                                    >
+                                      {label}
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            );
                           })}
                         </div>
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
     </div>
