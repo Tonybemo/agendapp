@@ -45,6 +45,54 @@ const TREATMENT_LABEL_MAP = {
   'Piscina/Jacuzzi': 'M. Piscina/Jac.'
 };
 
+const parseJornadaDate = (fecha) => {
+  if (!fecha) return null;
+  if (typeof fecha !== 'string') return null;
+  if (fecha.includes('-')) {
+    const [y, m, d] = fecha.split('-');
+    return new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+  } else if (fecha.includes('/')) {
+    const [d, m, y] = fecha.split('/');
+    return new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+  }
+  return null;
+};
+
+const formatTime = (t) => {
+  if (!t) return '0.0h';
+  const str = String(t).trim();
+  if (!str.includes(':')) {
+    let num = parseFloat(str) || 0;
+    return num.toFixed(1) + 'h';
+  }
+  const parts = str.split(':');
+  let h = parseInt(parts[0], 10) || 0;
+  let m = parseInt(parts[1], 10) || 0;
+  let dec = h + (m / 60);
+  return dec.toFixed(1) + 'h';
+};
+
+const parseTimeStr = (t) => {
+  if (!t) return 0;
+  const str = String(t).trim();
+  if (!str.includes(':')) return parseFloat(str) || 0;
+  const parts = str.split(':');
+  let h = parseInt(parts[0], 10) || 0;
+  let m = parseInt(parts[1], 10) || 0;
+  return h + (m / 60);
+};
+
+const isSameDate = (d1, d2) => {
+  if (!d1 || !d2) return false;
+  if (d1 === d2) return true;
+  const dt1 = parseJornadaDate(d1);
+  const dt2 = parseJornadaDate(d2);
+  if (!dt1 || !dt2) return false;
+  return dt1.getFullYear() === dt2.getFullYear() &&
+         dt1.getMonth() === dt2.getMonth() &&
+         dt1.getDate() === dt2.getDate();
+};
+
 const parsePlagas = (plagas) => {
   let arr = [];
   if (Array.isArray(plagas)) {
@@ -171,18 +219,6 @@ const Estadisticas = () => {
     }
   };
 
-  const parseJDateHelper = (fecha) => {
-    if (!fecha) return null;
-    if (fecha.includes('-')) {
-      const [y, m, d] = fecha.split('-');
-      return new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
-    } else if (fecha.includes('/')) {
-      const [d, m, y] = fecha.split('/');
-      return new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
-    }
-    return null;
-  };
-
   const jornadasEnRangoDetalle = useMemo(() => {
     if (!workappFiltro.desde || !workappFiltro.hasta || !jornadas || jornadas.length === 0) return [];
     
@@ -192,7 +228,7 @@ const Estadisticas = () => {
     const dateHasta = new Date(parseInt(hY), parseInt(hM) - 1, parseInt(hD));
 
     return jornadas.filter(j => {
-      const jDate = parseJDateHelper(j.fecha);
+      const jDate = parseJornadaDate(j.fecha);
       if (!jDate) return false;
       const inRange = jDate >= dateDesde && jDate <= dateHasta;
       if (!inRange) return false;
@@ -210,8 +246,8 @@ const Estadisticas = () => {
       }
       return true;
     }).sort((a, b) => {
-      const da = parseJDateHelper(a.fecha);
-      const db = parseJDateHelper(b.fecha);
+      const da = parseJornadaDate(a.fecha);
+      const db = parseJornadaDate(b.fecha);
       return db - da;
     });
   }, [jornadas, workappFiltro, jornadaSearchQuery]);
@@ -473,26 +509,7 @@ const Estadisticas = () => {
       monthsMap[`${d.getFullYear()}-${d.getMonth()}`] = { label: mLabel, value: 0 };
     }
 
-    const parseJornadaDate = (fecha) => {
-      if (!fecha) return null;
-      if (fecha.includes('-')) {
-        const [y, m, d] = fecha.split('-');
-        return new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
-      } else if (fecha.includes('/')) {
-        const [d, m, y] = fecha.split('/');
-        return new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
-      }
-      return null;
-    };
-
-    const parseTimeStr = (t) => {
-      if (!t) return 0;
-      if (!t.includes(':')) return parseFloat(t) || 0;
-      const parts = t.split(':');
-      let h = parseInt(parts[0], 10) || 0;
-      let m = parseInt(parts[1], 10) || 0;
-      return h + (m / 60);
-    };
+// Helpers parseJornadaDate & parseTimeStr are available globally
 
     const jornadasEnRango = jornadas.filter(j => {
       const jDate = parseJornadaDate(j.fecha);
@@ -925,18 +942,6 @@ const Estadisticas = () => {
     const [hY, hM, hD] = workappFiltro.hasta.split('-');
     const dateHasta = new Date(parseInt(hY), parseInt(hM) - 1, parseInt(hD));
 
-    const parseJornadaDate = (fecha) => {
-      if (!fecha) return null;
-      if (fecha.includes('-')) {
-        const [y, m, d] = fecha.split('-');
-        return new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
-      } else if (fecha.includes('/')) {
-        const [d, m, y] = fecha.split('/');
-        return new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
-      }
-      return null;
-    };
-
     const jornadasEnRango = jornadas.filter(j => {
       const jDate = parseJornadaDate(j.fecha);
       if (!jDate) return false;
@@ -949,30 +954,6 @@ const Estadisticas = () => {
       window.__toast?.warning("No hay jornadas en ese rango de fechas.");
       return;
     }
-
-    const formatTime = (t) => {
-      if (!t) return '0.0h';
-      if (!t.includes(':')) {
-        let num = parseFloat(t) || 0;
-        return num.toFixed(1) + 'h';
-      }
-      const parts = t.split(':');
-      let h = parseInt(parts[0], 10) || 0;
-      let m = parseInt(parts[1], 10) || 0;
-      let dec = h + (m / 60);
-      return dec.toFixed(1) + 'h';
-    };
-
-    const isSameDate = (d1, d2) => {
-      if (!d1 || !d2) return false;
-      if (d1 === d2) return true;
-      const dt1 = parseJornadaDate(d1);
-      const dt2 = parseJornadaDate(d2);
-      if (!dt1 || !dt2) return false;
-      return dt1.getFullYear() === dt2.getFullYear() &&
-             dt1.getMonth() === dt2.getMonth() &&
-             dt1.getDate() === dt2.getDate();
-    };
 
     const enrichParada = (parada, dateStr) => {
       let details = [];
@@ -1318,7 +1299,7 @@ const Estadisticas = () => {
                 }
               }
 
-              const jDate = parseJDateHelper(j.fecha);
+              const jDate = parseJornadaDate(j.fecha);
               const dateLabel = jDate 
                 ? jDate.toLocaleDateString('es-ES', { weekday: 'short', day: '2-digit', month: 'short' })
                 : j.fecha;
