@@ -73,9 +73,19 @@ const Aquapp = () => {
 
   const getMotivoStyle = (motivo) => {
     const m = (motivo || '').toLowerCase();
-    if (m.includes('prev')) return { label: 'Prevención', color: '#166534', bg: '#dcfce7' };
-    if (m.includes('recuento') || m.includes('alto')) return { label: 'Recuento Alto', color: 'var(--text-main)', bg: 'var(--color-error-light)' };
-    return { label: motivo || 'Motivo', color: 'var(--text-secondary)', bg: '#f1f5f9' };
+    if (m.includes('prev')) return { label: 'Prevención', color: '#15803d', bg: '#dcfce7', isHigh: false };
+    if (m.includes('recuento') || m.includes('alto')) return { label: 'Recuento Alto ⚠️', color: '#b91c1c', bg: '#fee2e2', isHigh: true };
+    return { label: motivo || 'Motivo', color: 'var(--text-secondary)', bg: '#f1f5f9', isHigh: false };
+  };
+
+  const formatDisplayDate = (fecha) => {
+    if (!fecha) return '-';
+    let clean = fecha.includes('T') ? fecha.split('T')[0] : fecha;
+    if (clean.includes('-')) {
+      const [y, m, d] = clean.split('-');
+      return `${d}/${m}/${y}`;
+    }
+    return clean;
   };
 
   const getAvatarColor = (name) => {
@@ -541,142 +551,269 @@ const Aquapp = () => {
                                     <Folder fill={getMonthColor(mGroup.month)} color={getMonthColor(mGroup.month)} size={18} /> <span style={{color: 'var(--text-main)'}}>{mGroup.month}</span> <span style={{background: 'var(--bg-main)', color: 'var(--text-muted)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.7rem'}}>{mGroup.items.length}</span>
                                   </div>
                                 </div>
-                                {isMonthExpanded && mGroup.items.map(item => category.id === 'Tratamiento' ? (
-                                  <div key={item.id} className="tratamiento-record-card" style={{border: '1px solid var(--border)', borderRadius: '16px', padding: '16px', position: 'relative', overflow: 'hidden', marginBottom: '16px', boxShadow: 'var(--shadow-sm)', background: 'var(--bg-card)'}}>
-                                    {/* Borde izquierdo decorativo */}
-                                    <div style={{position: 'absolute', left: 0, top: 0, bottom: 0, width: '6px', background: '#8b5cf6'}}></div>
-                                    
-                                    <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px'}}>
-                                      <div style={{width: '20px', height: '20px', borderRadius: '50%', background: '#8b5cf6'}}></div>
-                                      <h4 style={{margin: 0, fontSize: '1.2rem', color: 'var(--text-main)', fontWeight: '800'}}>{item.cliente_nombre || 'Cliente Desconocido'}</h4>
-                                    </div>
-                                    
-                                    <div style={{display: 'flex', gap: '16px', color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '12px', fontWeight: '600'}}>
-                                      <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><Clock size={14}/> {item.hora}</span>
-                                      <span>•</span>
-                                      <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><Calendar size={14}/> {item.fecha ? item.fecha.split('T')[0] : '-'}</span>
-                                    </div>
-                                    
-                                    <div style={{display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap'}}>
-                                      <span style={{background: getTratamientoStyle(item.tipo_tratamiento).bg, color: getTratamientoStyle(item.tipo_tratamiento).color, padding: '6px 12px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: '700'}}>{item.tipo_tratamiento}</span>
-                                      <span style={{background: getMotivoStyle(item.motivo).bg, color: getMotivoStyle(item.motivo).color, padding: '6px 12px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: '700'}}>{item.motivo}</span>
-                                    </div>
-                                    
-                                    {item.notas && (
-                                      <div style={{ background: 'var(--bg-card-hover)', padding: '8px 10px', borderRadius: '8px', fontWeight: '500', color: 'var(--text-secondary)', marginBottom: '16px', fontSize: '0.85rem', border: '1px solid var(--border-light)' }}>
-                                        <strong style={{color: 'var(--text-main)'}}>Notas:</strong> {item.notas}
+                                {isMonthExpanded && mGroup.items.map(item => {
+                                  const displayDate = formatDisplayDate(item.fecha);
+                                  const displayTime = item.hora ? item.hora.substring(0, 5) : '-';
+
+                                  if (category.id === 'Tratamiento') {
+                                    const tratStyle = getTratamientoStyle(item.tipo_tratamiento);
+                                    const motStyle = getMotivoStyle(item.motivo);
+                                    const dotColor = getAvatarColor(item.cliente_nombre || 'Tratamiento');
+
+                                    return (
+                                      <div key={item.id} className="unified-card">
+                                        <div className="unified-card-top">
+                                          <div className="unified-card-top-left">
+                                            <div className="unified-card-dot" style={{ backgroundColor: dotColor }} />
+                                            <span style={{ fontWeight: 800, color: 'var(--text-main)', fontSize: '1.05rem' }}>
+                                              {item.cliente_nombre || 'Cliente Desconocido'}
+                                            </span>
+                                          </div>
+                                          <div className="unified-card-meta" style={{ margin: 0 }}>
+                                            <span>{displayDate}</span>
+                                            {displayTime !== '-' && <span>{displayTime}</span>}
+                                          </div>
+                                        </div>
+
+                                        <div className="trat-badges-row" style={{ marginTop: '8px' }}>
+                                          <span className="trat-badge-tipo" style={{ background: tratStyle.bg, color: tratStyle.color }}>
+                                            {tratStyle.label}
+                                          </span>
+                                          <span className={`trat-badge-motivo ${motStyle.isHigh ? 'recuento-alto' : 'prevencion'}`}>
+                                            {motStyle.label}
+                                          </span>
+                                        </div>
+
+                                        {item.notas && (
+                                          <div className="unified-card-notes">
+                                            <strong>Notas:</strong> {item.notas}
+                                          </div>
+                                        )}
+
+                                        <div className="unified-card-footer admin-only">
+                                          <button 
+                                            className="card-action-icon-btn edit" 
+                                            title="Editar"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              window.dispatchEvent(new CustomEvent('edit-record', { detail: { ...item, editType: 'tratamiento' } }));
+                                            }}
+                                          >
+                                            <Edit3 size={15}/>
+                                          </button>
+                                          <button 
+                                            className="card-action-icon-btn delete" 
+                                            title="Borrar"
+                                            onClick={(e) => { 
+                                              e.stopPropagation(); 
+                                              handleDeleteTratamiento(item.id); 
+                                            }}
+                                          >
+                                            <Trash2 size={15}/>
+                                          </button>
+                                        </div>
                                       </div>
-                                    )}
+                                    );
+                                  }
 
+                                  if (category.id === 'Plagas') {
+                                    return (
+                                      <div key={item.id} className="unified-card">
+                                        <div className="unified-card-top">
+                                          <div className="unified-card-top-left">
+                                            <div className="unified-card-dot" style={{ backgroundColor: '#10b981' }} />
+                                            <span style={{ fontWeight: 800, color: 'var(--text-main)', fontSize: '1.05rem' }}>
+                                              {item.cliente_nombre || 'Cliente Desconocido'}
+                                            </span>
+                                          </div>
+                                          <div className="unified-card-meta" style={{ margin: 0 }}>
+                                            <span>{displayDate}</span>
+                                            {displayTime !== '-' && <span>{displayTime}</span>}
+                                          </div>
+                                        </div>
 
-                                    <div className="admin-only" style={{display: 'flex', gap: '12px'}}>
-                                      <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => {
-                                        e.stopPropagation();
-                                        window.dispatchEvent(new CustomEvent('edit-record', { detail: { ...item, editType: 'tratamiento' } }));
-                                      }}>
-                                        <Edit3 size={16}/> Editar
-                                      </button>
-                                      <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: 'var(--color-error-light)', color: 'var(--color-error)', border: '1px solid #fecaca', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { 
-                                        e.stopPropagation(); 
-                                        handleDeleteTratamiento(item.id); 
-                                      }}>
-                                        <Trash2 size={16}/> Borrar
-                                      </button>
-                                    </div>
-                                  </div>
-                                ) : category.id === 'Plagas' ? (
-                                  <div key={item.id} className="tratamiento-record-card" style={{border: '1px solid var(--border)', borderRadius: '16px', padding: '16px', position: 'relative', overflow: 'hidden', marginBottom: '16px', boxShadow: 'var(--shadow-sm)', background: 'var(--bg-card)'}}>
-                                    <div style={{position: 'absolute', left: 0, top: 0, bottom: 0, width: '6px', background: '#10b981'}}></div>
-                                    
-                                    <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px'}}>
-                                      <div style={{width: '20px', height: '20px', borderRadius: '50%', background: '#10b981'}}></div>
-                                      <h4 style={{margin: 0, fontSize: '1.2rem', color: 'var(--text-main)', fontWeight: '800'}}>{item.cliente_nombre || 'Cliente Desconocido'}</h4>
-                                    </div>
-                                    
-                                    <div style={{display: 'flex', gap: '16px', color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '12px', fontWeight: '600'}}>
-                                      <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><Clock size={14}/> {item.hora ? item.hora.substring(0, 5) : '-'}</span>
-                                      <span>•</span>
-                                      <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><Calendar size={14}/> {item.fecha ? item.fecha.split('T')[0] : '-'}</span>
-                                    </div>
-                                    
-                                    <div style={{display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap'}}>
-                                      <span style={{background: '#d1fae5', color: '#047857', padding: '6px 12px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: '700'}}>{item.tipo_actuacion}</span>
-                                    </div>
+                                        <div className="trat-badges-row" style={{ marginTop: '8px' }}>
+                                          <span className="trat-badge-tipo" style={{ background: '#d1fae5', color: '#047857' }}>
+                                            <Bug size={14} style={{ marginRight: '4px' }}/> {item.tipo_actuacion || 'Aviso de Plaga'}
+                                          </span>
+                                        </div>
 
-                                    <div className="admin-only" style={{display: 'flex', gap: '12px'}}>
-                                      <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => {
-                                        e.stopPropagation();
-                                        window.dispatchEvent(new CustomEvent('edit-record', { detail: { ...item, editType: 'plaga' } }));
-                                      }}>
-                                        <Edit3 size={16}/> Editar
-                                      </button>
-                                      <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: 'var(--color-error-light)', color: 'var(--color-error)', border: '1px solid #fecaca', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { 
-                                        e.stopPropagation(); 
-                                        handleDeletePlaga(item.id); 
-                                      }}>
-                                        <Trash2 size={16}/> Borrar
-                                      </button>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <div key={item.id} className="sample-card" style={{border: '1px solid var(--border)', borderRadius: '12px', padding: '12px', marginBottom: '12px', boxShadow: 'var(--shadow-sm)', background: 'var(--bg-card)'}}>
-                                    <div className="sample-header" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px'}}>
-                                      <div className="sample-title-badge" style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-                                        <h4 style={{margin: 0, fontSize: '1rem', color: 'var(--color-info)', fontWeight: '800'}}>{item.numero_muestra || 'Muestra'}</h4>
-                                        <span className="badge-tipo" style={{ backgroundColor: item.tipo_muestra === 'Torre' ? '#ffedd5' : 'var(--color-warning-border)', color: item.tipo_muestra === 'Torre' ? '#c2410c' : '#a16207', display: 'flex', alignItems: 'center', gap: '4px', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: '700' }}>
-                                          <Droplet size={12}/> {item.tipo_muestra}
+                                        {item.descripcion && (
+                                          <div className="unified-card-notes">
+                                            <strong>Notas:</strong> {item.descripcion}
+                                          </div>
+                                        )}
+
+                                        <div className="unified-card-footer admin-only">
+                                          <button 
+                                            className="card-action-icon-btn edit" 
+                                            title="Editar"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              window.dispatchEvent(new CustomEvent('edit-record', { detail: { ...item, editType: 'plaga' } }));
+                                            }}
+                                          >
+                                            <Edit3 size={15}/>
+                                          </button>
+                                          <button 
+                                            className="card-action-icon-btn delete" 
+                                            title="Borrar"
+                                            onClick={(e) => { 
+                                              e.stopPropagation(); 
+                                              handleDeletePlaga(item.id); 
+                                            }}
+                                          >
+                                            <Trash2 size={15}/>
+                                          </button>
+                                        </div>
+                                      </div>
+                                    );
+                                  }
+
+                                  // MUESTRAS (Estandar, Torre, Piscina, Jacuzzi...)
+                                  const tipo = item.tipo_muestra || 'Estándar';
+                                  const tipoBadgeClass = tipo === 'Torre' ? 'badge-tipo-torre' : tipo === 'Piscina' ? 'badge-tipo-piscina' : tipo === 'Jacuzzi' ? 'badge-tipo-jacuzzi' : 'badge-tipo-estandar';
+                                  const isTorre = tipo === 'Torre';
+
+                                  return (
+                                    <div key={item.id} className="unified-card">
+                                      {/* Top: Muestra num + Badges */}
+                                      <div className="unified-card-top">
+                                        <div className="unified-card-top-left">
+                                          <span>{item.numero_muestra || 'Muestra'}</span>
+                                        </div>
+                                        <div className="unified-card-top-right">
+                                          <span className={`badge-tipo-pill ${tipoBadgeClass}`}>
+                                            <Droplet size={12}/> {tipo}
+                                          </span>
+                                          {item.cod_envase && (
+                                            <span className="badge-envase-pill">
+                                              #{item.cod_envase}
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+
+                                      {/* Main Title: Ubicación / Descripción */}
+                                      <h3 className="unified-card-title">
+                                        {item.descripcion || 'Sin descripción'}
+                                      </h3>
+
+                                      {/* Date & Time */}
+                                      <div className="unified-card-meta">
+                                        <span className="unified-card-meta-item">
+                                          <Clock size={13}/> {displayTime}
+                                        </span>
+                                        <span className="unified-card-meta-item">
+                                          <Calendar size={13}/> {displayDate}
                                         </span>
                                       </div>
-                                      <span className="sample-id" style={{ background: '#e0f2fe', color: '#0369a1', padding: '4px 8px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '800' }}>
-                                        {item.cod_envase || 'Sin Cód.'}
-                                      </span>
-                                    </div>
-                                    
-                                    <div className="sample-meta" style={{ display: 'flex', gap: '8px', color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: '10px', fontWeight: '600' }}>
-                                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={12}/> {item.hora ? item.hora.substring(0, 5) : '-'}</span>
-                                      <span>•</span>
-                                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Calendar size={12}/> {item.fecha ? item.fecha.split('T')[0] : '-'}</span>
-                                    </div>
-                                    
-                                    <div className="sample-location" style={{ background: 'var(--bg-card-hover)', padding: '8px 10px', borderRadius: '8px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '12px', fontSize: '0.9rem' }}>
-                                      {item.descripcion || 'Sin descripción'}
-                                    </div>
-                                    
-                                    {item.tipo_muestra === 'Torre' ? (
-                                      <div className="parameters-grid" style={{marginTop: '12px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px'}}>
-                                        <div className="param-box ph" style={{ flex: 1, padding: '8px 0', border: '1px solid #fef08a', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><FlaskConical size={16} color="#eab308" /><span className="param-name" style={{ color: 'var(--color-warning)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>PH</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.ph || '-'}</span></div>
-                                        <div className="param-box temp" style={{ flex: 1, padding: '8px 0', border: '1px solid #fecaca', borderRadius: '8px', background: 'var(--color-error-light)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Thermometer size={16} color="#ef4444" /><span className="param-name" style={{ color: 'var(--color-error)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>TEMP</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.temp ? item.temp + 'º' : '-'}</span></div>
-                                        <div className="param-box cond" style={{ flex: 1, padding: '8px 0', border: '1px solid var(--border)', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Zap size={16} color="#475569" /><span className="param-name" style={{ color: 'var(--text-secondary)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>COND.</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.conductividad || '-'}</span></div>
-                                        <div className="param-box turb" style={{ flex: 1, padding: '8px 0', border: '1px solid #bae6fd', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Waves size={16} color="#0ea5e9" /><span className="param-name" style={{ color: 'var(--color-info)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>TURB.</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.turbidez || '-'}</span></div>
-                                        <div className="param-box hierro" style={{ flex: 1, padding: '8px 0', border: '1px solid var(--border)', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Box size={16} color="#64748b" /><span className="param-name" style={{ color: 'var(--text-muted)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>HIERRO</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.hierro || '-'}</span></div>
-                                        <div className="param-box f8583" style={{ flex: 1, padding: '8px 0', border: '1px solid #bae6fd', borderRadius: '8px', background: 'var(--color-info-light)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Droplet size={16} color="#0ea5e9" /><span className="param-name" style={{ color: 'var(--color-info)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>F-8583</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.f_8583_kit || '-'}</span></div>
-                                        <div className="param-box f8580" style={{ flex: 1, padding: '8px 0', border: '1px solid var(--border)', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><FlaskConical size={16} color="#64748b" /><span className="param-name" style={{ color: 'var(--text-muted)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>F-8580</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.f_8580_total || '-'}</span></div>
-                                      </div>
-                                    ) : (
-                                      <div className="parameters-grid" style={{marginTop: '12px', display: 'flex', gap: '6px'}}>
-                                        <div className="param-box ph" style={{ flex: 1, padding: '8px 0', border: '1px solid #fef08a', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><FlaskConical size={16} color="#eab308" /><span className="param-name" style={{ color: 'var(--color-warning)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>PH</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.ph || '-'}</span></div>
-                                        <div className="param-box temp" style={{ flex: 1, padding: '8px 0', border: '1px solid #fecaca', borderRadius: '8px', background: 'var(--color-error-light)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Thermometer size={16} color="#ef4444" /><span className="param-name" style={{ color: 'var(--color-error)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>TEMP</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.temp ? item.temp + 'º' : '-'}</span></div>
-                                        <div className="param-box cloro" style={{ flex: 1, padding: '8px 0', border: '1px solid #bae6fd', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Droplet size={16} color="#0ea5e9" /><span className="param-name" style={{ color: 'var(--color-info)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>CLORO</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.cloro || '-'}</span></div>
-                                        <div className="param-box hierro" style={{ flex: 1, padding: '8px 0', border: '1px solid var(--border)', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Box size={16} color="#64748b" /><span className="param-name" style={{ color: 'var(--text-muted)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>HIERRO</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.hierro || '-'}</span></div>
-                                      </div>
-                                    )}
 
-                                    <div className="sample-actions" style={{marginTop: '12px', display: 'flex', gap: '8px'}}>
-                                      <button className="action-btn-outline edit" style={{flex: 1, padding: '8px', borderRadius: '8px', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', cursor: 'pointer'}} onClick={(e) => {
-                                        e.stopPropagation();
-                                        window.dispatchEvent(new CustomEvent('edit-record', { detail: { ...item, editType: 'muestra' } }));
-                                      }}>
-                                        <Edit3 size={16}/> Editar
-                                      </button>
-                                      <button className="action-btn-outline delete" style={{flex: 1, padding: '8px', borderRadius: '8px', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: 'var(--color-error-light)', color: 'var(--color-error)', border: '1px solid #fecaca', cursor: 'pointer'}} onClick={(e) => { 
-                                        e.stopPropagation(); 
-                                        handleDeleteMuestra(item.id); 
-                                      }}>
-                                        <Trash2 size={16}/> Borrar
-                                      </button>
+                                      {/* 2x2 Parameter Capsules */}
+                                      {isTorre ? (
+                                        <div className="sample-capsules-grid">
+                                          <div className="sample-capsule ph">
+                                            <div className="capsule-left">
+                                              <div className="capsule-icon-circle"><FlaskConical size={15}/></div>
+                                              <span className="capsule-label">PH</span>
+                                            </div>
+                                            <span className="capsule-value">{item.ph || '-'}</span>
+                                          </div>
+                                          <div className="sample-capsule temp">
+                                            <div className="capsule-left">
+                                              <div className="capsule-icon-circle"><Thermometer size={15}/></div>
+                                              <span className="capsule-label">TEMP</span>
+                                            </div>
+                                            <span className="capsule-value">{item.temp ? `${item.temp}°` : '-'}</span>
+                                          </div>
+                                          <div className="sample-capsule cond">
+                                            <div className="capsule-left">
+                                              <div className="capsule-icon-circle"><Zap size={15}/></div>
+                                              <span className="capsule-label">COND.</span>
+                                            </div>
+                                            <span className="capsule-value">{item.conductividad || '-'}</span>
+                                          </div>
+                                          <div className="sample-capsule turb">
+                                            <div className="capsule-left">
+                                              <div className="capsule-icon-circle"><Waves size={15}/></div>
+                                              <span className="capsule-label">TURB.</span>
+                                            </div>
+                                            <span className="capsule-value">{item.turbidez || '-'}</span>
+                                          </div>
+                                          <div className="sample-capsule hierro">
+                                            <div className="capsule-left">
+                                              <div className="capsule-icon-circle"><Box size={15}/></div>
+                                              <span className="capsule-label">HIERRO</span>
+                                            </div>
+                                            <span className="capsule-value">{item.hierro || '-'}</span>
+                                          </div>
+                                          <div className="sample-capsule f8583">
+                                            <div className="capsule-left">
+                                              <div className="capsule-icon-circle"><Droplet size={15}/></div>
+                                              <span className="capsule-label">F-8583</span>
+                                            </div>
+                                            <span className="capsule-value">{item.f_8583_kit || '-'}</span>
+                                          </div>
+                                        </div>
+                                      ) : (
+                                        <div className="sample-capsules-grid">
+                                          <div className="sample-capsule ph">
+                                            <div className="capsule-left">
+                                              <div className="capsule-icon-circle"><FlaskConical size={15}/></div>
+                                              <span className="capsule-label">PH</span>
+                                            </div>
+                                            <span className="capsule-value">{item.ph || '-'}</span>
+                                          </div>
+                                          <div className="sample-capsule temp">
+                                            <div className="capsule-left">
+                                              <div className="capsule-icon-circle"><Thermometer size={15}/></div>
+                                              <span className="capsule-label">TEMP</span>
+                                            </div>
+                                            <span className="capsule-value">{item.temp ? `${item.temp}°` : '-'}</span>
+                                          </div>
+                                          <div className="sample-capsule cloro">
+                                            <div className="capsule-left">
+                                              <div className="capsule-icon-circle"><Droplet size={15}/></div>
+                                              <span className="capsule-label">CLORO</span>
+                                            </div>
+                                            <span className="capsule-value">{item.cloro || item.cloro_libre || '-'}</span>
+                                          </div>
+                                          <div className="sample-capsule hierro">
+                                            <div className="capsule-left">
+                                              <div className="capsule-icon-circle"><Box size={15}/></div>
+                                              <span className="capsule-label">HIERRO</span>
+                                            </div>
+                                            <span className="capsule-value">{item.hierro || '0'}</span>
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {/* Actions */}
+                                      <div className="unified-card-footer admin-only">
+                                        <button 
+                                          className="card-action-icon-btn edit" 
+                                          title="Editar"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            window.dispatchEvent(new CustomEvent('edit-record', { detail: { ...item, editType: 'muestra' } }));
+                                          }}
+                                        >
+                                          <Edit3 size={15}/>
+                                        </button>
+                                        <button 
+                                          className="card-action-icon-btn delete" 
+                                          title="Borrar"
+                                          onClick={(e) => { 
+                                            e.stopPropagation(); 
+                                            handleDeleteMuestra(item.id); 
+                                          }}
+                                        >
+                                          <Trash2 size={15}/>
+                                        </button>
+                                      </div>
                                     </div>
-                                  </div>
-                                ))} 
+                                  );
+                                })} 
                               </div>
                             )
                           })} 
@@ -823,38 +960,69 @@ const Aquapp = () => {
 
                             {isMonthExpanded && (
                               <div style={{marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '16px'}}>
-                                {itemsFiltrados.map(item => (
-                                  <div key={item.id} style={{border: '1px solid var(--border)', borderRadius: '16px', padding: '16px', position: 'relative', overflow: 'hidden', background: 'var(--bg-card)', boxShadow: 'var(--shadow-sm)'}}>
-                                    <div style={{position: 'absolute', left: 0, top: 0, bottom: 0, width: '6px', background: '#8b5cf6'}}></div>
-                                    <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px'}}>
-                                      <div style={{width: '20px', height: '20px', borderRadius: '50%', background: '#8b5cf6'}}></div>
-                                      <h4 style={{margin: 0, fontSize: '1.2rem', color: 'var(--text-main)', fontWeight: '800'}}>{item.cliente_nombre || 'Cliente Desconocido'}</h4>
-                                    </div>
-                                    <div style={{display: 'flex', gap: '16px', color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '12px', fontWeight: '600'}}>
-                                      <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><Clock size={14}/> {item.hora}</span>
-                                      <span>•</span>
-                                      <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><Calendar size={14}/> {item.fecha ? item.fecha.split('T')[0] : '-'}</span>
-                                    </div>
-                                    <div style={{display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap'}}>
-                                      <span style={{background: getTratamientoStyle(item.tipo_tratamiento).bg, color: getTratamientoStyle(item.tipo_tratamiento).color, padding: '6px 12px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: '700'}}>{getTratamientoStyle(item.tipo_tratamiento).label}</span>
-                                      <span style={{background: getMotivoStyle(item.motivo).bg, color: getMotivoStyle(item.motivo).color, padding: '6px 12px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: '700'}}>{getMotivoStyle(item.motivo).label}</span>
-                                    </div>
-                                    
-                                    {item.notas && (
-                                      <div style={{ background: 'var(--bg-card-hover)', padding: '8px 10px', borderRadius: '8px', fontWeight: '500', color: 'var(--text-secondary)', marginBottom: '16px', fontSize: '0.85rem', border: '1px solid var(--border-light)' }}>
-                                        <strong style={{color: 'var(--text-main)'}}>Notas:</strong> {item.notas}
+                                {itemsFiltrados.map(item => {
+                                  const tratStyle = getTratamientoStyle(item.tipo_tratamiento);
+                                  const motStyle = getMotivoStyle(item.motivo);
+                                  const dotColor = getAvatarColor(item.cliente_nombre || 'Tratamiento');
+                                  const displayDate = formatDisplayDate(item.fecha);
+                                  const displayTime = item.hora ? item.hora.substring(0, 5) : '-';
+
+                                  return (
+                                    <div key={item.id} className="unified-card">
+                                      <div className="unified-card-top">
+                                        <div className="unified-card-top-left">
+                                          <div className="unified-card-dot" style={{ backgroundColor: dotColor }} />
+                                          <span style={{ fontWeight: 800, color: 'var(--text-main)', fontSize: '1.05rem' }}>
+                                            {item.cliente_nombre || 'Cliente Desconocido'}
+                                          </span>
+                                        </div>
+                                        <div className="unified-card-meta" style={{ margin: 0 }}>
+                                          <span>{displayDate}</span>
+                                          {displayTime !== '-' && <span>{displayTime}</span>}
+                                        </div>
                                       </div>
-                                    )}
-                                    <div className="admin-only" style={{display: 'flex', gap: '12px'}}>
-                                      <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); window.dispatchEvent(new CustomEvent('edit-record', { detail: { ...item, editType: 'tratamiento' } })); }}>
-                                        <Edit3 size={16}/> Editar
-                                      </button>
-                                      <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: 'var(--color-error-light)', color: 'var(--color-error)', border: '1px solid #fecaca', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); handleDeleteTratamiento(item.id); handleCargarTratamientos(selectedFiltroTrat); }}>
-                                        <Trash2 size={16}/> Borrar
-                                      </button>
+
+                                      <div className="trat-badges-row" style={{ marginTop: '8px' }}>
+                                        <span className="trat-badge-tipo" style={{ background: tratStyle.bg, color: tratStyle.color }}>
+                                          {tratStyle.label}
+                                        </span>
+                                        <span className={`trat-badge-motivo ${motStyle.isHigh ? 'recuento-alto' : 'prevencion'}`}>
+                                          {motStyle.label}
+                                        </span>
+                                      </div>
+
+                                      {item.notas && (
+                                        <div className="unified-card-notes">
+                                          <strong>Notas:</strong> {item.notas}
+                                        </div>
+                                      )}
+
+                                      <div className="unified-card-footer admin-only">
+                                        <button 
+                                          className="card-action-icon-btn edit" 
+                                          title="Editar"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            window.dispatchEvent(new CustomEvent('edit-record', { detail: { ...item, editType: 'tratamiento' } }));
+                                          }}
+                                        >
+                                          <Edit3 size={15}/>
+                                        </button>
+                                        <button 
+                                          className="card-action-icon-btn delete" 
+                                          title="Borrar"
+                                          onClick={(e) => { 
+                                            e.stopPropagation(); 
+                                            handleDeleteTratamiento(item.id); 
+                                            handleCargarTratamientos(selectedFiltroTrat);
+                                          }}
+                                        >
+                                          <Trash2 size={15}/>
+                                        </button>
+                                      </div>
                                     </div>
-                                  </div>
-                                ))}
+                                  );
+                                })}
                               </div>
                             )}
                           </div>

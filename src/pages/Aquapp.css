@@ -1417,3 +1417,379 @@
     font-size: 0.72rem;
   }
 }
+
+
+/* ========================================================================
+   UNIFIED MODERN CARDS (MUESTRAS, TRATAMIENTOS, PLAGAS)
+   ======================================================================== */
+
+.unified-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 18px 20px;
+  margin-bottom: 14px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.unified-card:hover {
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  border-color: rgba(30, 155, 233, 0.3);
+}
+
+.unified-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.unified-card-top-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.unified-card-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.unified-card-top-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.badge-tipo-pill {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge-tipo-estandar {
+  background: #fef08a;
+  color: #854d0e;
+  border: 1px solid #fde047;
+}
+
+.badge-tipo-torre {
+  background: #ffedd5;
+  color: #c2410c;
+  border: 1px solid #fed7aa;
+}
+
+.badge-tipo-piscina {
+  background: #e0f2fe;
+  color: #0284c7;
+  border: 1px solid #bae6fd;
+}
+
+.badge-tipo-jacuzzi {
+  background: #ede9fe;
+  color: #7c3aed;
+  border: 1px solid #ddd6fe;
+}
+
+.badge-envase-pill {
+  background: #e0f2fe;
+  color: #0369a1;
+  font-weight: 800;
+  font-size: 0.78rem;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid #bae6fd;
+  letter-spacing: 0.02em;
+}
+
+.unified-card-title {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: var(--text-main);
+  margin: 4px 0 6px 0;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.unified-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.unified-card-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* 2x2 Parameter Capsules Grid */
+.sample-capsules-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.sample-capsule {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-radius: 999px;
+  padding: 5px 14px 5px 6px;
+  border: 1.5px solid;
+  transition: all 0.2s ease;
+}
+
+.capsule-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.capsule-icon-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.capsule-label {
+  font-size: 0.78rem;
+  font-weight: 900;
+  color: var(--text-main);
+  letter-spacing: 0.03em;
+}
+
+.capsule-value {
+  font-size: 1.18rem;
+  font-weight: 900;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+}
+
+/* Parameter color variations */
+.sample-capsule.ph {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.04);
+}
+.sample-capsule.ph .capsule-icon-circle {
+  background: #fef3c7;
+  color: #d97706;
+  border: 1.5px solid #fde68a;
+}
+
+.sample-capsule.temp {
+  border-color: #f43f5e;
+  background: rgba(244, 63, 94, 0.04);
+}
+.sample-capsule.temp .capsule-icon-circle {
+  background: #ffe4e6;
+  color: #e11d48;
+  border: 1.5px solid #fecdd3;
+}
+
+.sample-capsule.cloro {
+  border-color: #0ea5e9;
+  background: rgba(14, 165, 233, 0.04);
+}
+.sample-capsule.cloro .capsule-icon-circle {
+  background: #e0f2fe;
+  color: #0284c7;
+  border: 1.5px solid #bae6fd;
+}
+
+.sample-capsule.hierro {
+  border-color: #64748b;
+  background: rgba(100, 116, 139, 0.04);
+}
+.sample-capsule.hierro .capsule-icon-circle {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1.5px solid #e2e8f0;
+}
+
+.sample-capsule.cond {
+  border-color: #8b5cf6;
+  background: rgba(139, 92, 246, 0.04);
+}
+.sample-capsule.cond .capsule-icon-circle {
+  background: #ede9fe;
+  color: #7c3aed;
+  border: 1.5px solid #ddd6fe;
+}
+
+.sample-capsule.turb {
+  border-color: #06b6d4;
+  background: rgba(6, 182, 212, 0.04);
+}
+.sample-capsule.turb .capsule-icon-circle {
+  background: #cffafe;
+  color: #0891b2;
+  border: 1.5px solid #a5f3fc;
+}
+
+.sample-capsule.f8583 {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.04);
+}
+.sample-capsule.f8583 .capsule-icon-circle {
+  background: #d1fae5;
+  color: #059669;
+  border: 1.5px solid #a7f3d0;
+}
+
+.sample-capsule.f8580 {
+  border-color: #f43f5e;
+  background: rgba(244, 63, 94, 0.04);
+}
+.sample-capsule.f8580 .capsule-icon-circle {
+  background: #ffe4e6;
+  color: #e11d48;
+  border: 1.5px solid #fecdd3;
+}
+
+/* Treatment Badges */
+.trat-badges-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.trat-badge-tipo {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.trat-badge-motivo {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.trat-badge-motivo.prevencion {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.trat-badge-motivo.recuento-alto {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+/* Notes Section */
+.unified-card-notes {
+  font-size: 0.86rem;
+  color: var(--text-secondary);
+  margin: 6px 0 10px;
+  line-height: 1.45;
+  background: var(--bg-card-hover);
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border-light);
+}
+
+.unified-card-notes strong {
+  color: var(--text-main);
+}
+
+/* Compact Actions in Bottom Right */
+.unified-card-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.card-action-icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.card-action-icon-btn.edit {
+  background: rgba(30, 155, 233, 0.08);
+  color: #1E9BE9;
+}
+
+.card-action-icon-btn.edit:hover {
+  background: #1E9BE9;
+  color: #fff;
+  border-color: #1E9BE9;
+  transform: scale(1.08);
+}
+
+.card-action-icon-btn.delete {
+  background: rgba(239, 68, 68, 0.08);
+  color: #ef4444;
+}
+
+.card-action-icon-btn.delete:hover {
+  background: #ef4444;
+  color: #fff;
+  border-color: #ef4444;
+  transform: scale(1.08);
+}
+
+@media (max-width: 480px) {
+  .sample-capsules-grid {
+    gap: 6px;
+  }
+  .sample-capsule {
+    padding: 4px 8px 4px 4px;
+  }
+  .capsule-icon-circle {
+    width: 26px;
+    height: 26px;
+  }
+  .capsule-label {
+    font-size: 0.7rem;
+  }
+  .capsule-value {
+    font-size: 1rem;
+  }
+  .unified-card-title {
+    font-size: 1.15rem;
+  }
+}

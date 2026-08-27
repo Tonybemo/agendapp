@@ -311,117 +311,174 @@ const Calendario = () => {
 
                         return (
                           <div key={`${actKey}-${idx}`}>
-                            {isMuestra && (
-                              <div className="sample-card" style={{border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '12px', marginBottom: '12px', boxShadow: 'var(--shadow-sm)', background: 'var(--bg-card)'}}>
-                                <div className="sample-header" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px'}}>
-                                  <div className="sample-title-badge" style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-                                    <h4 style={{margin: 0, fontSize: '1.1rem', color: 'var(--text-main)', fontWeight: '800'}}>{item.numero_muestra || 'Muestra'}</h4>
-                                    {item.tipo_muestra && (
-                                      <span className="badge-tipo" style={{ backgroundColor: item.tipo_muestra === 'Torre' ? '#ffedd5' : 'var(--color-warning-border)', color: item.tipo_muestra === 'Torre' ? '#c2410c' : '#a16207', display: 'flex', alignItems: 'center', gap: '4px', padding: '2px 8px', borderRadius: 'var(--radius-sm)', fontSize: '0.75rem', fontWeight: '700' }}>
-                                        <Droplet size={12}/> {item.tipo_muestra}
+                            {isMuestra && (() => {
+                                const tipo = item.tipo_muestra || 'Estándar';
+                                const tipoBadgeClass = tipo === 'Torre' ? 'badge-tipo-torre' : tipo === 'Piscina' ? 'badge-tipo-piscina' : tipo === 'Jacuzzi' ? 'badge-tipo-jacuzzi' : 'badge-tipo-estandar';
+                                const isTorre = tipo === 'Torre';
+                                const displayDate = item.fecha ? (item.fecha.includes('T') ? item.fecha.split('T')[0] : item.fecha) : '-';
+                                const displayTime = item.hora ? item.hora.substring(0, 5) : '-';
+
+                                return (
+                                  <div className="unified-card">
+                                    <div className="unified-card-top">
+                                      <div className="unified-card-top-left">
+                                        <span>{item.numero_muestra || 'Muestra'}</span>
+                                      </div>
+                                      <div className="unified-card-top-right">
+                                        <span className={`badge-tipo-pill ${tipoBadgeClass}`}>
+                                          <Droplet size={12}/> {tipo}
+                                        </span>
+                                        {item.cod_envase && (
+                                          <span className="badge-envase-pill">
+                                            #{item.cod_envase}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    <h3 className="unified-card-title">
+                                      {item.descripcion || 'Sin descripción'}
+                                    </h3>
+
+                                    <div className="unified-card-meta">
+                                      <span className="unified-card-meta-item">
+                                        <Clock size={13}/> {displayTime}
+                                      </span>
+                                      <span className="unified-card-meta-item">
+                                        <CalendarIcon size={13}/> {displayDate}
+                                      </span>
+                                    </div>
+
+                                    {isTorre ? (
+                                      <div className="sample-capsules-grid">
+                                        <div className="sample-capsule ph">
+                                          <div className="capsule-left">
+                                            <div className="capsule-icon-circle"><FlaskConical size={15}/></div>
+                                            <span className="capsule-label">PH</span>
+                                          </div>
+                                          <span className="capsule-value">{item.ph || '-'}</span>
+                                        </div>
+                                        <div className="sample-capsule temp">
+                                          <div className="capsule-left">
+                                            <div className="capsule-icon-circle"><ThermometerSun size={15}/></div>
+                                            <span className="capsule-label">TEMP</span>
+                                          </div>
+                                          <span className="capsule-value">{item.temp ? `${item.temp}°` : '-'}</span>
+                                        </div>
+                                        <div className="sample-capsule cond">
+                                          <div className="capsule-left">
+                                            <div className="capsule-icon-circle"><Zap size={15}/></div>
+                                            <span className="capsule-label">COND.</span>
+                                          </div>
+                                          <span className="capsule-value">{item.conductividad || '-'}</span>
+                                        </div>
+                                        <div className="sample-capsule turb">
+                                          <div className="capsule-left">
+                                            <div className="capsule-icon-circle"><Waves size={15}/></div>
+                                            <span className="capsule-label">TURB.</span>
+                                          </div>
+                                          <span className="capsule-value">{item.turbidez || '-'}</span>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <div className="sample-capsules-grid">
+                                        <div className="sample-capsule ph">
+                                          <div className="capsule-left">
+                                            <div className="capsule-icon-circle"><FlaskConical size={15}/></div>
+                                            <span className="capsule-label">PH</span>
+                                          </div>
+                                          <span className="capsule-value">{item.ph || '-'}</span>
+                                        </div>
+                                        <div className="sample-capsule temp">
+                                          <div className="capsule-left">
+                                            <div className="capsule-icon-circle"><ThermometerSun size={15}/></div>
+                                            <span className="capsule-label">TEMP</span>
+                                          </div>
+                                          <span className="capsule-value">{item.temp || item.temperatura ? `${item.temp || item.temperatura}°` : '-'}</span>
+                                        </div>
+                                        <div className="sample-capsule cloro">
+                                          <div className="capsule-left">
+                                            <div className="capsule-icon-circle"><Droplet size={15}/></div>
+                                            <span className="capsule-label">CLORO</span>
+                                          </div>
+                                          <span className="capsule-value">{item.cloro_libre || item.cloro || '-'}</span>
+                                        </div>
+                                        <div className="sample-capsule hierro">
+                                          <div className="capsule-left">
+                                            <div className="capsule-icon-circle"><Box size={15}/></div>
+                                            <span className="capsule-label">HIERRO</span>
+                                          </div>
+                                          <span className="capsule-value">{item.hierro || '0'}</span>
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {isAdmin && (
+                                      <div className="unified-card-footer admin-only">
+                                        <button 
+                                          className="card-action-icon-btn edit" 
+                                          title="Editar en Muestras"
+                                          onClick={(e) => { e.stopPropagation(); navigate('/aquapp'); }}
+                                        >
+                                          <Edit3 size={15}/>
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })()}
+
+                            {isTratamiento && (() => {
+                              const isRecuentoAlto = (item.motivo || '').toLowerCase().includes('recuento') || (item.motivo || '').toLowerCase().includes('alto');
+                              const displayDate = item.fecha ? (item.fecha.includes('T') ? item.fecha.split('T')[0] : item.fecha) : '-';
+                              const displayTime = item.hora ? item.hora.substring(0, 5) : '-';
+
+                              return (
+                                <div className="unified-card">
+                                  <div className="unified-card-top">
+                                    <div className="unified-card-top-left">
+                                      <div className="unified-card-dot" style={{ backgroundColor: actKey.includes('limpieza') ? '#10b981' : '#8b5cf6' }} />
+                                      <span style={{ fontWeight: 800, color: 'var(--text-main)', fontSize: '1.05rem' }}>
+                                        {item.cliente_nombre || item.tipo_tratamiento || item.tipo_actuacion || cfg.label}
+                                      </span>
+                                    </div>
+                                    <div className="unified-card-meta" style={{ margin: 0 }}>
+                                      <span>{displayDate}</span>
+                                      {displayTime !== '-' && <span>{displayTime}</span>}
+                                    </div>
+                                  </div>
+
+                                  <div className="trat-badges-row" style={{ marginTop: '8px' }}>
+                                    <span className="trat-badge-tipo" style={{ background: actKey.includes('limpieza') ? '#d1fae5' : '#f3e8ff', color: actKey.includes('limpieza') ? '#047857' : '#7c3aed' }}>
+                                      {item.tipo_tratamiento || item.tipo_actuacion || cfg.label}
+                                    </span>
+                                    {item.motivo && (
+                                      <span className={`trat-badge-motivo ${isRecuentoAlto ? 'recuento-alto' : 'prevencion'}`}>
+                                        {isRecuentoAlto ? 'Recuento Alto ⚠️' : item.motivo}
                                       </span>
                                     )}
                                   </div>
-                                  <span className="sample-id" style={{fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 'bold', background: 'var(--bg-main)', padding: '4px 10px', borderRadius: 'var(--radius-sm)'}}>{item.cod_envase || 'Sin Cód.'}</span>
+
+                                  {item.notas && (
+                                    <div className="unified-card-notes">
+                                      <strong>Notas:</strong> {item.notas}
+                                    </div>
+                                  )}
+
+                                  {isAdmin && (
+                                    <div className="unified-card-footer admin-only">
+                                      <button 
+                                        className="card-action-icon-btn edit" 
+                                        title="Editar en Tratamientos"
+                                        onClick={(e) => { e.stopPropagation(); navigate('/aquapp'); }}
+                                      >
+                                        <Edit3 size={15}/>
+                                      </button>
+                                    </div>
+                                  )}
                                 </div>
-                                
-                                <div className="sample-meta" style={{display: 'flex', gap: '12px', color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '12px', fontWeight: '600'}}>
-                                  <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><Clock size={14}/> {item.hora || '-'}</span>
-                                  <span>•</span>
-                                  <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><CalendarIcon size={14}/> {item.fecha ? item.fecha.split('T')[0] : '-'}</span>
-                                </div>
-
-                                <div className="sample-location" style={{ background: 'var(--bg-card-hover)', padding: '8px 10px', borderRadius: 'var(--radius-sm)', fontWeight: '700', color: 'var(--text-main)', marginBottom: '12px', fontSize: '0.9rem' }}>
-                                  {item.descripcion || 'Sin descripción'}
-                                </div>
-                                
-                                {item.tipo_muestra === 'Torre' ? (
-                                  <div className="parameters-grid" style={{marginTop: '12px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px'}}>
-                                    <div className="param-box ph" style={{ flex: 1, padding: '8px 0', border: '1px solid #fef08a', borderRadius: 'var(--radius-sm)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><FlaskConical size={16} color="#eab308" /><span className="param-name" style={{ color: 'var(--color-warning)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>PH</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.ph || '-'}</span></div>
-                                    <div className="param-box temp" style={{ flex: 1, padding: '8px 0', border: '1px solid #fecaca', borderRadius: 'var(--radius-sm)', background: 'var(--color-error-light)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><ThermometerSun size={16} color="#ef4444" /><span className="param-name" style={{ color: 'var(--color-error)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>TEMP</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.temp || item.temperatura ? (item.temp || item.temperatura) + 'º' : '-'}</span></div>
-                                    <div className="param-box cond" style={{ flex: 1, padding: '8px 0', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Zap size={16} color="var(--text-secondary)" /><span className="param-name" style={{ color: 'var(--text-secondary)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>COND.</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.conductividad || '-'}</span></div>
-                                    <div className="param-box turb" style={{ flex: 1, padding: '8px 0', border: '1px solid #bae6fd', borderRadius: 'var(--radius-sm)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Waves size={16} color="#0ea5e9" /><span className="param-name" style={{ color: 'var(--color-info)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>TURB.</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.turbidez || '-'}</span></div>
-                                    <div className="param-box hierro" style={{ flex: 1, padding: '8px 0', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Box size={16} color="var(--text-muted)" /><span className="param-name" style={{ color: 'var(--text-muted)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>HIERRO</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.hierro || '-'}</span></div>
-                                    <div className="param-box f8583" style={{ flex: 1, padding: '8px 0', border: '1px solid #bae6fd', borderRadius: 'var(--radius-sm)', background: 'var(--color-info-light)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Droplet size={16} color="#0ea5e9" /><span className="param-name" style={{ color: 'var(--color-info)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>F-8583</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.f_8583_kit || '-'}</span></div>
-                                    <div className="param-box f8580" style={{ flex: 1, padding: '8px 0', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><FlaskConical size={16} color="var(--text-muted)" /><span className="param-name" style={{ color: 'var(--text-muted)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>F-8580</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.f_8580_total || '-'}</span></div>
-                                  </div>
-                                ) : (
-                                  <div className="parameters-grid" style={{marginTop: '12px', display: 'flex', gap: '6px'}}>
-                                    <div className="param-box ph" style={{ flex: 1, padding: '8px 0', border: '1px solid #fef08a', borderRadius: 'var(--radius-sm)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><FlaskConical size={16} color="#eab308" /><span className="param-name" style={{ color: 'var(--color-warning)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>PH</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.ph || '-'}</span></div>
-                                    <div className="param-box temp" style={{ flex: 1, padding: '8px 0', border: '1px solid #fecaca', borderRadius: 'var(--radius-sm)', background: 'var(--color-error-light)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><ThermometerSun size={16} color="#ef4444" /><span className="param-name" style={{ color: 'var(--color-error)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>TEMP</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.temp || item.temperatura ? (item.temp || item.temperatura) + 'º' : '-'}</span></div>
-                                    <div className="param-box cloro" style={{ flex: 1, padding: '8px 0', border: '1px solid #bae6fd', borderRadius: 'var(--radius-sm)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Droplet size={16} color="#0ea5e9" /><span className="param-name" style={{ color: 'var(--color-info)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>CLORO</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.cloro_libre || item.cloro || '-'}</span></div>
-                                    <div className="param-box hierro" style={{ flex: 1, padding: '8px 0', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}><Box size={16} color="var(--text-muted)" /><span className="param-name" style={{ color: 'var(--text-muted)', marginTop: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>HIERRO</span><span className="param-value" style={{ fontSize: '0.95rem', marginTop: '2px', fontWeight: 'bold', color: 'var(--text-main)' }}>{item.hierro || '-'}</span></div>
-                                  </div>
-                                )}
-
-                                {isAdmin && (
-                                  <div className="sample-actions" style={{marginTop: '12px', display: 'flex', gap: '8px'}}>
-                                    <button className="action-btn-outline edit" style={{flex: 1, padding: '8px', borderRadius: 'var(--radius-sm)', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: 'var(--primary-light)', color: 'var(--primary-hover)', border: '1px solid #bfdbfe', cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); navigate('/aquapp'); }}>
-                                      Editar
-                                    </button>
-                                    <button className="action-btn-outline delete" style={{flex: 1, padding: '8px', borderRadius: 'var(--radius-sm)', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: 'var(--color-error-light)', color: 'var(--color-error)', border: '1px solid var(--color-error-border)', cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); navigate('/aquapp'); }}>
-                                      Borrar
-                                    </button>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-
-                            {isTratamiento && (
-                              <div className="tratamiento-record-card" style={{border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '16px', position: 'relative', overflow: 'hidden', marginBottom: '16px', boxShadow: 'var(--shadow-md)', background: 'var(--bg-card)'}}>
-                                {/* Borde izquierdo decorativo */}
-                                <div style={{position: 'absolute', left: 0, top: 0, bottom: 0, width: '6px', background: actKey.includes('limpieza') ? '#10b981' : '#8b5cf6'}}></div>
-                                
-                                <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px'}}>
-                                  <div style={{width: '20px', height: '20px', borderRadius: '50%', background: actKey.includes('limpieza') ? '#10b981' : '#8b5cf6'}}></div>
-                                  <h4 style={{margin: 0, fontSize: '1.2rem', color: 'var(--text-main)', fontWeight: '800'}}>{item.tipo_tratamiento || item.tipo_actuacion || cfg.label}</h4>
-                                </div>
-                                
-                                <div style={{display: 'flex', gap: '16px', color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '12px', fontWeight: '600'}}>
-                                  <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><Clock size={14}/> {item.hora || '-'}</span>
-                                  <span>•</span>
-                                  <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><CalendarIcon size={14}/> {item.fecha ? item.fecha.split('T')[0] : '-'}</span>
-                                </div>
-                                
-                                {item.motivo && (
-                                  <div style={{display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap'}}>
-                                    <span style={{background: 'var(--bg-main)', color: 'var(--text-secondary)', padding: '6px 12px', borderRadius: 'var(--radius-sm)', fontSize: '0.85rem', fontWeight: '700'}}>{item.motivo}</span>
-                                  </div>
-                                )}
-
-                                {item.producto && (
-                                  <div style={{marginBottom: '12px'}}>
-                                    <div style={{fontSize: '0.75rem', fontWeight: '800', color: 'var(--text-muted)', marginBottom: '4px'}}>PRODUCTO</div>
-                                    <div style={{fontWeight: '600', color: 'var(--text-main)', fontSize: '0.95rem'}}>{item.producto}</div>
-                                  </div>
-                                )}
-
-                                {item.dosis && (
-                                  <div style={{marginBottom: '12px'}}>
-                                    <div style={{fontSize: '0.75rem', fontWeight: '800', color: 'var(--text-muted)', marginBottom: '4px'}}>DOSIS</div>
-                                    <div style={{fontWeight: '600', color: 'var(--text-main)', fontSize: '0.95rem'}}>{item.dosis}</div>
-                                  </div>
-                                )}
-                                
-                                {item.notas && (
-                                  <div style={{background: 'var(--bg-card-hover)', padding: '12px', borderRadius: 'var(--radius-sm)', fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '16px'}}>
-                                    <div style={{fontWeight: 'bold', fontSize: '0.75rem', color: 'var(--text-faint)', marginBottom: '4px'}}>NOTAS</div>
-                                    {item.notas}
-                                  </div>
-                                )}
-
-                                {isAdmin && (
-                                  <div className="admin-only" style={{display: 'flex', gap: '12px'}}>
-                                    <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: 'var(--primary-light)', color: 'var(--primary-hover)', border: '1px solid #bfdbfe', padding: '10px', borderRadius: 'var(--radius-sm)', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); navigate('/aquapp'); }}>
-                                      Editar
-                                    </button>
-                                    <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: 'var(--color-error-light)', color: 'var(--color-error)', border: '1px solid var(--color-error-border)', padding: '10px', borderRadius: 'var(--radius-sm)', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); navigate('/aquapp'); }}>
-                                      Borrar
-                                    </button>
-                                  </div>
-                                )}
-                              </div>
-                            )}
+                              );
+                            })()}
 
                             {isAviso && (
                               <div style={{border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '16px', marginBottom: '16px', boxShadow: 'var(--shadow-md)', background: 'var(--bg-card)'}}>
