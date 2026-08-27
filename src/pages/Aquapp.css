@@ -1423,12 +1423,18 @@
    UNIFIED MODERN CARDS (MUESTRAS, TRATAMIENTOS, PLAGAS)
    ======================================================================== */
 
+/* ========================================================================
+   UNIFIED MODERN CARDS (MUESTRAS, TRATAMIENTOS, PLAGAS)
+   ======================================================================== */
+
 /* Responsive Grid for Cards */
 .unified-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 14px;
   margin-top: 12px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .unified-card {
@@ -1443,6 +1449,10 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .unified-card:hover {
@@ -1456,6 +1466,7 @@
   align-items: center;
   gap: 8px;
   margin-bottom: 6px;
+  min-width: 0;
 }
 
 .unified-card-top-left {
@@ -1465,6 +1476,7 @@
   font-weight: 700;
   font-size: 0.9rem;
   color: var(--text-muted);
+  min-width: 0;
 }
 
 .unified-card-dot {
@@ -1480,6 +1492,7 @@
   gap: 6px;
   flex-wrap: wrap;
   justify-content: flex-end;
+  flex-shrink: 0;
 }
 
 .badge-tipo-pill {
@@ -1528,12 +1541,14 @@
 }
 
 .unified-card-title {
-  font-size: 1.35rem;
+  font-size: 1.3rem;
   font-weight: 900;
   color: var(--text-main);
   margin: 4px 0 6px 0;
   line-height: 1.25;
   letter-spacing: -0.01em;
+  word-break: break-word;
+  min-width: 0;
 }
 
 .unified-card-meta {
@@ -1544,6 +1559,7 @@
   font-size: 0.82rem;
   font-weight: 600;
   margin-bottom: 12px;
+  flex-wrap: wrap;
 }
 
 .unified-card-meta-item {
@@ -1556,30 +1572,35 @@
 .sample-capsules-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 8px;
   margin-bottom: 8px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .sample-capsule {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 6px;
   border-radius: 999px;
-  padding: 5px 14px 5px 6px;
+  padding: 5px 12px 5px 6px;
   border: 1.5px solid;
   transition: all 0.2s ease;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .capsule-left {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  min-width: 0;
 }
 
 .capsule-icon-circle {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -1588,17 +1609,19 @@
 }
 
 .capsule-label {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 900;
   color: var(--text-main);
   letter-spacing: 0.03em;
+  white-space: nowrap;
 }
 
 .capsule-value {
-  font-size: 1.18rem;
+  font-size: 1.15rem;
   font-weight: 900;
   color: var(--text-main);
   letter-spacing: -0.02em;
+  white-space: nowrap;
 }
 
 /* Parameter color variations */
@@ -1732,6 +1755,7 @@
   padding: 8px 12px;
   border-radius: 10px;
   border: 1px solid var(--border-light);
+  word-break: break-word;
 }
 
 .unified-card-notes strong {
@@ -1783,24 +1807,89 @@
   transform: scale(1.08);
 }
 
-@media (max-width: 480px) {
-  .sample-capsules-grid {
-    gap: 6px;
+/* Mobile Responsiveness for Cards & Containers */
+@media (max-width: 768px) {
+  .unified-cards-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px;
+    margin-top: 8px;
   }
-  .sample-capsule {
-    padding: 4px 8px 4px 4px;
+  
+  .unified-card {
+    padding: 12px 14px;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
   }
-  .capsule-icon-circle {
-    width: 26px;
-    height: 26px;
-  }
-  .capsule-label {
-    font-size: 0.7rem;
-  }
-  .capsule-value {
-    font-size: 1rem;
-  }
+  
   .unified-card-title {
     font-size: 1.15rem;
+    margin: 3px 0 5px 0;
+  }
+
+  .unified-card-meta {
+    font-size: 0.78rem;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .sample-capsules-grid {
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+
+  .sample-capsule {
+    padding: 4px 8px 4px 4px;
+    min-height: 36px;
+    border-radius: 999px;
+  }
+
+  .capsule-icon-circle {
+    width: 24px;
+    height: 24px;
+  }
+
+  .capsule-label {
+    font-size: 0.68rem;
+  }
+
+  .capsule-value {
+    font-size: 0.98rem;
+  }
+
+  .badge-tipo-pill, .badge-envase-pill {
+    font-size: 0.72rem;
+    padding: 2px 8px;
+  }
+
+  .card-action-icon-btn {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+@media (max-width: 400px) {
+  .unified-card {
+    padding: 10px 10px;
+  }
+  
+  .sample-capsules-grid {
+    gap: 4px;
+  }
+
+  .sample-capsule {
+    padding: 3px 6px 3px 3px;
+  }
+
+  .capsule-icon-circle {
+    width: 22px;
+    height: 22px;
+  }
+
+  .capsule-label {
+    font-size: 0.64rem;
+  }
+
+  .capsule-value {
+    font-size: 0.9rem;
   }
 }

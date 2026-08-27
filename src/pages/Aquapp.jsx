@@ -560,7 +560,7 @@ const Aquapp = () => {
                                   if (category.id === 'Tratamiento') {
                                     const tratStyle = getTratamientoStyle(item.tipo_tratamiento);
                                     const motStyle = getMotivoStyle(item.motivo);
-                                    const dotColor = getAvatarColor(item.cliente_nombre || 'Tratamiento');
+                                    const dotColor = motStyle.isHigh ? '#ef4444' : '#10b981';
 
                                     return (
                                       <div key={item.id} className="unified-card">
@@ -967,7 +967,7 @@ const Aquapp = () => {
                                 {itemsFiltrados.map(item => {
                                   const tratStyle = getTratamientoStyle(item.tipo_tratamiento);
                                   const motStyle = getMotivoStyle(item.motivo);
-                                  const dotColor = getAvatarColor(item.cliente_nombre || 'Tratamiento');
+                                  const dotColor = motStyle.isHigh ? '#ef4444' : '#10b981';
                                   const displayDate = formatDisplayDate(item.fecha);
                                   const displayTime = item.hora ? item.hora.substring(0, 5) : '-';
 
