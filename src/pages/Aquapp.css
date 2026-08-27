@@ -1423,15 +1423,26 @@
    UNIFIED MODERN CARDS (MUESTRAS, TRATAMIENTOS, PLAGAS)
    ======================================================================== */
 
+/* Responsive Grid for Cards */
+.unified-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 14px;
+  margin-top: 12px;
+}
+
 .unified-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 18px 20px;
-  margin-bottom: 14px;
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+  border-radius: 18px;
+  padding: 16px 18px;
+  margin-bottom: 0;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
   position: relative;
   transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .unified-card:hover {

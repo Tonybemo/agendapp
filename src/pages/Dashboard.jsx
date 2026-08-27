@@ -71,14 +71,18 @@ const Dashboard = () => {
       let tareasTotal = 0;
       let tareasCompletadas = 0;
       (tareasRes.data || []).forEach(row => {
-        const matchMes = row.mes && row.mes.toLowerCase() === monthName.toLowerCase();
-        const matchAno = !row.año || String(row.año) === String(year);
+        const rowMes = (row.mes || '').trim().toLowerCase();
+        const targetMes = monthName.toLowerCase();
+        const matchMes = rowMes === targetMes;
+        const matchAno = !row.año || String(row.año).trim() === String(year);
         if (matchMes && matchAno) {
           let tasks = [];
           try { tasks = typeof row.tareas_json === 'string' ? JSON.parse(row.tareas_json) : (row.tareas_json || []); } catch {}
           tasks.forEach(t => {
             tareasTotal++;
-            if (t.status === 'completed') tareasCompletadas++;
+            if (t.status === 'completed' || t.status === 'skipped') {
+              tareasCompletadas++;
+            }
           });
         }
       });

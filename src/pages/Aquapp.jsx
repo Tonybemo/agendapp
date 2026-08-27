@@ -551,9 +551,11 @@ const Aquapp = () => {
                                     <Folder fill={getMonthColor(mGroup.month)} color={getMonthColor(mGroup.month)} size={18} /> <span style={{color: 'var(--text-main)'}}>{mGroup.month}</span> <span style={{background: 'var(--bg-main)', color: 'var(--text-muted)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.7rem'}}>{mGroup.items.length}</span>
                                   </div>
                                 </div>
-                                {isMonthExpanded && mGroup.items.map(item => {
-                                  const displayDate = formatDisplayDate(item.fecha);
-                                  const displayTime = item.hora ? item.hora.substring(0, 5) : '-';
+                                {isMonthExpanded && (
+                                  <div className="unified-cards-grid">
+                                    {mGroup.items.map(item => {
+                                      const displayDate = formatDisplayDate(item.fecha);
+                                      const displayTime = item.hora ? item.hora.substring(0, 5) : '-';
 
                                   if (category.id === 'Tratamiento') {
                                     const tratStyle = getTratamientoStyle(item.tipo_tratamiento);
@@ -813,7 +815,9 @@ const Aquapp = () => {
                                       </div>
                                     </div>
                                   );
-                                })} 
+                                })}
+                                  </div>
+                                )}
                               </div>
                             )
                           })} 
@@ -959,7 +963,7 @@ const Aquapp = () => {
                             </div>
 
                             {isMonthExpanded && (
-                              <div style={{marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '16px'}}>
+                              <div className="unified-cards-grid">
                                 {itemsFiltrados.map(item => {
                                   const tratStyle = getTratamientoStyle(item.tipo_tratamiento);
                                   const motStyle = getMotivoStyle(item.motivo);
