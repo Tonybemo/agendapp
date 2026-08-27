@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Droplet, Lock, Bell, Settings, WifiOff, Home, 
   Wind, Thermometer, Calendar, Search, ChevronDown, ChevronUp, ChevronRight,
   FlaskConical, Factory, SprayCan, Edit3, Trash2, Clock, Plus, BookOpen, Bug, Box, Download, BarChart2, CheckCircle2, Zap, Waves, Folder
 } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip as RechartsTooltip, CartesianGrid, ReferenceDot } from 'recharts';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import './Aquapp.css';
@@ -113,6 +114,8 @@ const Aquapp = () => {
   const [selectedTorreYear, setSelectedTorreYear] = useState(new Date().getFullYear().toString());
   const [torresData, setTorresData] = useState(Array(12).fill(null));
   const [loadingTorres, setLoadingTorres] = useState(false);
+  const [selectedTorreMonth, setSelectedTorreMonth] = useState(new Date().getMonth());
+  const [selectedTorreParam, setSelectedTorreParam] = useState('turbidez');
 
   const toggleCategory = (id) => {
     setExpandedCategories(prev => ({ ...prev, [id]: !prev[id] }));
@@ -868,35 +871,67 @@ const Aquapp = () => {
     );
   };
 
-  const renderTorreRow = (label, valueExtractor, cellStyle = {}, customRenderer = null) => {
-    return (
-      <tr>
-        <td style={{position: 'sticky', left: 0, zIndex: 10}}>{label}</td>
-        {torresData.map((item, idx) => {
-          const val = valueExtractor(item);
-          return (
-            <td key={idx} style={{...cellStyle}}>
-              {customRenderer ? customRenderer(val) : val}
-            </td>
-          );
-        })}
-      </tr>
-    );
-  };
+  const TORRES_MONTHS = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+  const TORRES_PARAMS = [
+    { key: 'ph', label: 'pH', unit: '', color: '#3b82f6' },
+    { key: 'temp', label: 'Temp', unit: '°C', color: '#f59e0b' },
+    { key: 'conductividad', label: 'Cond.', unit: 'mS', color: '#8b5cf6' },
+    { key: 'turbidez', label: 'Turbidez', unit: 'NTU', color: '#06b6d4' },
+    { key: 'hierro', label: 'Hierro', unit: 'mg/L', color: '#ef4444' },
+    { key: 'f_8583_kit', label: 'F-8583', unit: '', color: '#10b981' },
+    { key: 'f_8580_total', label: 'F-8580', unit: '', color: '#f43f5e' },
+  ];
+
+  const torresChartData = useMemo(() => {
+    return TORRES_MONTHS.map((label, idx) => {
+      const item = torresData[idx];
+      const entry = { label, monthIdx: idx };
+      TORRES_PARAMS.forEach(p => {
+        entry[p.key] = item && item[p.key] ? parseFloat(item[p.key]) || null : null;
+      });
+      return entry;
+    });
+  }, [torresData]);
+
+  const GARRAFA_FIELDS = [
+    { key: 'mat_f_8583', label: 'F-8583' },
+    { key: 'mat_f_8580', label: 'F-8580' },
+    { key: 'mat_f_8481', label: 'F-8481' },
+    { key: 'mat_a_4170', label: 'A-4170' },
+    { key: 'mat_a_645', label: 'A-645' },
+  ];
 
   const renderTorresTab = () => {
-    const months = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+    const currentItem = torresData[selectedTorreMonth];
+
+    // Parse date parts
+    let dayPart = '', timePart = '';
+    if (currentItem && currentItem.fecha) {
+      let dp = currentItem.fecha;
+      if (dp.includes('T')) dp = dp.split('T')[0];
+      dayPart = dp.includes('-') ? dp.split('-')[2] : dp.split('/')[0];
+      timePart = currentItem.hora ? currentItem.hora.substring(0, 5) : '';
+    }
+
+    // Collect garrafas for current month
+    const garrafas = currentItem ? GARRAFA_FIELDS.filter(g => currentItem[g.key] && String(currentItem[g.key]).trim() !== '' && String(currentItem[g.key]).trim() !== '-').map(g => ({ ...g, value: currentItem[g.key] })) : [];
+
+    const selectedParamDef = TORRES_PARAMS.find(p => p.key === selectedTorreParam) || TORRES_PARAMS[3];
+
     return (
       <div className="animate-fade-in" style={{paddingBottom: '40px'}}>
-        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'}}>
-          <h2 style={{margin: 0, display: 'flex', alignItems: 'center', gap: '8px'}}><Factory size={24}/> Torres</h2>
-          <button style={{background: '#3b82f6', color: 'white', padding: '8px 16px', borderRadius: '8px', border: 'none', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 'bold'}} onClick={() => window.print()}>
-            <Download size={18}/> PDF
+        {/* Header */}
+        <div className="torres-new-top-bar">
+          <h2 style={{margin: 0, display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 900}}>
+            <Factory size={24} color="#1E9BE9"/> Torres
+          </h2>
+          <button className="btn-export-pdf" onClick={() => window.print()}>
+            <Download size={16}/> PDF
           </button>
         </div>
 
         {/* Client Tabs */}
-        <div style={{display: 'flex', gap: '12px', marginBottom: '20px', overflowX: 'auto', paddingBottom: '8px'}}>
+        <div className="torres-client-bar">
           {torresClients.length === 0 ? (
             <div style={{color: 'var(--text-muted)'}}>No hay clientes con muestras de Torre.</div>
           ) : (
@@ -904,98 +939,244 @@ const Aquapp = () => {
               <button 
                 key={c.id}
                 onClick={() => setSelectedTorreClient(c.id)}
-                style={{
-                  flex: 1, minWidth: '150px', padding: '12px', borderRadius: '24px', fontWeight: 'bold', border: '2px solid',
-                  borderColor: selectedTorreClient === c.id ? 'var(--color-info)' : '#e2e8f0',
-                  background: selectedTorreClient === c.id ? 'var(--color-info)' : 'white',
-                  color: selectedTorreClient === c.id ? 'white' : '#64748b',
-                  cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px',
-                  transition: 'all 0.2s'
-                }}
+                className={`torres-client-pill ${selectedTorreClient === c.id ? 'active' : ''}`}
               >
-                 {selectedTorreClient === c.id ? <CheckCircle2 size={18} /> : <div style={{width: '16px', height: '16px', borderRadius: '50%', border: '2px solid #94a3b8'}} />}
-                 {c.name}
+                {selectedTorreClient === c.id ? <CheckCircle2 size={16} /> : <div className="circle-empty-sm" />}
+                {c.name}
               </button>
             ))
           )}
         </div>
 
-        {/* Year Selector */}
-        <div style={{background: 'var(--bg-card)', padding: '16px', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', boxShadow: 'var(--shadow-sm)'}}>
-          <div style={{display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold'}}>
-            <Calendar size={20} /> Año de Registro
-          </div>
-          <select 
-            value={selectedTorreYear}
-            onChange={(e) => setSelectedTorreYear(e.target.value)}
-            style={{padding: '8px 16px', borderRadius: '20px', border: '1px solid var(--border)', fontWeight: 'bold', outline: 'none', background: 'var(--bg-card-hover)', color: 'var(--text-main)'}}
-          >
-            {[2024, 2025, 2026, 2027].map(y => <option key={y} value={y}>{y}</option>)}
-          </select>
+        {/* Year Pills */}
+        <div className="torres-year-bar">
+          {[2024, 2025, 2026, 2027].map(y => (
+            <button
+              key={y}
+              className={`torres-year-pill ${selectedTorreYear === String(y) ? 'active' : ''}`}
+              onClick={() => setSelectedTorreYear(String(y))}
+            >
+              {y}
+            </button>
+          ))}
         </div>
 
-        {/* Table */}
         {loadingTorres ? (
-           <div style={{textAlign: 'center', padding: '40px', color: 'var(--text-muted)'}}>Cargando datos...</div>
-        ) : (
-          <div style={{background: 'var(--bg-card)', borderRadius: '16px', overflowX: 'auto', overflowY: 'auto', maxHeight: '65vh', boxShadow: 'var(--shadow-lg)', border: '1px solid var(--border)'}}>
-            <table className="torres-table" style={{width: '100%', borderCollapse: 'collapse', minWidth: '800px', backgroundColor: 'var(--bg-card)'}}>
-              <thead>
-                <tr style={{ borderBottom: '2px solid var(--border)', backgroundColor: 'var(--bg-card-hover)' }}>
-                  <th style={{position: 'sticky', top: 0, left: 0, zIndex: 12, textAlign: 'left', padding: '16px', color: 'var(--text-muted)', backgroundColor: 'var(--bg-card-hover)'}}>PARÁMETROS</th>
-                  {months.map(m => (
-                    <th key={m} style={{position: 'sticky', top: 0, zIndex: 11, backgroundColor: 'var(--bg-card-hover)', textAlign: 'center', minWidth: '100px', padding: '16px', color: 'var(--text-main)', fontWeight: 'bold'}}>{m}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {renderTorreRow('Recogida', item => {
-                  if (!item) return '-';
-                  let datePart = item.fecha;
-                  if (datePart.includes('T')) datePart = datePart.split('T')[0];
-                  datePart = datePart.includes('-') ? datePart.split('-')[2] : datePart.split('/')[0];
-                  let timePart = item.hora ? item.hora.substring(0, 5) : '';
-                  return `Día ${datePart} ${timePart}`;
-                }, {color: 'var(--color-info)', fontWeight: 'bold'})}
-                {renderTorreRow('pH', item => item ? item.ph : '-')}
-                {renderTorreRow('Temp', item => item ? item.temp : '-')}
-                {renderTorreRow('Cond.', item => item ? item.conductividad : '-')}
-                {renderTorreRow('Turbidez', item => item ? item.turbidez : '-')}
-                {renderTorreRow('Hierro', item => item ? item.hierro : '-')}
-                {renderTorreRow('F-8583', item => item ? item.f_8583_kit : '-')}
-                {renderTorreRow('F-8580', item => item ? item.f_8580_total : '-')}
-                
-                {renderTorreRow('F-8583 (Entrega)', item => item ? item.mat_f_8583 : '-', {}, (val) => val && val !== '-' ? <div style={{background: '#fce7f3', color: '#be185d', padding: '4px 8px', borderRadius: '8px', display: 'inline-block'}}>📦 {val}</div> : val)}
-                {renderTorreRow('F-8580 (Entrega)', item => item ? item.mat_f_8580 : '-', {}, (val) => val && val !== '-' ? <div style={{background: '#fce7f3', color: '#be185d', padding: '4px 8px', borderRadius: '8px', display: 'inline-block'}}>📦 {val}</div> : val)}
-                {renderTorreRow('F-8481 (Entrega)', item => item ? item.mat_f_8481 : '-', {}, (val) => val && val !== '-' ? <div style={{background: '#fce7f3', color: '#be185d', padding: '4px 8px', borderRadius: '8px', display: 'inline-block'}}>📦 {val}</div> : val)}
-                {renderTorreRow('A-4170 (Entrega)', item => item ? item.mat_a_4170 : '-', {}, (val) => val && val !== '-' ? <div style={{background: '#fce7f3', color: '#be185d', padding: '4px 8px', borderRadius: '8px', display: 'inline-block'}}>📦 {val}</div> : val)}
-                {renderTorreRow('A-645 (Entrega)', item => item ? item.mat_a_645 : '-', {}, (val) => val && val !== '-' ? <div style={{background: '#fce7f3', color: '#be185d', padding: '4px 8px', borderRadius: '8px', display: 'inline-block'}}>📦 {val}</div> : val)}
-                
-                {renderTorreRow('Limpieza', item => item ? item.limpieza : '-', {color: 'var(--color-info)', fontWeight: 'bold'})}
-                {renderTorreRow('Notas', item => item ? item.descripcion : '-', {}, (val) => val && val !== '-' ? <div style={{background: '#fef3c7', color: '#92400e', padding: '8px', borderRadius: '8px', fontSize: '0.75rem', textAlign: 'left'}}>📝 {val}</div> : '')}
-                {renderTorreRow('Envase', item => item ? item.cod_envase : '-', {color: 'var(--color-info)'})}
-                
-                <tr>
-                  <td style={{position: 'sticky', left: 0, zIndex: 10, color: 'var(--color-info)'}}>Acciones</td>
-                  {torresData.map((item, idx) => (
-                    <td key={idx} style={{textAlign: 'center'}}>
-                      {item ? (
-                        <div className="admin-only" style={{display: 'flex', gap: '8px', justifyContent: 'center'}}>
-                          <button onClick={() => window.dispatchEvent(new CustomEvent('edit-record', {detail: {...item, editType: 'muestra'}}))} style={{background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer'}}><Edit3 size={16}/></button>
-                          <button onClick={async () => {
-                            if(window.confirm("¿Borrar esta muestra?")) {
-                              await supabase.from('aquapp_muestras').delete().eq('id', item.id);
-                              window.dispatchEvent(new CustomEvent('aquapp-refresh-data'));
-                            }
-                          }} style={{background: 'none', border: 'none', color: 'var(--color-error)', cursor: 'pointer'}}><Trash2 size={16}/></button>
-                        </div>
-                      ) : null}
-                    </td>
-                  ))}
-                </tr>
-              </tbody>
-            </table>
+          <div style={{textAlign: 'center', padding: '60px 20px', color: 'var(--text-muted)'}}>
+            <div className="torres-loading-spinner" />
+            <p style={{marginTop: '12px', fontWeight: 600}}>Cargando datos...</p>
           </div>
+        ) : (
+          <>
+            {/* Month Pills Bar */}
+            <div className="torres-month-bar">
+              {TORRES_MONTHS.map((m, idx) => {
+                const hasData = torresData[idx] !== null;
+                return (
+                  <button
+                    key={m}
+                    className={`torres-month-pill ${selectedTorreMonth === idx ? 'active' : ''} ${hasData ? 'has-data' : ''}`}
+                    onClick={() => setSelectedTorreMonth(idx)}
+                  >
+                    {m}
+                    {hasData && <span className="torres-month-dot" />}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Content for selected month */}
+            {!currentItem ? (
+              <div className="torres-empty-state">
+                <Factory size={48} color="var(--text-faint)" strokeWidth={1.5} />
+                <p className="torres-empty-title">Sin datos para {TORRES_MONTHS[selectedTorreMonth]}</p>
+                <p className="torres-empty-subtitle">No hay muestra registrada en este mes. Pulsa el botón para añadir una.</p>
+                <button 
+                  className="torres-add-btn"
+                  onClick={() => window.dispatchEvent(new CustomEvent('open-universal-form', {detail: {type: 'muestra'}}))}
+                >
+                  <Plus size={18}/> Añadir Muestra
+                </button>
+              </div>
+            ) : (
+              <>
+                {/* Header Card: Recogida */}
+                <div className="torres-header-card">
+                  <div className="torres-header-info">
+                    <div className="torres-header-top-line">
+                      <span className="torres-header-label">
+                        <Calendar size={15}/> Recogida de muestra
+                      </span>
+                      {currentItem.cod_envase && (
+                        <span className="torres-envase-badge">Envase {currentItem.cod_envase}</span>
+                      )}
+                    </div>
+                    <div className="torres-header-date">
+                      Día {dayPart} {timePart ? `· ${timePart}` : ''}
+                    </div>
+                  </div>
+                  <div className="torres-header-actions admin-only">
+                    <button 
+                      className="torres-action-btn edit"
+                      onClick={() => window.dispatchEvent(new CustomEvent('edit-record', {detail: {...currentItem, editType: 'muestra'}}))}
+                      title="Editar"
+                    >
+                      <Edit3 size={16}/>
+                    </button>
+                    <button 
+                      className="torres-action-btn delete"
+                      onClick={async () => {
+                        if(window.confirm("¿Borrar esta muestra?")) {
+                          await supabase.from('aquapp_muestras').delete().eq('id', currentItem.id);
+                          window.dispatchEvent(new CustomEvent('aquapp-refresh-data'));
+                        }
+                      }}
+                      title="Eliminar"
+                    >
+                      <Trash2 size={16}/>
+                    </button>
+                  </div>
+                </div>
+
+                {/* KPI Cards */}
+                <div className="torres-kpi-grid">
+                  {TORRES_PARAMS.map(p => {
+                    const val = currentItem[p.key];
+                    const isSelected = selectedTorreParam === p.key;
+                    return (
+                      <div 
+                        key={p.key} 
+                        className={`torres-kpi-item ${isSelected ? 'selected' : ''}`}
+                        onClick={() => setSelectedTorreParam(p.key)}
+                        style={isSelected ? { borderColor: p.color, boxShadow: `0 0 0 2px ${p.color}22` } : {}}
+                      >
+                        <div className="torres-kpi-header">
+                          <span className="torres-kpi-label">{p.label}</span>
+                          <span className="torres-kpi-month">{TORRES_MONTHS[selectedTorreMonth]}</span>
+                        </div>
+                        <div className="torres-kpi-value" style={{color: val ? p.color : 'var(--text-faint)'}}>
+                          {val || '—'}
+                        </div>
+                        {p.unit && val && <span className="torres-kpi-unit">{p.unit}</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Garrafas & Notes Row */}
+                <div className="torres-info-row">
+                  {/* Entregas de garrafas */}
+                  <div className="torres-info-card">
+                    <h4 className="torres-info-card-title">
+                      <Box size={16} color="#be185d"/> Entregas de garrafas
+                    </h4>
+                    {garrafas.length === 0 ? (
+                      <p className="torres-info-empty">Sin entregas este mes</p>
+                    ) : (
+                      <div className="torres-garrafas-list">
+                        {garrafas.map(g => (
+                          <span key={g.key} className="torres-garrafa-tag">
+                            📦 {g.label} · {g.value}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Notas y Mantenimiento */}
+                  <div className="torres-info-card">
+                    <h4 className="torres-info-card-title">
+                      <BookOpen size={16} color="#8b5cf6"/> Notas y mantenimiento
+                    </h4>
+                    <div className="torres-notes-content">
+                      {currentItem.limpieza && (
+                        <span className="torres-limpieza-badge">
+                          🧹 {currentItem.limpieza}
+                        </span>
+                      )}
+                      {currentItem.descripcion && (
+                        <p className="torres-nota-text">{currentItem.descripcion}</p>
+                      )}
+                      {!currentItem.limpieza && !currentItem.descripcion && (
+                        <p className="torres-info-empty">Sin notas ni mantenimiento</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Evolution Chart */}
+                <div className="torres-chart-card">
+                  <div className="torres-chart-header">
+                    <h3 className="torres-chart-title">
+                      Evolución · {selectedParamDef.label}
+                    </h3>
+                    <div className="torres-param-chips">
+                      {TORRES_PARAMS.map(p => (
+                        <button
+                          key={p.key}
+                          className={`torres-param-chip ${selectedTorreParam === p.key ? 'active' : ''}`}
+                          style={selectedTorreParam === p.key ? { background: p.color, borderColor: p.color, color: '#fff' } : {}}
+                          onClick={() => setSelectedTorreParam(p.key)}
+                        >
+                          {p.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div style={{width: '100%', height: '220px'}}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={torresChartData} margin={{top: 15, right: 20, left: 10, bottom: 5}}>
+                        <CartesianGrid strokeDasharray="3 6" stroke="var(--border)" vertical={false} />
+                        <XAxis 
+                          dataKey="label" 
+                          axisLine={false} 
+                          tickLine={false} 
+                          tick={{fill: 'var(--text-muted)', fontSize: 11, fontWeight: 700}}
+                        />
+                        <YAxis hide={true} domain={['dataMin - 1', 'dataMax + 1']} />
+                        <RechartsTooltip 
+                          contentStyle={{
+                            backgroundColor: 'var(--bg-card)', 
+                            color: 'var(--text-main)', 
+                            borderRadius: '12px', 
+                            border: '1px solid var(--border)', 
+                            boxShadow: 'var(--shadow-md)',
+                            fontSize: '0.85rem'
+                          }}
+                          formatter={(value) => [value !== null && value !== undefined ? value : '—', selectedParamDef.label]}
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey={selectedTorreParam} 
+                          stroke={selectedParamDef.color}
+                          strokeWidth={2.5}
+                          dot={(props) => {
+                            const { cx, cy, index, value } = props;
+                            if (value === null || value === undefined) return null;
+                            const isActive = index === selectedTorreMonth;
+                            return (
+                              <circle 
+                                key={index}
+                                cx={cx} 
+                                cy={cy} 
+                                r={isActive ? 7 : 4} 
+                                fill={isActive ? selectedParamDef.color : '#fff'}
+                                stroke={selectedParamDef.color}
+                                strokeWidth={isActive ? 3 : 2}
+                                style={{filter: isActive ? `drop-shadow(0 2px 4px ${selectedParamDef.color}66)` : 'none'}}
+                              />
+                            );
+                          }}
+                          connectNulls={true}
+                          activeDot={{r: 6, strokeWidth: 2}}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </>
+            )}
+          </>
         )}
       </div>
     );
