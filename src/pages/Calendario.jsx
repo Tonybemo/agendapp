@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, X, Droplet, Bug, CalendarCheck, Info, FlaskConical, Building2, ThermometerSun, Waves, Zap, Box, Clock, Phone, MapPin, Navigation } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, X, Droplet, Bug, CalendarCheck, Info, FlaskConical, Building2, ThermometerSun, Waves, Zap, Box, Clock, Phone, MapPin, Navigation, Edit3, Trash2 } from 'lucide-react';
 import './Calendario.css';
 import { supabase } from '../lib/supabase';
 
@@ -437,7 +437,7 @@ const Calendario = () => {
                                 <div className="unified-card">
                                   <div className="unified-card-top">
                                     <div className="unified-card-top-left">
-                                      <div className="unified-card-dot" style={{ backgroundColor: actKey.includes('limpieza') ? '#10b981' : '#8b5cf6' }} />
+                                      <div className="unified-card-dot" style={{ backgroundColor: isRecuentoAlto ? '#ef4444' : '#10b981' }} />
                                       <span style={{ fontWeight: 800, color: 'var(--text-main)', fontSize: '1.05rem' }}>
                                         {item.cliente_nombre || item.tipo_tratamiento || item.tipo_actuacion || cfg.label}
                                       </span>
