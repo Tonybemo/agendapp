@@ -1041,7 +1041,47 @@
   color: #fff;
   box-shadow: 0 3px 10px rgba(30,155,233,0.3);
 }
-.torres-month-pill.has-data:not(.active)::after {
+
+/* Month pill with Cleaning */
+.torres-month-pill.has-cleaning {
+  border: 1.5px solid #f43f5e;
+  background: rgba(244, 63, 94, 0.06);
+  color: #e11d48;
+}
+.torres-month-pill.has-cleaning:hover {
+  background: rgba(244, 63, 94, 0.12);
+  border-color: #e11d48;
+}
+.torres-month-pill.active.has-cleaning {
+  background: #1E9BE9;
+  border-color: #1E9BE9;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(30,155,233,0.3);
+}
+
+.torres-month-cleaning-icon {
+  position: absolute;
+  top: -8px;
+  right: -4px;
+  font-size: 0.85rem;
+  line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+  z-index: 2;
+}
+
+.torres-month-cleaning-dot {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #f43f5e;
+  margin: 4px auto 0;
+}
+.torres-month-pill.active .torres-month-cleaning-dot {
+  background: #fff;
+}
+
+.torres-month-pill.has-data:not(.has-cleaning):not(.active)::after {
   content: '';
   display: block;
   width: 5px;
@@ -1053,8 +1093,163 @@
 .torres-month-dot {
   display: none;
 }
-.torres-month-pill.active.has-data::after {
+.torres-month-pill.active.has-data:not(.has-cleaning)::after {
   background: rgba(255,255,255,0.7);
+}
+
+/* Cleaning Tracker Bar */
+.torres-cleaning-tracker-bar {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(15,40,80,0.04);
+}
+
+.torres-tracker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.torres-tracker-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.torres-tracker-icon {
+  font-size: 1.3rem;
+  background: #ffe4e6;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 1px solid #fecdd3;
+  flex-shrink: 0;
+}
+
+.torres-tracker-title {
+  display: block;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.torres-tracker-count {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.torres-tracker-status-badge {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+.torres-tracker-status-badge.complete {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+.torres-tracker-status-badge.progress {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+.torres-tracker-status-badge.pending {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.torres-tracker-pills-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.torres-tracker-cleaning-pill {
+  flex: 1;
+  min-width: 220px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: 12px;
+  border: 1.5px solid #fed7aa;
+  background: rgba(254, 215, 170, 0.18);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+.torres-tracker-cleaning-pill:hover {
+  background: rgba(254, 215, 170, 0.38);
+  border-color: #f97316;
+  transform: translateY(-1px);
+}
+.torres-tracker-cleaning-pill.active {
+  border-color: #1E9BE9;
+  background: rgba(30, 155, 233, 0.12);
+  box-shadow: 0 0 0 2px rgba(30,155,233,0.25);
+}
+
+.torres-tracker-cleaning-pill.pending {
+  border: 1.5px dashed var(--border);
+  background: var(--bg-card-hover);
+  cursor: default;
+  opacity: 0.7;
+}
+
+.tracker-pill-num {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.tracker-pill-badge {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #c2410c;
+  background: #ffedd5;
+  padding: 3px 8px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+.tracker-pill-detail {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tracker-pill-pending-tag {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--bg-main);
+  padding: 3px 10px;
+  border-radius: 6px;
+}
+
+.torres-cleaning-header-badge {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  font-weight: 800;
+  font-size: 0.78rem;
+  padding: 3px 10px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 /* Empty State */
