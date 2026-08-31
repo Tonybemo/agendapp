@@ -627,23 +627,24 @@ const Tareasapp = () => {
       const clientEntries = Array.from(dayEntry.clients.values()).sort((a, b) => a.clientName.localeCompare(b.clientName));
       const totalActuacionesDia = clientEntries.reduce((acc, c) => acc + c.tasks.length, 0);
 
-      // Section Banner Row for the Day
+      // Section Banner Row for the Day (No emojis to ensure clean PDF font rendering)
       tableData.push([
         {
-          content: `📅 DÍA ${dayEntry.dayNum} · ${dayEntry.dayName.toUpperCase()}, ${dayEntry.dateStr}  (${clientEntries.length} ${clientEntries.length === 1 ? 'cliente' : 'clientes'} · ${totalActuacionesDia} ${totalActuacionesDia === 1 ? 'actuación' : 'actuaciones'})`,
+          content: `DÍA ${dayEntry.dayNum} · ${dayEntry.dayName.toUpperCase()}, ${dayEntry.dateStr}  (${clientEntries.length} ${clientEntries.length === 1 ? 'cliente' : 'clientes'} · ${totalActuacionesDia} ${totalActuacionesDia === 1 ? 'actuación' : 'actuaciones'})`,
           colSpan: 4,
           styles: {
             fillColor: [238, 242, 255],
             textColor: [67, 56, 202],
             fontStyle: 'bold',
-            fontSize: 9.5,
-            cellPadding: 4
+            fontSize: 9,
+            cellPadding: { top: 3.5, bottom: 3.5, left: 6, right: 6 },
+            halign: 'left'
           }
         }
       ]);
 
       clientEntries.forEach((c) => {
-        const taskListFormatted = c.tasks.map(t => `• ${t}`).join('\n');
+        const taskListFormatted = c.tasks.map(t => `- ${t}`).join('\n');
         tableData.push([
           dayEntry.dateStr,
           c.clientName,
@@ -660,11 +661,26 @@ const Tareasapp = () => {
         undatedByClient.get(u.clientName).tasks.push(u.taskName);
       });
 
+      tableData.push([
+        {
+          content: `OTRAS ACTUACIONES DEL MES (SIN FECHA REGISTRADA)`,
+          colSpan: 4,
+          styles: {
+            fillColor: [241, 245, 249],
+            textColor: [71, 85, 105],
+            fontStyle: 'bold',
+            fontSize: 8.5,
+            cellPadding: { top: 3, bottom: 3, left: 6, right: 6 },
+            halign: 'left'
+          }
+        }
+      ]);
+
       undatedByClient.forEach((val, cName) => {
         tableData.push([
-          'Sin fecha fija',
+          'Sin fecha',
           cName,
-          val.tasks.map(t => `• ${t}`).join('\n'),
+          val.tasks.map(t => `- ${t}`).join('\n'),
           val.notas || '-'
         ]);
       });
@@ -672,6 +688,8 @@ const Tareasapp = () => {
 
     autoTable(doc, {
       startY: 58,
+      margin: { left: 14, right: 14 },
+      tableWidth: 182,
       head: [['Fecha / Día', 'Cliente', 'Actuaciones Realizadas', 'Observaciones']],
       body: tableData,
       theme: 'grid',
@@ -683,17 +701,17 @@ const Tareasapp = () => {
         halign: 'left'
       },
       styles: {
-        fontSize: 9,
-        cellPadding: 4,
+        fontSize: 8.8,
+        cellPadding: 3.5,
         valign: 'top',
         lineColor: [226, 232, 240],
         lineWidth: 0.5
       },
       columnStyles: {
-        0: { cellWidth: 28, fontStyle: 'bold', halign: 'center', textColor: [30, 41, 59] },
-        1: { cellWidth: 46, fontStyle: 'bold', textColor: [15, 23, 42] },
-        2: { cellWidth: 'auto', textColor: [30, 41, 59] },
-        3: { cellWidth: 42, textColor: [100, 116, 139], fontStyle: 'italic' }
+        0: { cellWidth: 26, fontStyle: 'bold', halign: 'center', textColor: [30, 41, 59] },
+        1: { cellWidth: 50, fontStyle: 'bold', textColor: [15, 23, 42] },
+        2: { cellWidth: 70, textColor: [30, 41, 59] },
+        3: { cellWidth: 36, textColor: [100, 116, 139], fontStyle: 'italic' }
       },
       alternateRowStyles: {
         fillColor: [248, 250, 252]
@@ -728,12 +746,14 @@ const Tareasapp = () => {
 
       const pendingTableData = pendingClients.map(c => [
         c.clientName,
-        c.tasks.map(t => `⏳ ${t}`).join('\n'),
+        c.tasks.map(t => `- ${t}`).join('\n'),
         c.notas || '-'
       ]);
 
       autoTable(doc, {
         startY: currentY + 4,
+        margin: { left: 14, right: 14 },
+        tableWidth: 182,
         head: [['Cliente', 'Tareas Pendientes', 'Observaciones']],
         body: pendingTableData,
         theme: 'grid',
@@ -749,9 +769,9 @@ const Tareasapp = () => {
           valign: 'top'
         },
         columnStyles: {
-          0: { cellWidth: 50, fontStyle: 'bold' },
-          1: { cellWidth: 'auto' },
-          2: { cellWidth: 45, textColor: [100, 116, 139] }
+          0: { cellWidth: 55, fontStyle: 'bold' },
+          1: { cellWidth: 85 },
+          2: { cellWidth: 42, textColor: [100, 116, 139] }
         }
       });
     }
