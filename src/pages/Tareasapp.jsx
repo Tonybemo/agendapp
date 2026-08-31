@@ -3,8 +3,10 @@ import { createPortal } from 'react-dom';
 import { 
   CheckCircle2, Circle, Edit3, Trash2, Plus, Search, 
   Settings, MessageSquare, MoreVertical, LayoutGrid, Calendar as CalendarIcon,
-  MinusCircle, X
+  MinusCircle, X, FileDown, FileText, Check
 } from 'lucide-react';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { mockTareas, months } from '../data/mockTareas';
 import { supabase } from '../lib/supabase';
 import './Tareasapp.css';
@@ -123,6 +125,10 @@ const Tareasapp = () => {
   const [tasksOpen, setTasksOpen] = useState(false);
   const [selectedDayFilter, setSelectedDayFilter] = useState(null);
   const [showMobileCal, setShowMobileCal] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [exportMode, setExportMode] = useState('mes'); // 'mes' | 'dia'
+  const [exportDay, setExportDay] = useState(1);
+  const [exportIncludePending, setExportIncludePending] = useState(false);
 
   // Reset day filter when month or year changes
   React.useEffect(() => {
@@ -447,6 +453,303 @@ const Tareasapp = () => {
     }
   };
 
+  const parseTaskDate = (dateStr) => {
+    if (!dateStr) return null;
+    let str = String(dateStr).trim();
+    if (str.includes('T')) str = str.split('T')[0];
+    str = str.replace(/-/g, '/');
+    const parts = str.split('/');
+    
+    let d, m, y;
+    if (parts.length === 3) {
+      if (parts[0].length === 4) {
+        y = parseInt(parts[0], 10);
+        m = parseInt(parts[1], 10) - 1;
+        d = parseInt(parts[2], 10);
+      } else {
+        d = parseInt(parts[0], 10);
+        m = parseInt(parts[1], 10) - 1;
+        y = parseInt(parts[2], 10);
+      }
+    } else {
+      return null;
+    }
+
+    if (isNaN(d) || isNaN(m) || isNaN(y)) return null;
+    const dateObj = new Date(y, m, d);
+    if (isNaN(dateObj.getTime())) return null;
+
+    return {
+      d,
+      m,
+      y,
+      dateObj,
+      formatted: `${String(d).padStart(2, '0')}/${String(m + 1).padStart(2, '0')}/${y}`
+    };
+  };
+
+  const getDayOfWeekName = (dateObj) => {
+    const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    return days[dateObj.getDay()];
+  };
+
+  const handleExportPDF = () => {
+    // 1. Gather all tasks in currentMonth
+    const monthTasks = tareas.filter(t => t.month === currentMonth && (!t.año || Number(t.año) === currentYear));
+
+    // 2. Build grouped data by day
+    const dayGroups = new Map();
+    const undatedTasks = [];
+    const pendingClients = [];
+
+    monthTasks.forEach(item => {
+      const cName = item.clientName || 'Cliente';
+      const notas = item.notas || '';
+
+      const completedTasks = (item.tasks || []).filter(t => t.status === 'completed');
+      const pendingTasks = (item.tasks || []).filter(t => t.status === 'pending');
+
+      if (exportIncludePending && pendingTasks.length > 0) {
+        pendingClients.push({
+          clientName: cName,
+          tasks: pendingTasks.map(t => t.name),
+          notas: notas
+        });
+      }
+
+      completedTasks.forEach(task => {
+        const parsed = parseTaskDate(task.date);
+        if (parsed) {
+          if (exportMode === 'dia' && exportDay !== null && parsed.d !== Number(exportDay)) {
+            return;
+          }
+
+          const sortKey = `${parsed.y}-${String(parsed.m + 1).padStart(2, '0')}-${String(parsed.d).padStart(2, '0')}`;
+          if (!dayGroups.has(sortKey)) {
+            const dayName = getDayOfWeekName(parsed.dateObj);
+            dayGroups.set(sortKey, {
+              sortKey,
+              dayNum: parsed.d,
+              dateStr: parsed.formatted,
+              dayName: dayName,
+              clients: new Map()
+            });
+          }
+
+          const dayEntry = dayGroups.get(sortKey);
+          if (!dayEntry.clients.has(cName)) {
+            dayEntry.clients.set(cName, {
+              clientName: cName,
+              tasks: [],
+              notas: notas
+            });
+          }
+          dayEntry.clients.get(cName).tasks.push(task.name);
+        } else {
+          if (exportMode === 'mes') {
+            undatedTasks.push({
+              clientName: cName,
+              taskName: task.name,
+              notas: notas
+            });
+          }
+        }
+      });
+    });
+
+    if (dayGroups.size === 0 && undatedTasks.length === 0 && (!exportIncludePending || pendingClients.length === 0)) {
+      window.__toast?.warning(
+        exportMode === 'dia' 
+          ? `No hay tareas completadas registradas en el día ${exportDay} de ${currentMonth}.`
+          : `No hay tareas completadas registradas con fecha en ${currentMonth} ${currentYear}.`
+      );
+      return;
+    }
+
+    // 3. Build jsPDF document
+    const doc = new jsPDF('portrait');
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    // Top Header Banner
+    doc.setFillColor(79, 70, 229);
+    doc.rect(0, 0, pageWidth, 28, 'F');
+
+    doc.setFontSize(15);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.text('AGENDAPP · REGISTRO DE TAREAS Y ACTUACIONES', 14, 13);
+
+    doc.setFontSize(9.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(224, 231, 255);
+    const subTitleText = exportMode === 'dia' && exportDay !== null
+      ? `Informe Diario de Actuaciones — Día ${exportDay} de ${currentMonth} ${currentYear}`
+      : `Informe Mensual de Actuaciones — ${currentMonth} ${currentYear}`;
+    doc.text(subTitleText, 14, 21);
+
+    // Summary Box
+    doc.setFillColor(248, 250, 252);
+    doc.setDrawColor(226, 232, 240);
+    doc.roundedRect(14, 33, pageWidth - 28, 20, 2, 2, 'FD');
+
+    const totalDaysWithWork = dayGroups.size;
+    let totalTasksDone = 0;
+    const uniqueClientsSet = new Set();
+    dayGroups.forEach(d => {
+      d.clients.forEach(c => {
+        uniqueClientsSet.add(c.clientName);
+        totalTasksDone += c.tasks.length;
+      });
+    });
+
+    doc.setFontSize(8.5);
+    doc.setTextColor(71, 85, 105);
+    doc.setFont('helvetica', 'bold');
+
+    const now = new Date();
+    const dateEmitted = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+    doc.text(`Período: ${currentMonth} ${currentYear}`, 18, 41);
+    doc.text(`Días con actividad: ${totalDaysWithWork}`, 75, 41);
+    doc.text(`Clientes atendidos: ${uniqueClientsSet.size}`, 130, 41);
+
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Actuaciones realizadas: ${totalTasksDone}`, 18, 48);
+    doc.text(`Fecha de emisión: ${dateEmitted}`, 75, 48);
+
+    // 4. Build Table Rows
+    const sortedDayKeys = Array.from(dayGroups.keys()).sort();
+    const tableData = [];
+
+    sortedDayKeys.forEach(sortKey => {
+      const dayEntry = dayGroups.get(sortKey);
+      const dateLabel = `${dayEntry.dateStr}\n(${dayEntry.dayName})`;
+
+      const clientEntries = Array.from(dayEntry.clients.values()).sort((a, b) => a.clientName.localeCompare(b.clientName));
+
+      clientEntries.forEach((c) => {
+        const taskListFormatted = c.tasks.map(t => `• ${t}`).join('\n');
+        tableData.push([
+          dateLabel,
+          c.clientName,
+          taskListFormatted,
+          c.notas || '-'
+        ]);
+      });
+    });
+
+    if (undatedTasks.length > 0) {
+      const undatedByClient = new Map();
+      undatedTasks.forEach(u => {
+        if (!undatedByClient.has(u.clientName)) undatedByClient.set(u.clientName, { tasks: [], notas: u.notas });
+        undatedByClient.get(u.clientName).tasks.push(u.taskName);
+      });
+
+      undatedByClient.forEach((val, cName) => {
+        tableData.push([
+          'Sin fecha fija',
+          cName,
+          val.tasks.map(t => `• ${t}`).join('\n'),
+          val.notas || '-'
+        ]);
+      });
+    }
+
+    autoTable(doc, {
+      startY: 58,
+      head: [['Fecha / Día', 'Cliente', 'Actuaciones Realizadas', 'Observaciones']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [79, 70, 229],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: 9.5,
+        halign: 'left'
+      },
+      styles: {
+        fontSize: 9,
+        cellPadding: 4,
+        valign: 'top',
+        lineColor: [226, 232, 240],
+        lineWidth: 0.5
+      },
+      columnStyles: {
+        0: { cellWidth: 28, fontStyle: 'bold', halign: 'center', textColor: [30, 41, 59] },
+        1: { cellWidth: 46, fontStyle: 'bold', textColor: [15, 23, 42] },
+        2: { cellWidth: 'auto', textColor: [30, 41, 59] },
+        3: { cellWidth: 42, textColor: [100, 116, 139], fontStyle: 'italic' }
+      },
+      alternateRowStyles: {
+        fillColor: [248, 250, 252]
+      },
+      didDrawPage: () => {
+        const pageCount = doc.internal.getNumberOfPages();
+        doc.setFontSize(8);
+        doc.setTextColor(148, 163, 184);
+        doc.text(
+          `Página ${doc.internal.getCurrentPageInfo().pageNumber} de ${pageCount} · Agendapp`,
+          pageWidth / 2,
+          doc.internal.pageSize.getHeight() - 10,
+          { align: 'center' }
+        );
+      }
+    });
+
+    // 5. Optional Pending Annex
+    if (exportIncludePending && pendingClients.length > 0) {
+      const finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 12 : 60;
+      
+      if (finalY > doc.internal.pageSize.getHeight() - 60) {
+        doc.addPage();
+      }
+
+      const currentY = finalY > doc.internal.pageSize.getHeight() - 60 ? 20 : finalY;
+
+      doc.setFontSize(11);
+      doc.setTextColor(185, 28, 28);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Anexo: Actuaciones Pendientes del Mes', 14, currentY);
+
+      const pendingTableData = pendingClients.map(c => [
+        c.clientName,
+        c.tasks.map(t => `⏳ ${t}`).join('\n'),
+        c.notas || '-'
+      ]);
+
+      autoTable(doc, {
+        startY: currentY + 4,
+        head: [['Cliente', 'Tareas Pendientes', 'Observaciones']],
+        body: pendingTableData,
+        theme: 'grid',
+        headStyles: {
+          fillColor: [239, 68, 68],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold',
+          fontSize: 9
+        },
+        styles: {
+          fontSize: 8.5,
+          cellPadding: 3,
+          valign: 'top'
+        },
+        columnStyles: {
+          0: { cellWidth: 50, fontStyle: 'bold' },
+          1: { cellWidth: 'auto' },
+          2: { cellWidth: 45, textColor: [100, 116, 139] }
+        }
+      });
+    }
+
+    const filename = exportMode === 'dia' && exportDay !== null
+      ? `Tareas_Dia_${exportDay}_${currentMonth}_${currentYear}.pdf`
+      : `Tareas_${currentMonth}_${currentYear}.pdf`;
+
+    doc.save(filename);
+    setIsExportModalOpen(false);
+    window.__toast?.success(`PDF descargado: ${filename}`);
+  };
+
   const getProgressInfo = (tarea) => {
     const total = tarea.tasks.length;
     const completedOrSkipped = tarea.tasks.filter(t => t.status === 'completed' || t.status === 'skipped').length;
@@ -664,6 +967,27 @@ const Tareasapp = () => {
               {Object.keys(completedTasksByDay).length > 0 && (
                 <span className="cal-days-badge">{Object.keys(completedTasksByDay).length}</span>
               )}
+            </button>
+
+            {/* PDF Export Button */}
+            <button 
+              type="button"
+              className="pill-btn btn-export-pdf-tareas"
+              onClick={() => {
+                if (selectedDayFilter) {
+                  setExportMode('dia');
+                  setExportDay(selectedDayFilter);
+                } else {
+                  setExportMode('mes');
+                  const daysWithTasks = Object.keys(completedTasksByDay).map(Number).sort((a, b) => a - b);
+                  setExportDay(daysWithTasks[0] || new Date().getDate());
+                }
+                setIsExportModalOpen(true);
+              }}
+              title="Exportar informe de actuaciones a PDF"
+            >
+              <FileDown size={14} style={{ marginRight: '6px' }} />
+              Exportar PDF
             </button>
           </div>
         </div>
@@ -918,6 +1242,196 @@ const Tareasapp = () => {
                 style={{padding: '12px 24px', borderRadius: '12px', border: 'none', background: 'var(--accent-workapp)', color: 'var(--text-on-primary)', fontWeight: '700', cursor: 'pointer', boxShadow: 'var(--shadow-md)'}}
               >
                 Guardar Cliente
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Modal Exportar PDF */}
+      {isExportModalOpen && createPortal(
+        <div 
+          className="modal-overlay" 
+          style={{position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'var(--bg-modal-overlay)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '16px'}}
+          onClick={() => setIsExportModalOpen(false)}
+        >
+          <div 
+            className="modal-content animate-fade-in" 
+            style={{background: 'var(--bg-card)', border: '1px solid var(--border)', padding: '28px', borderRadius: '24px', width: '100%', maxWidth: '480px', maxHeight: '90vh', overflowY: 'auto', boxShadow: 'var(--shadow-xl)'}}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px'}}>
+              <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
+                <div style={{width: '42px', height: '42px', borderRadius: '12px', background: 'linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4f46e5'}}>
+                  <FileDown size={22} />
+                </div>
+                <div>
+                  <h2 style={{margin: 0, fontSize: '1.25rem', fontWeight: '800', color: 'var(--text-main)'}}>
+                    Exportar Informe PDF
+                  </h2>
+                  <p style={{margin: '2px 0 0', fontSize: '0.8rem', color: 'var(--text-muted)'}}>
+                    {currentMonth} {currentYear} · Actuaciones por día
+                  </p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsExportModalOpen(false)}
+                style={{background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px'}}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Scope Selection */}
+            <div style={{display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '20px'}}>
+              <label style={{fontSize: '0.82rem', fontWeight: '700', color: 'var(--text-secondary)'}}>
+                SELECCIONA EL ALCANCE DEL INFORME
+              </label>
+
+              {/* Option 1: Mes completo */}
+              <div 
+                onClick={() => setExportMode('mes')}
+                style={{
+                  padding: '14px 16px',
+                  borderRadius: '14px',
+                  border: exportMode === 'mes' ? '2px solid #4f46e5' : '1px solid var(--border)',
+                  background: exportMode === 'mes' ? '#f5f3ff' : 'var(--bg-input)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <div style={{
+                  width: '20px', height: '20px', borderRadius: '50%',
+                  border: exportMode === 'mes' ? '6px solid #4f46e5' : '2px solid var(--border-input)',
+                  background: '#fff',
+                  flexShrink: 0
+                }} />
+                <div>
+                  <div style={{fontWeight: '700', fontSize: '0.92rem', color: exportMode === 'mes' ? '#4f46e5' : 'var(--text-main)'}}>
+                    Mes Completo ({currentMonth} {currentYear})
+                  </div>
+                  <div style={{fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px'}}>
+                    Desglose cronológico día a día con todos los clientes y tareas
+                  </div>
+                </div>
+              </div>
+
+              {/* Option 2: Día específico */}
+              <div 
+                onClick={() => setExportMode('dia')}
+                style={{
+                  padding: '14px 16px',
+                  borderRadius: '14px',
+                  border: exportMode === 'dia' ? '2px solid #4f46e5' : '1px solid var(--border)',
+                  background: exportMode === 'dia' ? '#f5f3ff' : 'var(--bg-input)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '10px',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
+                  <div style={{
+                    width: '20px', height: '20px', borderRadius: '50%',
+                    border: exportMode === 'dia' ? '6px solid #4f46e5' : '2px solid var(--border-input)',
+                    background: '#fff',
+                    flexShrink: 0
+                  }} />
+                  <div>
+                    <div style={{fontWeight: '700', fontSize: '0.92rem', color: exportMode === 'dia' ? '#4f46e5' : 'var(--text-main)'}}>
+                      Día Específico
+                    </div>
+                    <div style={{fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px'}}>
+                      Solo las actuaciones realizadas en una fecha concreta
+                    </div>
+                  </div>
+                </div>
+
+                {exportMode === 'dia' && (
+                  <div style={{paddingLeft: '32px'}} onClick={e => e.stopPropagation()}>
+                    <select
+                      value={exportDay}
+                      onChange={(e) => setExportDay(Number(e.target.value))}
+                      style={{
+                        width: '100%',
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        border: '1.5px solid #c7d2fe',
+                        background: '#fff',
+                        fontSize: '0.88rem',
+                        fontWeight: '600',
+                        color: 'var(--text-main)',
+                        outline: 'none'
+                      }}
+                    >
+                      {Array.from({ length: new Date(currentYear, monthIdx + 1, 0).getDate() }, (_, i) => i + 1).map(d => {
+                        const count = completedTasksByDay[d] || 0;
+                        return (
+                          <option key={d} value={d}>
+                            Día {d} de {currentMonth} {count > 0 ? `· (${count} actuaciones realizadas)` : '(Sin actuaciones)'}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
+                )}
+              </div>
+
+              {/* Extra: Incluir pendientes */}
+              <label style={{display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', padding: '8px 4px', fontSize: '0.84rem', color: 'var(--text-secondary)', fontWeight: '600'}}>
+                <input 
+                  type="checkbox"
+                  checked={exportIncludePending}
+                  onChange={(e) => setExportIncludePending(e.target.checked)}
+                  style={{width: '18px', height: '18px', accentColor: '#4f46e5'}}
+                />
+                Incluir anexo con clientes y tareas pendientes del mes
+              </label>
+            </div>
+
+            {/* Actions */}
+            <div style={{display: 'flex', justifyContent: 'flex-end', gap: '10px', paddingTop: '16px', borderTop: '1px solid var(--border-light)'}}>
+              <button 
+                type="button"
+                onClick={() => setIsExportModalOpen(false)}
+                style={{
+                  padding: '10px 18px',
+                  borderRadius: '12px',
+                  border: '1px solid var(--border)',
+                  background: 'var(--bg-input)',
+                  color: 'var(--text-secondary)',
+                  fontWeight: '700',
+                  fontSize: '0.88rem',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancelar
+              </button>
+              <button 
+                type="button"
+                onClick={handleExportPDF}
+                style={{
+                  padding: '10px 22px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)',
+                  color: '#ffffff',
+                  fontWeight: '700',
+                  fontSize: '0.88rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)'
+                }}
+              >
+                <FileDown size={17} /> Descargar PDF
               </button>
             </div>
           </div>

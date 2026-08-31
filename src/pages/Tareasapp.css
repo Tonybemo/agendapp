@@ -324,6 +324,26 @@
   border-color: var(--text-main);
 }
 
+.btn-export-pdf-tareas {
+  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+  color: #4338ca;
+  border: 1px solid #c7d2fe;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-export-pdf-tareas:hover {
+  background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+  color: #ffffff;
+  border-color: #4338ca;
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
+}
+
 .icon-btn-settings {
   display: flex;
   align-items: center;
