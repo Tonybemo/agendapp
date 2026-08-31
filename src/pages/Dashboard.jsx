@@ -126,13 +126,23 @@ const Dashboard = () => {
       // Group recurring treatments by month
       const prevYearsMap = new Map();
       const thisYearMap = new Map();
+      // Track ALL treatments done this year (any month) for cross-referencing
+      const doneThisYearAll = new Set();
 
       allTrats.forEach(item => {
         if (!item.fecha) return;
         const d = parseDateForSort(item.fecha);
         if (isNaN(d.getTime())) return;
+        const itemYear = d.getFullYear();
+
+        // Track all treatments done this year (any month)
+        if (itemYear === year) {
+          const cliName = (item.cliente_nombre || 'Cliente puntual').toLowerCase();
+          const tipo = (item.tipo_tratamiento || '').toLowerCase();
+          doneThisYearAll.add(`${cliName}::${tipo}`);
+        }
+
         if (d.getMonth() === month) {
-          const itemYear = d.getFullYear();
           const cliName = item.cliente_nombre || 'Cliente puntual';
           const targetMap = itemYear < year ? prevYearsMap : (itemYear === year ? thisYearMap : null);
           
@@ -160,7 +170,8 @@ const Dashboard = () => {
 
       setRecurrentData({
         prevYears: sortGroup(prevYearsMap),
-        thisYear: sortGroup(thisYearMap)
+        thisYear: sortGroup(thisYearMap),
+        doneThisYearAll: doneThisYearAll
       });
 
       setMonthStats({
@@ -234,14 +245,8 @@ const Dashboard = () => {
     }
   ];
 
-  // Build a set of "done" keys: clienteNombre::tipo_tratamiento (lowercase) done this year
-  const doneThisYearSet = new Set();
-  recurrentData.thisYear.forEach(group => {
-    group.treatments.forEach(t => {
-      const tipo = (t.tipo_tratamiento || '').toLowerCase();
-      doneThisYearSet.add(`${group.clienteNombre.toLowerCase()}::${tipo}`);
-    });
-  });
+  // Use the pre-built set of ALL treatments done this year (any month)
+  const doneThisYearSet = recurrentData.doneThisYearAll || new Set();
 
   // Dismiss helpers
   const makeDismissKey = (clienteName, tipoTrat) => `${selectedMonth}::${clienteName.toLowerCase()}::${(tipoTrat || '').toLowerCase()}`;
