@@ -3,7 +3,7 @@ import {
   ShieldCheck, Search, Cloud, RefreshCw, LogOut, 
   List, PlusCircle, BarChart2, Calendar, ChevronDown, ChevronRight, 
   MapPin, Clock, Navigation, Eye, Share2, Edit3, Trash2, Camera,
-  Bug, Hexagon, XCircle, Phone
+  Bug, Hexagon, XCircle, Phone, X
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -427,6 +427,16 @@ const Avisomap = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
+          {searchQuery && (
+            <button 
+              type="button"
+              className="search-clear-btn"
+              onClick={() => setSearchQuery('')}
+              title="Limpiar búsqueda"
+            >
+              <X size={16} />
+            </button>
+          )}
         </div>
 
 

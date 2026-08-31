@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Droplet, Lock, Bell, Settings, WifiOff, Home, 
   Wind, Thermometer, Calendar, Search, ChevronDown, ChevronUp, ChevronRight,
-  FlaskConical, Factory, SprayCan, Edit3, Trash2, Clock, Plus, BookOpen, Bug, Box, Download, BarChart2, CheckCircle2, Zap, Waves, Folder
+  FlaskConical, Factory, SprayCan, Edit3, Trash2, Clock, Plus, BookOpen, Bug, Box, Download, BarChart2, CheckCircle2, Zap, Waves, Folder, X
 } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip as RechartsTooltip, CartesianGrid, ReferenceDot } from 'recharts';
@@ -429,6 +429,16 @@ const Aquapp = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
+          {searchQuery && (
+            <button 
+              type="button"
+              className="search-clear-btn"
+              onClick={() => setSearchQuery('')}
+              title="Limpiar búsqueda"
+            >
+              <X size={18} />
+            </button>
+          )}
         </div>
 
         <div className="client-list" style={{display: 'flex', flexDirection: 'column', gap: '16px'}}>
@@ -961,6 +971,16 @@ const Aquapp = () => {
         <div className="search-box" style={{marginBottom: '16px'}}>
           <Search size={20} color="#64748b" />
           <input type="text" placeholder="Buscar cliente..." value={tratamientosTabSearch} onChange={(e) => setTratamientosTabSearch(e.target.value)} />
+          {tratamientosTabSearch && (
+            <button 
+              type="button"
+              className="search-clear-btn"
+              onClick={() => setTratamientosTabSearch('')}
+              title="Limpiar búsqueda"
+            >
+              <X size={18} />
+            </button>
+          )}
         </div>
 
         {/* Listado */}
@@ -1577,8 +1597,18 @@ const Aquapp = () => {
             type="text" 
             placeholder="Buscar cliente..." 
             value={tratamientosSearch}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => setTratamientosSearch(e.target.value)}
           />
+          {tratamientosSearch && (
+            <button 
+              type="button"
+              className="search-clear-btn"
+              onClick={() => setTratamientosSearch('')}
+              title="Limpiar búsqueda"
+            >
+              <X size={18} />
+            </button>
+          )}
         </div>
 
         <button 

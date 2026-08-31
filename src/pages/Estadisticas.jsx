@@ -701,11 +701,11 @@ const Estadisticas = () => {
             {clientSearchQuery && (
               <button 
                 type="button" 
-                className="btn-clear-search" 
+                className="search-clear-btn" 
                 onClick={() => setClientSearchQuery('')}
                 title="Borrar búsqueda"
               >
-                ✕
+                <X size={16} />
               </button>
             )}
           </div>
@@ -1265,11 +1265,11 @@ const Estadisticas = () => {
             {jornadaSearchQuery && (
               <button 
                 type="button" 
-                className="btn-clear-search" 
+                className="search-clear-btn" 
                 onClick={() => setJornadaSearchQuery('')}
                 title="Borrar búsqueda"
               >
-                ✕
+                <X size={16} />
               </button>
             )}
           </div>

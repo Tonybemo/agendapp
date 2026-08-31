@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Users, CalendarCheck, Search, PlusCircle, Edit3, Trash2, 
-  MapPin, Mail, AlignLeft, CheckCircle2, Download 
+  MapPin, Mail, AlignLeft, CheckCircle2, Download, X 
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import './GestorGlobal.css';
@@ -273,6 +273,16 @@ const GestorGlobal = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
+          {searchQuery && (
+            <button 
+              type="button"
+              className="search-clear-btn"
+              onClick={() => setSearchQuery('')}
+              title="Limpiar búsqueda"
+            >
+              <X size={16} />
+            </button>
+          )}
         </div>
         <button 
           className="gg-add-btn"

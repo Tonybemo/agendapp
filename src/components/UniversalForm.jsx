@@ -432,11 +432,20 @@ const UniversalForm = () => {
       const formData = new FormData(e.target);
       const data = Object.fromEntries(formData);
     
-    const clienteId = data.cliente_id;
+    let clienteId = data.cliente_id;
     let clienteNombre = "";
-    if (clienteId) {
-       const cli = clientesGlobales.find(c => c.id === clienteId);
-       if (cli) clienteNombre = cli.name;
+    if (clienteId === '_custom_') {
+      clienteId = null;
+      clienteNombre = customClienteName.trim();
+    } else if (clienteId) {
+      const cli = clientesGlobales.find(c => c.id === clienteId);
+      if (cli) clienteNombre = cli.name;
+    }
+
+    if (!clienteId && !clienteNombre) {
+      window.__toast?.error("⚠️ Debes seleccionar un cliente antes de guardar.");
+      setIsSaving(false);
+      return;
     }
 
     let fechaGuardar = data.fecha;
@@ -580,11 +589,20 @@ const UniversalForm = () => {
       const formData = new FormData(e.target);
       const data = Object.fromEntries(formData);
     
-    const clienteId = data.cliente_id;
+    let clienteId = data.cliente_id;
     let clienteNombre = "";
-    if (clienteId) {
-       const cli = clientesGlobales.find(c => c.id === clienteId);
-       if (cli) clienteNombre = cli.name;
+    if (clienteId === '_custom_') {
+      clienteId = null;
+      clienteNombre = customClienteName.trim();
+    } else if (clienteId) {
+      const cli = clientesGlobales.find(c => c.id === clienteId);
+      if (cli) clienteNombre = cli.name;
+    }
+
+    if (!clienteId && !clienteNombre) {
+      window.__toast?.error("⚠️ Debes seleccionar un cliente antes de guardar.");
+      setIsSaving(false);
+      return;
     }
 
     let fechaGuardar = data.fecha;
@@ -1257,10 +1275,11 @@ const UniversalForm = () => {
             </div>
 
             <div className="uf-form-group">
-              <label>CLIENTE</label>
+              <label>CLIENTE *</label>
               <select 
                 name="cliente_id" 
                 className="uf-select-basic"
+                required
                 value={selectedClienteId}
                 onChange={handleClienteChange}
               >
@@ -1396,8 +1415,8 @@ const UniversalForm = () => {
         {aquappMode === 'tratamiento' && (
           <form className="uf-form-content animate-fade-in" onSubmit={handleGuardarTratamiento}>
             <div className="uf-form-group">
-              <label>CLIENTE</label>
-              <select name="cliente_id" className="uf-select-basic" value={selectedClienteId} onChange={handleClienteChange}>
+              <label>CLIENTE *</label>
+              <select name="cliente_id" className="uf-select-basic" required value={selectedClienteId} onChange={handleClienteChange}>
                 <option value="">Seleccionar cliente...</option>
                 <option value="_custom_" style={{fontWeight: 'bold', color: 'var(--accent-aquapp)'}}>+ Escribir cliente puntual...</option>
                 {clientesGlobales.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}

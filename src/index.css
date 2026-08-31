@@ -196,3 +196,23 @@ a {
     transform: translateY(0);
   }
 }
+
+.search-clear-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.search-clear-btn:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-main);
+  transform: scale(1.1);
+}

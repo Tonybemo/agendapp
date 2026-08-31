@@ -222,6 +222,20 @@ const Inicio = () => {
                 background: 'transparent', fontSize: '1rem', color: 'var(--text-main)', fontWeight: '500'
               }}
             />
+            {searchQuery && (
+              <button 
+                type="button"
+                onClick={() => setSearchQuery('')}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer', padding: '4px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: 'var(--text-muted)', borderRadius: '50%', marginLeft: '8px'
+                }}
+                title="Limpiar búsqueda"
+              >
+                <X size={18} />
+              </button>
+            )}
           </div>
           
           {searchQuery.length >= 2 && (

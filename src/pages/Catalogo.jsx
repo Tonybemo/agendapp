@@ -144,7 +144,19 @@ const Catalogo = () => {
               placeholder="Buscar producto, materia activa, lote..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ paddingRight: searchQuery ? '42px' : '14px' }}
             />
+            {searchQuery && (
+              <button 
+                type="button"
+                className="search-clear-btn"
+                onClick={() => setSearchQuery('')}
+                style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)' }}
+                title="Limpiar búsqueda"
+              >
+                <X size={18} />
+              </button>
+            )}
           </div>
         </div>
 
@@ -354,7 +366,19 @@ const Catalogo = () => {
             placeholder="Buscar producto, materia activa, lote..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ paddingRight: searchQuery ? '42px' : '14px' }}
           />
+          {searchQuery && (
+            <button 
+              type="button"
+              className="search-clear-btn"
+              onClick={() => setSearchQuery('')}
+              style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)' }}
+              title="Limpiar búsqueda"
+            >
+              <X size={18} />
+            </button>
+          )}
         </div>
       </div>
 
