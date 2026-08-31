@@ -129,6 +129,7 @@ const Tareasapp = () => {
   const [exportMode, setExportMode] = useState('mes'); // 'mes' | 'dia'
   const [exportDay, setExportDay] = useState(1);
   const [exportIncludePending, setExportIncludePending] = useState(false);
+  const [activeView, setActiveView] = useState('clientes'); // 'clientes' | 'dias'
 
   // Reset day filter when month or year changes
   React.useEffect(() => {
@@ -617,20 +618,34 @@ const Tareasapp = () => {
     doc.text(`Actuaciones realizadas: ${totalTasksDone}`, 18, 48);
     doc.text(`Fecha de emisión: ${dateEmitted}`, 75, 48);
 
-    // 4. Build Table Rows
+    // 4. Build Table Rows with Day Section Banners
     const sortedDayKeys = Array.from(dayGroups.keys()).sort();
     const tableData = [];
 
     sortedDayKeys.forEach(sortKey => {
       const dayEntry = dayGroups.get(sortKey);
-      const dateLabel = `${dayEntry.dateStr}\n(${dayEntry.dayName})`;
-
       const clientEntries = Array.from(dayEntry.clients.values()).sort((a, b) => a.clientName.localeCompare(b.clientName));
+      const totalActuacionesDia = clientEntries.reduce((acc, c) => acc + c.tasks.length, 0);
+
+      // Section Banner Row for the Day
+      tableData.push([
+        {
+          content: `📅 DÍA ${dayEntry.dayNum} · ${dayEntry.dayName.toUpperCase()}, ${dayEntry.dateStr}  (${clientEntries.length} ${clientEntries.length === 1 ? 'cliente' : 'clientes'} · ${totalActuacionesDia} ${totalActuacionesDia === 1 ? 'actuación' : 'actuaciones'})`,
+          colSpan: 4,
+          styles: {
+            fillColor: [238, 242, 255],
+            textColor: [67, 56, 202],
+            fontStyle: 'bold',
+            fontSize: 9.5,
+            cellPadding: 4
+          }
+        }
+      ]);
 
       clientEntries.forEach((c) => {
         const taskListFormatted = c.tasks.map(t => `• ${t}`).join('\n');
         tableData.push([
-          dateLabel,
+          dayEntry.dateStr,
           c.clientName,
           taskListFormatted,
           c.notas || '-'
@@ -783,6 +798,58 @@ const Tareasapp = () => {
     return map;
   }, [tareasDelMes, monthIdx, currentYear]);
 
+  // Chronological grouped data for "Vista por Días"
+  const daysChronological = useMemo(() => {
+    const map = new Map();
+    tareasDelMes.forEach(t => {
+      (t.tasks || []).forEach(task => {
+        if (task.status === 'completed' && task.date) {
+          const parsed = parseTaskDate(task.date);
+          if (parsed && parsed.m === monthIdx && (!parsed.y || parsed.y === currentYear)) {
+            const dayNum = parsed.d;
+            if (!map.has(dayNum)) {
+              map.set(dayNum, {
+                dayNum,
+                dateFormatted: parsed.formatted,
+                dayOfWeek: getDayOfWeekName(parsed.dateObj),
+                clients: new Map()
+              });
+            }
+            const dayEntry = map.get(dayNum);
+            if (!dayEntry.clients.has(t.clientName)) {
+              dayEntry.clients.set(t.clientName, {
+                tareaId: t.id,
+                clientName: t.clientName,
+                frecuencia: t.frecuencia,
+                notas: t.notas,
+                tasks: []
+              });
+            }
+            dayEntry.clients.get(t.clientName).tasks.push(task);
+          }
+        }
+      });
+    });
+
+    return Array.from(map.values())
+      .sort((a, b) => a.dayNum - b.dayNum)
+      .map(d => ({
+        ...d,
+        clientsList: Array.from(d.clients.values())
+      }));
+  }, [tareasDelMes, monthIdx, currentYear]);
+
+  const filteredDaysChronological = useMemo(() => {
+    if (!searchQuery) return daysChronological;
+    const q = searchQuery.toLowerCase();
+    return daysChronological.filter(d => 
+      d.clientsList.some(c => 
+        c.clientName.toLowerCase().includes(q) || 
+        c.tasks.some(t => t.name.toLowerCase().includes(q))
+      )
+    );
+  }, [daysChronological, searchQuery]);
+
   // Stats calculations based ONLY on current month
   const totalActuaciones = tareasDelMes.reduce((acc, t) => acc + t.tasks.length, 0);
   const actuacionesCompletadas = tareasDelMes.reduce((acc, t) => acc + getProgressInfo(t).completedOrSkipped, 0);
@@ -916,11 +983,30 @@ const Tareasapp = () => {
 
         {/* Filters and Search */}
         <div className="taskflow-filters">
+          <div className="view-toggles">
+            <button 
+              type="button"
+              className={`toggle-btn ${activeView === 'clientes' ? 'active' : ''}`}
+              onClick={() => setActiveView('clientes')}
+              title="Vista de fichas por cliente"
+            >
+              <LayoutGrid size={14} /> Clientes
+            </button>
+            <button 
+              type="button"
+              className={`toggle-btn ${activeView === 'dias' ? 'active' : ''}`}
+              onClick={() => setActiveView('dias')}
+              title="Vista cronológica por días"
+            >
+              <CalendarIcon size={14} /> Por Días {daysChronological.length > 0 && <span style={{ background: activeView === 'dias' ? '#4f46e5' : '#e0e7ff', color: activeView === 'dias' ? '#fff' : '#4338ca', padding: '1px 6px', borderRadius: '999px', fontSize: '0.72rem', fontWeight: '800', marginLeft: '4px' }}>{daysChronological.length}</span>}
+            </button>
+          </div>
+
           <div className="search-bar">
             <Search size={18} color="#94a3b8" />
             <input 
               type="text" 
-              placeholder="Buscar cliente o actuación..." 
+              placeholder={activeView === 'clientes' ? "Buscar cliente o actuación..." : "Buscar en días..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -1028,100 +1114,206 @@ const Tareasapp = () => {
           </div>
         )}
 
-        {/* Grid of Cards */}
-        <div className="taskflow-grid">
-          {currentTareas.map(tarea => {
-            const { total, completed, completedOrSkipped, percentage } = getProgressInfo(tarea);
-            const isFullyCompleted = total > 0 && percentage === 100;
-            
-            let cardColorClass = '';
-            if (isFullyCompleted) {
-              cardColorClass = 'completed-card';
-            } else if (tarea.frecuencia === 'semanal') {
-              cardColorClass = 'weekly-card'; // Yellow
-            } else {
-              cardColorClass = 'monthly-card'; // Red/Normal
-            }
-
-            return (
-              <div key={tarea.id} className={`tf-card ${cardColorClass}`}>
-                <div className="tf-card-header">
-                  <div className="tf-card-title">
-                    <h3>{tarea.clientName} {isFullyCompleted && <CheckCircle2 size={16} color="#22c55e" className="inline-check"/>}</h3>
-                    <p className={isFullyCompleted ? 'text-green' : 'text-purple'}>
-                      {completed} de {total} completadas ({percentage}%)
-                    </p>
-                  </div>
-                  <div className="tf-card-actions">
-                    <MessageSquare size={16} color={tarea.notas ? "var(--color-danger)" : "var(--text-faint)"} style={{cursor: 'pointer'}} onClick={() => addNote(tarea.id)}/>
-                    <MoreVertical size={16} color="var(--text-faint)" style={{cursor: 'pointer'}} onClick={() => deleteCard(tarea.id)}/>
-                  </div>
-                </div>
-
-                <div className="tf-tasks">
-                  {tarea.tasks.map(task => (
-                    <div 
-                      key={task.id} 
-                      className={`tf-task-row ${task.status === 'completed' ? 'completed' : task.status === 'skipped' ? 'skipped' : ''}`}
-                    >
-                      <div className="tf-task-left" onClick={() => toggleTask(tarea.id, task.id)}>
-                        {task.status === 'completed' ? (
-                          <CheckCircle2 size={18} color="#22c55e" className="check-icon" />
-                        ) : task.status === 'skipped' ? (
-                          <MinusCircle size={18} color="#94a3b8" className="check-icon" />
-                        ) : (
-                          <div className="empty-circle"></div>
-                        )}
-                        <span className="tf-task-name">{task.name}</span>
-                      </div>
-                      {task.date && (
-                        <input 
-                          type="date" 
-                          className="tf-task-date-input"
-                          value={(() => {
-                            if (task.date === 'Hoy') return new Date().toISOString().split('T')[0];
-                            const parts = task.date.split('/');
-                            if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
-                            return '';
-                          })()}
-                          onClick={(e) => e.stopPropagation()}
-                          onChange={(e) => changeTaskDate(tarea.id, task.id, e.target.value)} 
-                        />
-                      )}
-                      <div className="tf-task-right">
-                        <Trash2 size={14} className="action-icon" style={{cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); deleteTask(tarea.id, task.id); }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="btn-add-actuacion" style={{position: 'relative', padding: 0}}>
-                  <select 
-                    style={{width: '100%', appearance: 'none', background: 'transparent', border: 'none', padding: '12px', fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-muted)', outline: 'none', cursor: 'pointer', textAlign: 'center'}}
-                    onChange={(e) => {
-                      if (e.target.value === '__custom__') {
-                        const customTask = window.prompt('Introduce el nombre de la nueva actuación:');
-                        if (customTask && customTask.trim()) {
-                          addTask(tarea.id, customTask.trim());
-                        }
-                        e.target.value = "";
-                      } else if (e.target.value) {
-                        addTask(tarea.id, e.target.value);
-                        e.target.value = ""; // Reset
-                      }
-                    }}
+        {/* Content Views: "Por Días" vs "Clientes" */}
+        {activeView === 'dias' ? (
+          <div className="taskflow-days-view">
+            {filteredDaysChronological.length === 0 ? (
+              <div className="dash-recurrent-empty animate-fade-in" style={{ margin: '32px' }}>
+                <CalendarIcon size={44} color="var(--text-faint)" />
+                <p style={{ margin: '8px 0 0', fontWeight: '700', color: 'var(--text-main)', fontSize: '1.05rem' }}>
+                  {searchQuery 
+                    ? `No se encontraron actuaciones para "${searchQuery}"`
+                    : `Aún no hay actuaciones completadas en ${currentMonth} ${currentYear}`
+                  }
+                </p>
+                <p style={{ margin: '4px 0 16px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                  {searchQuery 
+                    ? 'Prueba a buscar otro cliente o actuación.'
+                    : 'Ve a la pestaña Clientes y completa las tareas que vayas realizando.'
+                  }
+                </p>
+                {!searchQuery && (
+                  <button 
+                    type="button" 
+                    className="pill-btn active"
+                    onClick={() => setActiveView('clientes')}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                   >
-                    <option value="">+ Añadir actuación desglosada</option>
-                    {availableTaskOptions.map((tName) => (
-                      <option key={tName} value={tName}>{tName}</option>
-                    ))}
-                    <option value="__custom__">✏️ Otra actuación personalizada...</option>
-                  </select>
-                </div>
+                    <LayoutGrid size={15} /> Ver Fichas de Clientes
+                  </button>
+                )}
               </div>
-            );
-          })}
-        </div>
+            ) : (
+              filteredDaysChronological.map(day => {
+                const totalTasksDay = day.clientsList.reduce((acc, c) => acc + c.tasks.length, 0);
+                return (
+                  <div key={day.dayNum} className="tf-day-card animate-fade-in">
+                    {/* Day Header */}
+                    <div className="tf-day-header">
+                      <div className="tf-day-title-wrap">
+                        <div className="tf-day-badge">
+                          <span className="tf-day-num">{day.dayNum}</span>
+                          <span className="tf-day-month">{currentMonth.substring(0, 3)}</span>
+                        </div>
+                        <div>
+                          <h3 className="tf-day-name">{day.dayOfWeek}, {day.dateFormatted}</h3>
+                          <p className="tf-day-subtitle">
+                            {day.clientsList.length} {day.clientsList.length === 1 ? 'cliente atendido' : 'clientes atendidos'} · <strong>{totalTasksDay}</strong> {totalTasksDay === 1 ? 'actuación realizada' : 'actuaciones realizadas'}
+                          </p>
+                        </div>
+                      </div>
+
+                      <button 
+                        type="button"
+                        className="tf-day-pdf-btn"
+                        onClick={() => {
+                          setExportMode('dia');
+                          setExportDay(day.dayNum);
+                          setIsExportModalOpen(true);
+                        }}
+                        title={`Exportar actuaciones del día ${day.dayNum} a PDF`}
+                      >
+                        <FileDown size={14} /> PDF Día {day.dayNum}
+                      </button>
+                    </div>
+
+                    {/* Clients for this Day */}
+                    <div className="tf-day-clients-grid">
+                      {day.clientsList.map(c => (
+                        <div key={c.clientName} className="tf-day-client-item">
+                          <div className="tf-day-client-top">
+                            <div className="tf-day-client-avatar">
+                              {c.clientName.substring(0, 2).toUpperCase()}
+                            </div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <h4 className="tf-day-client-title" title={c.clientName}>{c.clientName}</h4>
+                              <span className="tf-day-client-count">{c.tasks.length} {c.tasks.length === 1 ? 'actuación' : 'actuaciones'}</span>
+                            </div>
+                            {c.notas && (
+                              <div title={c.notas} style={{ cursor: 'help' }}>
+                                <MessageSquare size={16} color="var(--color-danger)" />
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="tf-day-tasks-list">
+                            {c.tasks.map(task => (
+                              <div key={task.id} className="tf-day-task-chip">
+                                <CheckCircle2 size={16} color="#16a34a" style={{ flexShrink: 0 }} />
+                                <span>{task.name}</span>
+                              </div>
+                            ))}
+                          </div>
+
+                          {c.notas && (
+                            <div className="tf-day-notes">
+                              💬 {c.notas}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        ) : (
+          /* Grid of Cards (Vista Clientes) */
+          <div className="taskflow-grid">
+            {currentTareas.map(tarea => {
+              const { total, completed, completedOrSkipped, percentage } = getProgressInfo(tarea);
+              const isFullyCompleted = total > 0 && percentage === 100;
+              
+              let cardColorClass = '';
+              if (isFullyCompleted) {
+                cardColorClass = 'completed-card';
+              } else if (tarea.frecuencia === 'semanal') {
+                cardColorClass = 'weekly-card'; // Yellow
+              } else {
+                cardColorClass = 'monthly-card'; // Red/Normal
+              }
+
+              return (
+                <div key={tarea.id} className={`tf-card ${cardColorClass}`}>
+                  <div className="tf-card-header">
+                    <div className="tf-card-title">
+                      <h3>{tarea.clientName} {isFullyCompleted && <CheckCircle2 size={16} color="#22c55e" className="inline-check"/>}</h3>
+                      <p className={isFullyCompleted ? 'text-green' : 'text-purple'}>
+                        {completed} de {total} completadas ({percentage}%)
+                      </p>
+                    </div>
+                    <div className="tf-card-actions">
+                      <MessageSquare size={16} color={tarea.notas ? "var(--color-danger)" : "var(--text-faint)"} style={{cursor: 'pointer'}} onClick={() => addNote(tarea.id)}/>
+                      <MoreVertical size={16} color="var(--text-faint)" style={{cursor: 'pointer'}} onClick={() => deleteCard(tarea.id)}/>
+                    </div>
+                  </div>
+
+                  <div className="tf-tasks">
+                    {tarea.tasks.map(task => (
+                      <div 
+                        key={task.id} 
+                        className={`tf-task-row ${task.status === 'completed' ? 'completed' : task.status === 'skipped' ? 'skipped' : ''}`}
+                      >
+                        <div className="tf-task-left" onClick={() => toggleTask(tarea.id, task.id)}>
+                          {task.status === 'completed' ? (
+                            <CheckCircle2 size={18} color="#22c55e" className="check-icon" />
+                          ) : task.status === 'skipped' ? (
+                            <MinusCircle size={18} color="#94a3b8" className="check-icon" />
+                          ) : (
+                            <div className="empty-circle"></div>
+                          )}
+                          <span className="tf-task-name">{task.name}</span>
+                        </div>
+                        {task.date && (
+                          <input 
+                            type="date" 
+                            className="tf-task-date-input"
+                            value={(() => {
+                              if (task.date === 'Hoy') return new Date().toISOString().split('T')[0];
+                              const parts = task.date.split('/');
+                              if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+                              return '';
+                            })()}
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={(e) => changeTaskDate(tarea.id, task.id, e.target.value)} 
+                          />
+                        )}
+                        <div className="tf-task-right">
+                          <Trash2 size={14} className="action-icon" style={{cursor: 'pointer'}} onClick={(e) => { e.stopPropagation(); deleteTask(tarea.id, task.id); }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="btn-add-actuacion" style={{position: 'relative', padding: 0}}>
+                    <select 
+                      style={{width: '100%', appearance: 'none', background: 'transparent', border: 'none', padding: '12px', fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-muted)', outline: 'none', cursor: 'pointer', textAlign: 'center'}}
+                      onChange={(e) => {
+                        if (e.target.value === '__custom__') {
+                          const customTask = window.prompt('Introduce el nombre de la nueva actuación:');
+                          if (customTask && customTask.trim()) {
+                            addTask(tarea.id, customTask.trim());
+                          }
+                          e.target.value = "";
+                        } else if (e.target.value) {
+                          addTask(tarea.id, e.target.value);
+                          e.target.value = ""; // Reset
+                        }
+                      }}
+                    >
+                      <option value="">+ Añadir actuación desglosada</option>
+                      {availableTaskOptions.map((tName) => (
+                        <option key={tName} value={tName}>{tName}</option>
+                      ))}
+                      <option value="__custom__">✏️ Otra actuación personalizada...</option>
+                    </select>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </main>
 
       {/* Modal Nueva Planificación */}
