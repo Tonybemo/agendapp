@@ -1043,24 +1043,28 @@ const Tareasapp = () => {
           </div>
 
           <div className="filter-pills">
-            <button 
-              className={`pill-btn ${filter === 'Todos' && !selectedDayFilter ? 'active' : ''}`}
-              onClick={() => { setFilter('Todos'); setSelectedDayFilter(null); }}
-            >
-              Todos ({totalActuaciones})
-            </button>
-            <button 
-              className={`pill-btn ${filter === 'Pendientes' ? 'active' : ''}`}
-              onClick={() => setFilter('Pendientes')}
-            >
-              Pendientes ({pendientesCount})
-            </button>
-            <button 
-              className={`pill-btn ${filter === 'Completos' ? 'active' : ''}`}
-              onClick={() => setFilter('Completos')}
-            >
-              Completos ({completadosCount})
-            </button>
+            {activeView === 'clientes' && (
+              <>
+                <button 
+                  className={`pill-btn ${filter === 'Todos' && !selectedDayFilter ? 'active' : ''}`}
+                  onClick={() => { setFilter('Todos'); setSelectedDayFilter(null); }}
+                >
+                  Todos ({totalActuaciones})
+                </button>
+                <button 
+                  className={`pill-btn ${filter === 'Pendientes' ? 'active' : ''}`}
+                  onClick={() => setFilter('Pendientes')}
+                >
+                  Pendientes ({pendientesCount})
+                </button>
+                <button 
+                  className={`pill-btn ${filter === 'Completos' ? 'active' : ''}`}
+                  onClick={() => setFilter('Completos')}
+                >
+                  Completos ({completadosCount})
+                </button>
+              </>
+            )}
 
             {/* Mobile Mini Calendar Toggle Button */}
             <button 
