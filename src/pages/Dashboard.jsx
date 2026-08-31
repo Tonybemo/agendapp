@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { 
   Droplet, MapPin, Briefcase, CalendarCheck, ChevronRight, ChevronLeft, 
-  FlaskConical, Clock, TrendingUp, Settings, Plus, Sparkles, Calendar, CheckCircle2
+  FlaskConical, Clock, TrendingUp, Settings, Plus, Sparkles, Calendar, CheckCircle2, X, Eye, EyeOff
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import './Dashboard.css';
@@ -47,7 +47,12 @@ const Dashboard = () => {
   const [monthStats, setMonthStats] = useState(null);
   const [loadingStats, setLoadingStats] = useState(false);
   const [recurrentData, setRecurrentData] = useState({ prevYears: [], thisYear: [] });
-  const [recurrentTab, setRecurrentTab] = useState('prev'); // 'prev' = previsiones (años anteriores), 'this' = hechos este año
+  const [dismissedKeys, setDismissedKeys] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('dash_dismissed_treatments') || '{}');
+    } catch { return {}; }
+  });
+  const [showDismissed, setShowDismissed] = useState(false);
 
   const parseDateForSort = (fechaStr) => {
     if (!fechaStr) return new Date(0);
@@ -229,9 +234,55 @@ const Dashboard = () => {
     }
   ];
 
-  const displayedRecurrent = recurrentTab === 'prev' ? recurrentData.prevYears : recurrentData.thisYear;
-  const totalPrevTreatments = recurrentData.prevYears.reduce((acc, g) => acc + g.treatments.length, 0);
-  const totalThisTreatments = recurrentData.thisYear.reduce((acc, g) => acc + g.treatments.length, 0);
+  // Build a set of "done" keys: clienteNombre::tipo_tratamiento (lowercase) done this year
+  const doneThisYearSet = new Set();
+  recurrentData.thisYear.forEach(group => {
+    group.treatments.forEach(t => {
+      const tipo = (t.tipo_tratamiento || '').toLowerCase();
+      doneThisYearSet.add(`${group.clienteNombre.toLowerCase()}::${tipo}`);
+    });
+  });
+
+  // Dismiss helpers
+  const makeDismissKey = (clienteName, tipoTrat) => `${selectedMonth}::${clienteName.toLowerCase()}::${(tipoTrat || '').toLowerCase()}`;
+  
+  const toggleDismiss = (clienteName, tipoTrat) => {
+    const key = makeDismissKey(clienteName, tipoTrat);
+    setDismissedKeys(prev => {
+      const next = { ...prev };
+      if (next[key]) delete next[key]; else next[key] = true;
+      localStorage.setItem('dash_dismissed_treatments', JSON.stringify(next));
+      return next;
+    });
+  };
+
+  // Build unified checklist from prevYears
+  const checklistGroups = recurrentData.prevYears.map(group => {
+    // Deduplicate by tipo_tratamiento (take the most recent one per type)
+    const byTipo = new Map();
+    group.treatments.forEach(t => {
+      const tipo = (t.tipo_tratamiento || '').toLowerCase();
+      if (!byTipo.has(tipo) || t.year > byTipo.get(tipo).year) {
+        byTipo.set(tipo, t);
+      }
+    });
+
+    const items = Array.from(byTipo.entries()).map(([tipo, t]) => {
+      const doneKey = `${group.clienteNombre.toLowerCase()}::${tipo}`;
+      const dismissKey = makeDismissKey(group.clienteNombre, t.tipo_tratamiento);
+      const isDone = doneThisYearSet.has(doneKey);
+      const isDismissed = !!dismissedKeys[dismissKey];
+      return { ...t, isDone, isDismissed, tipoKey: tipo };
+    });
+
+    return { ...group, checklistItems: items };
+  });
+
+  // Count stats
+  const totalItems = checklistGroups.reduce((acc, g) => acc + g.checklistItems.length, 0);
+  const doneItems = checklistGroups.reduce((acc, g) => acc + g.checklistItems.filter(i => i.isDone).length, 0);
+  const dismissedItems = checklistGroups.reduce((acc, g) => acc + g.checklistItems.filter(i => i.isDismissed && !i.isDone).length, 0);
+  const pendingItems = totalItems - doneItems - dismissedItems;
 
   return (
     <div className="dashboard-container animate-fade-in">
@@ -338,7 +389,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* ── SECCIÓN: TRATAMIENTOS RECURRENTES DEL MES ── */}
+      {/* ── SECCIÓN: CHECKLIST DE TRATAMIENTOS DEL MES ── */}
       <div className="dash-recurrent-card">
         <div className="dash-recurrent-header">
           <div className="dash-recurrent-title-block">
@@ -347,118 +398,159 @@ const Dashboard = () => {
             </div>
             <div>
               <h3 className="dash-recurrent-title">
-                Previsión de Tratamientos · {MONTH_NAMES[selectedMonth]}
+                Tratamientos · {MONTH_NAMES[selectedMonth]}
               </h3>
               <p className="dash-recurrent-subtitle">
-                Tratamientos realizados históricamente en {MONTH_NAMES[selectedMonth]} para planificar este mes
+                {totalItems > 0 
+                  ? `${doneItems} de ${totalItems} realizados${dismissedItems > 0 ? ` · ${dismissedItems} descartados` : ''}${pendingItems > 0 ? ` · ${pendingItems} pendientes` : ''}`
+                  : `No hay tratamientos previstos en ${MONTH_NAMES[selectedMonth]}`
+                }
               </p>
             </div>
           </div>
 
-          <div className="dash-recurrent-tabs">
-            <button
-              className={`dash-recurrent-tab-btn ${recurrentTab === 'prev' ? 'active' : ''}`}
-              onClick={() => setRecurrentTab('prev')}
+          {dismissedItems > 0 && (
+            <button 
+              className={`dash-recurrent-toggle-dismissed ${showDismissed ? 'active' : ''}`}
+              onClick={() => setShowDismissed(v => !v)}
+              title={showDismissed ? 'Ocultar descartados' : 'Ver descartados'}
             >
-              Histórico ({totalPrevTreatments})
+              {showDismissed ? <EyeOff size={14} /> : <Eye size={14} />}
+              {showDismissed ? 'Ocultar' : 'Ver'} descartados ({dismissedItems})
             </button>
-            <button
-              className={`dash-recurrent-tab-btn ${recurrentTab === 'this' ? 'active' : ''}`}
-              onClick={() => setRecurrentTab('this')}
-            >
-              Hechos en {selectedYear} ({totalThisTreatments})
-            </button>
-          </div>
+          )}
         </div>
+
+        {/* Progress bar */}
+        {totalItems > 0 && (
+          <div className="dash-recurrent-progress-bar-wrap">
+            <div className="dash-recurrent-progress-bar">
+              <div 
+                className="dash-recurrent-progress-fill done" 
+                style={{ width: `${(doneItems / totalItems) * 100}%` }}
+              />
+              <div 
+                className="dash-recurrent-progress-fill dismissed" 
+                style={{ width: `${(dismissedItems / totalItems) * 100}%` }}
+              />
+            </div>
+          </div>
+        )}
 
         {loadingStats ? (
           <div style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
             Cargando tratamientos...
           </div>
-        ) : displayedRecurrent.length === 0 ? (
+        ) : checklistGroups.length === 0 ? (
           <div className="dash-recurrent-empty">
             <FlaskConical size={40} color="var(--text-faint)" />
             <p className="dash-recurrent-empty-title">
-              {recurrentTab === 'prev' 
-                ? `No hay tratamientos de años anteriores registrados en ${MONTH_NAMES[selectedMonth]}.`
-                : `Aún no se han registrado tratamientos en ${MONTH_NAMES[selectedMonth]} de ${selectedYear}.`
-              }
+              No hay tratamientos de años anteriores registrados en {MONTH_NAMES[selectedMonth]}.
             </p>
-            {recurrentTab === 'this' && (
-              <button
-                className="dash-recurrent-new-btn"
-                onClick={() => window.dispatchEvent(new CustomEvent('open-universal-form', { detail: { type: 'muestra', mode: 'tratamiento' } }))}
-              >
-                <Plus size={16} /> Registrar nuevo tratamiento
-              </button>
-            )}
           </div>
         ) : (
           <div className="dash-recurrent-grid">
-            {displayedRecurrent.map(group => (
-              <div key={group.clienteNombre} className="dash-recurrent-item">
-                <div className="dash-recurrent-client-header">
-                  <div className="dash-recurrent-avatar">
-                    {group.clienteNombre.substring(0, 2).toUpperCase()}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div className="dash-recurrent-client-name" title={group.clienteNombre}>
-                      {group.clienteNombre}
-                    </div>
-                    <div className="dash-recurrent-client-count">
-                      {group.treatments.length} {group.treatments.length === 1 ? 'tratamiento' : 'tratamientos'}
-                    </div>
-                  </div>
-                  <button
-                    className="dash-recurrent-add-action-btn"
-                    onClick={() => {
-                      window.dispatchEvent(new CustomEvent('open-universal-form', { 
-                        detail: { 
-                          type: 'muestra', 
-                          mode: 'tratamiento',
-                          clienteId: group.clienteId || null
-                        } 
-                      }));
-                    }}
-                    title={`Registrar nuevo tratamiento para ${group.clienteNombre}`}
-                  >
-                    <Plus size={15} /> Añadir
-                  </button>
-                </div>
+            {checklistGroups.map(group => {
+              const visibleItems = group.checklistItems.filter(i => 
+                showDismissed || !i.isDismissed || i.isDone
+              );
+              if (visibleItems.length === 0) return null;
 
-                <div className="dash-recurrent-treatments-stack">
-                  {group.treatments.map(t => {
-                    const tStyle = getTratamientoBadge(t.tipo_tratamiento);
-                    const mStyle = getMotivoBadge(t.motivo);
-                    return (
-                      <div key={t.id} className="dash-recurrent-row">
-                        <div className="dash-recurrent-badges-wrap">
-                          <span className="dash-recurrent-badge-tipo" style={{ background: tStyle.bg, color: tStyle.color }}>
-                            {tStyle.label}
-                          </span>
-                          {t.motivo && (
-                            <span className="dash-recurrent-badge-motivo" style={{ background: mStyle.bg, color: mStyle.color }}>
-                              {mStyle.label}
-                            </span>
+              const groupDone = visibleItems.filter(i => i.isDone).length;
+              const groupTotal = group.checklistItems.filter(i => !i.isDismissed || i.isDone).length;
+              const allDone = groupDone === groupTotal && groupTotal > 0;
+
+              return (
+                <div key={group.clienteNombre} className={`dash-recurrent-item ${allDone ? 'all-done' : ''}`}>
+                  <div className="dash-recurrent-client-header">
+                    <div className={`dash-recurrent-avatar ${allDone ? 'avatar-done' : ''}`}>
+                      {allDone ? <CheckCircle2 size={18} /> : group.clienteNombre.substring(0, 2).toUpperCase()}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className="dash-recurrent-client-name" title={group.clienteNombre}>
+                        {group.clienteNombre}
+                      </div>
+                      <div className="dash-recurrent-client-count">
+                        {allDone 
+                          ? '✅ Todo completado'
+                          : `${groupDone} de ${groupTotal} realizados`
+                        }
+                      </div>
+                    </div>
+                    {!allDone && (
+                      <button
+                        className="dash-recurrent-add-action-btn"
+                        onClick={() => {
+                          window.dispatchEvent(new CustomEvent('open-universal-form', { 
+                            detail: { 
+                              type: 'muestra', 
+                              mode: 'tratamiento',
+                              clienteId: group.clienteId || null
+                            } 
+                          }));
+                        }}
+                        title={`Registrar nuevo tratamiento para ${group.clienteNombre}`}
+                      >
+                        <Plus size={15} /> Añadir
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="dash-recurrent-treatments-stack">
+                    {visibleItems.map(t => {
+                      const tStyle = getTratamientoBadge(t.tipo_tratamiento);
+                      const mStyle = getMotivoBadge(t.motivo);
+                      return (
+                        <div 
+                          key={`${t.tipoKey}-${t.id}`} 
+                          className={`dash-recurrent-row ${t.isDone ? 'row-done' : ''} ${t.isDismissed && !t.isDone ? 'row-dismissed' : ''}`}
+                        >
+                          <div className="dash-recurrent-row-main">
+                            <div className={`dash-recurrent-check ${t.isDone ? 'checked' : ''}`}>
+                              {t.isDone ? <CheckCircle2 size={16} /> : <div className="dash-recurrent-check-empty" />}
+                            </div>
+                            <div className="dash-recurrent-badges-wrap">
+                              <span className="dash-recurrent-badge-tipo" style={{ background: tStyle.bg, color: tStyle.color }}>
+                                {tStyle.label}
+                              </span>
+                              {t.motivo && (
+                                <span className="dash-recurrent-badge-motivo" style={{ background: mStyle.bg, color: mStyle.color }}>
+                                  {mStyle.label}
+                                </span>
+                              )}
+                            </div>
+                            <div className="dash-recurrent-row-actions">
+                              {!t.isDone && (
+                                <button 
+                                  className={`dash-recurrent-dismiss-btn ${t.isDismissed ? 'is-dismissed' : ''}`}
+                                  onClick={() => toggleDismiss(group.clienteNombre, t.tipo_tratamiento)}
+                                  title={t.isDismissed ? 'Restaurar tratamiento' : 'Descartar (no se hará este año)'}
+                                >
+                                  {t.isDismissed ? <Eye size={13} /> : <X size={13} />}
+                                </button>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="dash-recurrent-date-info">
+                            <span className="dash-recurrent-year-tag">{t.year}</span>
+                            <span className="dash-recurrent-date">{formatDatePretty(t.fecha)}</span>
+                            {t.isDone && <span className="dash-recurrent-done-label">✅ Hecho en {selectedYear}</span>}
+                            {t.isDismissed && !t.isDone && <span className="dash-recurrent-dismissed-label">Descartado</span>}
+                          </div>
+
+                          {t.notas && t.notas !== 'null' && t.notas.trim() !== '' && (
+                            <div className="dash-recurrent-notes" title={t.notas}>
+                              💬 {t.notas}
+                            </div>
                           )}
                         </div>
-
-                        <div className="dash-recurrent-date-info">
-                          <span className="dash-recurrent-year-tag">{t.year}</span>
-                          <span className="dash-recurrent-date">{formatDatePretty(t.fecha)}</span>
-                        </div>
-
-                        {t.notas && t.notas !== 'null' && t.notas.trim() !== '' && (
-                          <div className="dash-recurrent-notes" title={t.notas}>
-                            💬 {t.notas}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

@@ -518,30 +518,59 @@
   font-weight: 500;
 }
 
-.dash-recurrent-tabs {
+/* Toggle dismissed button */
+.dash-recurrent-toggle-dismissed {
   display: flex;
-  gap: 6px;
-  background: var(--bg-main);
-  padding: 4px;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
   border-radius: var(--radius-pill);
-}
-
-.dash-recurrent-tab-btn {
-  padding: 6px 14px;
-  border-radius: var(--radius-pill);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 700;
   color: var(--text-muted);
-  border: none;
-  background: transparent;
+  border: 1px solid var(--border);
+  background: var(--bg-main);
   cursor: pointer;
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
-.dash-recurrent-tab-btn.active {
-  background: var(--bg-card);
-  color: var(--primary);
-  box-shadow: var(--shadow-sm);
+.dash-recurrent-toggle-dismissed:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-secondary);
+}
+
+.dash-recurrent-toggle-dismissed.active {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fcd34d;
+}
+
+/* Progress bar */
+.dash-recurrent-progress-bar-wrap {
+  margin-bottom: 16px;
+}
+
+.dash-recurrent-progress-bar {
+  height: 6px;
+  background: var(--bg-main);
+  border-radius: 999px;
+  overflow: hidden;
+  display: flex;
+}
+
+.dash-recurrent-progress-fill {
+  height: 100%;
+  transition: width 0.5s ease;
+}
+
+.dash-recurrent-progress-fill.done {
+  background: linear-gradient(90deg, #22c55e, #16a34a);
+  border-radius: 999px 0 0 999px;
+}
+
+.dash-recurrent-progress-fill.dismissed {
+  background: #d1d5db;
 }
 
 .dash-recurrent-empty {
@@ -562,27 +591,6 @@
   color: var(--text-muted);
   font-size: 0.9rem;
   font-weight: 600;
-}
-
-.dash-recurrent-new-btn {
-  margin-top: 10px;
-  background: var(--primary);
-  color: #fff;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 999px;
-  font-weight: 700;
-  font-size: 0.85rem;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.dash-recurrent-new-btn:hover {
-  background: var(--primary-hover);
-  transform: translateY(-1px);
 }
 
 .dash-recurrent-grid {
@@ -609,6 +617,15 @@
   transform: translateY(-2px);
 }
 
+.dash-recurrent-item.all-done {
+  border-color: #86efac;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+}
+
+.dash-recurrent-item.all-done:hover {
+  border-color: #4ade80;
+}
+
 .dash-recurrent-client-header {
   display: flex;
   align-items: center;
@@ -629,6 +646,11 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: background 0.3s ease;
+}
+
+.dash-recurrent-avatar.avatar-done {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
 }
 
 .dash-recurrent-client-name {
@@ -681,6 +703,43 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  transition: all 0.3s ease;
+}
+
+.dash-recurrent-row.row-done {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.dash-recurrent-row.row-dismissed {
+  background: #f9fafb;
+  border-color: #e5e7eb;
+  opacity: 0.6;
+}
+
+.dash-recurrent-row-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dash-recurrent-check {
+  flex-shrink: 0;
+  color: var(--text-faint);
+  display: flex;
+  align-items: center;
+}
+
+.dash-recurrent-check.checked {
+  color: #16a34a;
+}
+
+.dash-recurrent-check-empty {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid #d1d5db;
+  background: transparent;
 }
 
 .dash-recurrent-badges-wrap {
@@ -688,6 +747,12 @@
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
+  flex: 1;
+}
+
+.dash-recurrent-row.row-done .dash-recurrent-badges-wrap {
+  text-decoration: line-through;
+  text-decoration-color: #86efac;
 }
 
 .dash-recurrent-badge-tipo {
@@ -704,11 +769,48 @@
   font-weight: 700;
 }
 
+.dash-recurrent-row-actions {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.dash-recurrent-dismiss-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.dash-recurrent-dismiss-btn:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
+.dash-recurrent-dismiss-btn.is-dismissed {
+  background: #fef3c7;
+  border-color: #fcd34d;
+  color: #92400e;
+}
+
+.dash-recurrent-dismiss-btn.is-dismissed:hover {
+  background: #fde68a;
+}
+
 .dash-recurrent-date-info {
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 0.78rem;
+  padding-left: 24px;
 }
 
 .dash-recurrent-year-tag {
@@ -725,6 +827,19 @@
   font-weight: 600;
 }
 
+.dash-recurrent-done-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #16a34a;
+}
+
+.dash-recurrent-dismissed-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #9ca3af;
+  font-style: italic;
+}
+
 .dash-recurrent-notes {
   font-size: 0.78rem;
   color: var(--text-secondary);
@@ -732,6 +847,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  padding-left: 24px;
 }
 
 @media (max-width: 600px) {
