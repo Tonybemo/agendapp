@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  ShieldCheck, Search, Cloud, RefreshCw, LogOut, 
-  List, PlusCircle, BarChart2, Calendar, ChevronDown, ChevronRight, 
-  MapPin, Clock, Navigation, Eye, Share2, Edit3, Trash2, Camera,
-  Bug, Hexagon, XCircle, Phone, X
+  ShieldCheck, Search, List, BarChart2, Calendar, 
+  MapPin, Clock, Navigation, Eye, Edit3, Trash2, Camera,
+  Bug, Phone, X, XCircle, Plus
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -19,6 +18,27 @@ const plagaColors = {
   'Termitas': { color: '#78350f', bg: '#ffedd5' },
   'Procesionaria': { color: '#047857', bg: '#d1fae5' },
   'Chinches': { color: '#15803d', bg: '#dcfce7' },
+};
+
+const getMonthColor = (month) => {
+  const colors = {
+    '01': '#0ea5e9', '02': '#8b5cf6', '03': '#10b981', '04': '#f59e0b',
+    '05': '#ef4444', '06': '#3b82f6', '07': '#ec4899', '08': '#14b8a6',
+    '09': '#f97316', '10': '#6366f1', '11': '#84cc16', '12': '#06b6d4',
+    'Enero': '#0ea5e9', 'Febrero': '#8b5cf6', 'Marzo': '#10b981', 'Abril': '#f59e0b',
+    'Mayo': '#ef4444', 'Junio': '#3b82f6', 'Julio': '#ec4899', 'Agosto': '#14b8a6',
+    'Septiembre': '#f97316', 'Octubre': '#6366f1', 'Noviembre': '#84cc16', 'Diciembre': '#06b6d4',
+  };
+  return colors[month] || '#64748b';
+};
+
+const getMonthAbbr = (monthName) => {
+  const map = {
+    'Enero': 'Ene', 'Febrero': 'Feb', 'Marzo': 'Mar', 'Abril': 'Abr',
+    'Mayo': 'May', 'Junio': 'Jun', 'Julio': 'Jul', 'Agosto': 'Ago',
+    'Septiembre': 'Sep', 'Octubre': 'Oct', 'Noviembre': 'Nov', 'Diciembre': 'Dic'
+  };
+  return map[monthName] || (monthName ? monthName.substring(0, 3) : '');
 };
 
 const parsePlagas = (plagas) => {
@@ -40,14 +60,12 @@ const parsePlagas = (plagas) => {
   return arr.map(p => {
     if (typeof p !== 'string') return String(p);
     let cleaned = p.trim();
-    // In case the string inside the array is ALSO a json array like '["Roedores"]' or '["\"Avispas\""]'
     if (cleaned.startsWith('[')) {
       try { 
         const inner = JSON.parse(cleaned);
         if (Array.isArray(inner)) cleaned = inner.join(' ');
       } catch (e) {}
     }
-    // Remove all surrounding quotes, brackets and slashes
     return cleaned.replace(/^\[?["'\\]+|["'\\]+\]?$/g, '').trim();
   }).filter(Boolean);
 };
@@ -55,22 +73,18 @@ const parsePlagas = (plagas) => {
 const Avisomap = () => {
   const { isAdmin } = useAuth();
   const [activeTab, setActiveTab] = useState('historial');
-  const [expandedYears, setExpandedYears] = useState(() => {
-    const year = new Date().getFullYear().toString();
-    return { [year]: true };
-  });
-  const [expandedMonths, setExpandedMonths] = useState(() => {
-    const now = new Date();
-    const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-    const key = `${now.getFullYear()}-${monthNames[now.getMonth()]}`;
-    return { [key]: true };
-  });
   
-  // Data State
+  // Year & Month selection (pill navigation)
+  const [selectedYear, setSelectedYear] = useState(() => new Date().getFullYear().toString());
+  const [selectedMonth, setSelectedMonth] = useState('Todos');
+
+  // Raw data & stats
+  const [allAvisos, setAllAvisos] = useState([]);
   const [avisosData, setAvisosData] = useState({ total: 0, years: [] });
   const [plagasStats, setPlagasStats] = useState([]);
   const [localidadStats, setLocalidadStats] = useState([]);
   const [loading, setLoading] = useState(true);
+
   // Filters state
   const [searchQuery, setSearchQuery] = useState('');
   const [localidadFilter, setLocalidadFilter] = useState('');
@@ -123,18 +137,10 @@ const Avisomap = () => {
       setEditingAviso(null);
       setAvisoFileName('');
       fetchData();
+      window.__toast?.success("Aviso actualizado correctamente");
     } else {
       window.__toast?.error("Error al actualizar: " + error.message);
     }
-  };
-
-  const toggleYear = (year) => {
-    setExpandedYears(prev => ({ ...prev, [year]: !prev[year] }));
-  };
-
-  const toggleMonth = (year, month) => {
-    const key = `${year}-${month}`;
-    setExpandedMonths(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
   const handleDeleteAviso = async (id) => {
@@ -142,6 +148,7 @@ const Avisomap = () => {
       const { error } = await supabase.from('avisomap_avisos').delete().eq('id', id);
       if (!error) {
         fetchData();
+        window.__toast?.success("Aviso eliminado");
       } else {
         window.__toast?.error("Error al eliminar: " + error.message);
       }
@@ -153,6 +160,7 @@ const Avisomap = () => {
     const { data, error } = await supabase.from('avisomap_avisos').select('*').order('fecha', { ascending: false }).order('hora', { ascending: false });
     
     if (data && !error) {
+      setAllAvisos(data);
       const total = data.length;
       const yearsMap = {};
       const pStats = {};
@@ -190,15 +198,25 @@ const Avisomap = () => {
       
       const yearsArray = Object.keys(yearsMap).sort((a,b) => b - a).map(yStr => {
         const yData = yearsMap[yStr];
-        const monthsArray = Object.keys(yData.months).map(mStr => {
-           return { month: mStr, count: yData.months[mStr].count, avisos: yData.months[mStr].avisos };
-        });
+        const monthsArray = Object.keys(yData.months)
+          .sort((a, b) => monthNames.indexOf(b) - monthNames.indexOf(a))
+          .map(mStr => {
+            return { month: mStr, count: yData.months[mStr].count, avisos: yData.months[mStr].avisos };
+          });
         return { year: yStr, count: yData.count, months: monthsArray };
       });
       
       setAvisosData({ total, years: yearsArray });
       setPlagasStats(Object.keys(pStats).map(name => ({ name, count: pStats[name] })).sort((a,b) => b.count - a.count));
       setLocalidadStats(Object.keys(lStats).map(name => ({ name, count: lStats[name] })).sort((a,b) => b.count - a.count));
+      
+      // Auto-set selected year to latest if current selection doesn't exist
+      if (yearsArray.length > 0) {
+        const currentYearExists = yearsArray.some(y => y.year === selectedYear);
+        if (!currentYearExists && selectedYear !== 'Todos') {
+          setSelectedYear(yearsArray[0].year);
+        }
+      }
     }
     setLoading(false);
   };
@@ -209,201 +227,388 @@ const Avisomap = () => {
     return () => window.removeEventListener('refresh-avisomap', fetchData);
   }, []);
 
+  // Months available for selected year
+  const activeYearData = useMemo(() => {
+    if (selectedYear === 'Todos') return null;
+    return avisosData.years.find(y => y.year === selectedYear);
+  }, [avisosData.years, selectedYear]);
+
+  // Filtered avisos list for display
+  const filteredAvisos = useMemo(() => {
+    return allAvisos.filter(aviso => {
+      // 1. Year filter
+      if (selectedYear !== 'Todos' && aviso.fecha) {
+        const y = aviso.fecha.split('-')[0];
+        if (y !== selectedYear) return false;
+      }
+
+      // 2. Month filter
+      if (selectedMonth !== 'Todos' && aviso.fecha) {
+        const parts = aviso.fecha.split('-');
+        if (parts.length === 3) {
+          const mIndex = parseInt(parts[1], 10) - 1;
+          const mName = monthNames[mIndex];
+          if (mName !== selectedMonth) return false;
+        }
+      }
+
+      // 3. Localidad filter
+      if (localidadFilter && aviso.localidad !== localidadFilter) return false;
+
+      // 4. Plagas filter
+      const plagasArray = parsePlagas(aviso.plagas);
+      if (plagaFilter && !plagasArray.includes(plagaFilter)) return false;
+
+      // 5. Search query
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        const plagasStr = plagasArray.join(' ').toLowerCase();
+        const dirStr = (aviso.direccion || '').toLowerCase();
+        const locStr = (aviso.localidad || '').toLowerCase();
+        const portalStr = (aviso.portal || '').toLowerCase();
+        const comStr = (aviso.comentarios || '').toLowerCase();
+
+        return (
+          dirStr.includes(q) ||
+          locStr.includes(q) ||
+          portalStr.includes(q) ||
+          plagasStr.includes(q) ||
+          comStr.includes(q)
+        );
+      }
+
+      return true;
+    });
+  }, [allAvisos, selectedYear, selectedMonth, localidadFilter, plagaFilter, searchQuery]);
+
   const renderMisAvisos = () => (
     <div className="tab-content animate-fade-in">
-      <div className="filters-bar">
-        <div className="registros-badge">
-          <span className="reg-label">REGISTROS:</span>
-          <span className="reg-count">{avisosData.total}</span>
+      {/* 1. Year Pills Row */}
+      <div className="am-pills-row am-years-row">
+        <button 
+          type="button" 
+          className={`am-pill-year ${selectedYear === 'Todos' ? 'active' : ''}`}
+          onClick={() => { setSelectedYear('Todos'); setSelectedMonth('Todos'); }}
+        >
+          <span>Todos los años</span>
+          <span className="am-pill-badge">{avisosData.total}</span>
+        </button>
+        {avisosData.years.map(yData => (
+          <button 
+            key={yData.year}
+            type="button" 
+            className={`am-pill-year ${selectedYear === yData.year ? 'active' : ''}`}
+            onClick={() => { setSelectedYear(yData.year); setSelectedMonth('Todos'); }}
+          >
+            <span>{yData.year}</span>
+            <span className="am-pill-badge">{yData.count}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* 2. Month Pills Row */}
+      <div className="am-pills-row am-months-row animate-fade-in">
+        <button 
+          type="button" 
+          className={`am-pill-month ${selectedMonth === 'Todos' ? 'active' : ''}`}
+          onClick={() => setSelectedMonth('Todos')}
+          style={{ '--month-color': '#2563eb' }}
+        >
+          <span>Todos los meses</span>
+        </button>
+
+        {activeYearData ? (
+          activeYearData.months.map(mGroup => (
+            <button 
+              key={mGroup.month}
+              type="button" 
+              className={`am-pill-month ${selectedMonth === mGroup.month ? 'active' : ''}`}
+              style={{ '--month-color': getMonthColor(mGroup.month) }}
+              onClick={() => setSelectedMonth(mGroup.month)}
+              title={`${mGroup.month} (${mGroup.count} avisos)`}
+            >
+              <span className="am-month-name">{getMonthAbbr(mGroup.month)}</span>
+              <span className="am-month-badge">{mGroup.count}</span>
+            </button>
+          ))
+        ) : (
+          monthNames.map(mName => (
+            <button 
+              key={mName}
+              type="button" 
+              className={`am-pill-month ${selectedMonth === mName ? 'active' : ''}`}
+              style={{ '--month-color': getMonthColor(mName) }}
+              onClick={() => setSelectedMonth(mName)}
+            >
+              <span className="am-month-name">{getMonthAbbr(mName)}</span>
+            </button>
+          ))
+        )}
+      </div>
+
+      {/* 3. Filters Toolbar (Localidad, Plaga, Reset) */}
+      <div className="am-filters-toolbar">
+        <div className="am-filters-left">
+          <div className="am-filter-select-wrap">
+            <MapPin size={15} color="var(--text-muted)" />
+            <select 
+              className="am-select" 
+              value={localidadFilter}
+              onChange={(e) => setLocalidadFilter(e.target.value)}
+            >
+              <option value="">Localidad (Todas)</option>
+              {localidadStats.map(l => <option key={l.name} value={l.name}>{l.name} ({l.count})</option>)}
+            </select>
+          </div>
+
+          <div className="am-filter-select-wrap">
+            <Bug size={15} color="var(--text-muted)" />
+            <select 
+              className="am-select"
+              value={plagaFilter}
+              onChange={(e) => setPlagaFilter(e.target.value)}
+            >
+              <option value="">Plaga (Todas)</option>
+              {plagasStats.map(p => <option key={p.name} value={p.name}>{p.name} ({p.count})</option>)}
+            </select>
+          </div>
+
+          {(localidadFilter || plagaFilter || searchQuery) && (
+            <button 
+              type="button"
+              className="am-btn-reset-filters"
+              onClick={() => {
+                setLocalidadFilter('');
+                setPlagaFilter('');
+                setSearchQuery('');
+              }}
+            >
+              <X size={14} /> Limpiar filtros
+            </button>
+          )}
         </div>
-        <div className="dropdowns">
-          <select 
-            className="av-select" 
-            value={localidadFilter}
-            onChange={(e) => setLocalidadFilter(e.target.value)}
-          >
-            <option value="">Localidad (Todas)</option>
-            {localidadStats.map(l => <option key={l.name} value={l.name}>{l.name}</option>)}
-          </select>
-          <select 
-            className="av-select"
-            value={plagaFilter}
-            onChange={(e) => setPlagaFilter(e.target.value)}
-          >
-            <option value="">Plaga (Todas)</option>
-            {plagasStats.map(p => <option key={p.name} value={p.name}>{p.name}</option>)}
-          </select>
+
+        <div className="am-count-tag">
+          Mostrando <strong>{filteredAvisos.length}</strong> avisos
         </div>
       </div>
 
-      <div className="years-container">
-        {avisosData.years.map(yearData => {
-          const isYearExpanded = expandedYears[yearData.year];
-          return (
-            <div key={yearData.year} className="year-section">
-              <div 
-                className="year-header" 
-                onClick={() => toggleYear(yearData.year)}
-              >
-                <div className="year-header-left">
-                  <Calendar size={20} />
-                  <h2>Año {yearData.year}</h2>
-                  <span className="year-count-badge">{yearData.count} avisos</span>
+      {/* 4. Cards Grid */}
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-muted)' }}>
+          Cargando avisos...
+        </div>
+      ) : filteredAvisos.length === 0 ? (
+        <div className="am-empty-state animate-fade-in">
+          <ShieldCheck size={48} color="var(--text-faint)" />
+          <h3>No se encontraron avisos</h3>
+          <p>Prueba a cambiar el año, mes o los filtros seleccionados.</p>
+        </div>
+      ) : (
+        <div className="am-avisos-grid animate-fade-in">
+          {filteredAvisos.map(aviso => {
+            const plagasArray = parsePlagas(aviso.plagas);
+
+            return (
+              <div key={aviso.id} className="aviso-map-card">
+                {/* Header: Dirección y Localidad */}
+                <div className="aviso-card-top">
+                  <div>
+                    <h4 className="aviso-address">
+                      {aviso.direccion}{aviso.portal ? `, ${aviso.portal}` : ''}
+                    </h4>
+                    <div className="aviso-loc">
+                      <MapPin size={14} color="#2563eb" />
+                      <span>{aviso.localidad}</span>
+                    </div>
+                  </div>
+
+                  {/* Plagas Badges */}
+                  <div className="aviso-plagas-wrap">
+                    {plagasArray.map(p => {
+                      const pc = plagaColors[p] || { color: '#475569', bg: '#f1f5f9' };
+                      return (
+                        <span 
+                          key={p} 
+                          className="plaga-pill" 
+                          style={{ backgroundColor: pc.bg, color: pc.color }}
+                        >
+                          <Bug size={13} /> {p}
+                        </span>
+                      );
+                    })}
+                  </div>
                 </div>
-                {isYearExpanded ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
-              </div>
 
-              {isYearExpanded && (
-                <div className="months-container">
-                  {yearData.months.map(monthData => {
-                    const monthKey = `${yearData.year}-${monthData.month}`;
-                    const isMonthExpanded = expandedMonths[monthKey];
+                {/* Metadata: Fecha, Hora, Tipo de Contacto */}
+                <div className="aviso-datetime">
+                  <span><Calendar size={13} /> {aviso.fecha}</span>
+                  <span><Clock size={13} /> {aviso.hora}</span>
+                  {aviso.contacto && (
+                    <span className="aviso-contact-badge">
+                      {aviso.contacto === 'Telefónicamente' ? <Phone size={13} /> : <MapPin size={13} />}
+                      {aviso.contacto}
+                    </span>
+                  )}
+                </div>
 
-                    return (
-                      <div key={monthData.month} className="month-section">
-                        <div className="month-header" onClick={() => toggleMonth(yearData.year, monthData.month)}>
-                          <div className="month-header-left">
-                            <Calendar size={16} color="var(--text-muted)" />
-                            <h3>{monthData.month}</h3>
-                            <span className="month-count">({monthData.count} avisos)</span>
-                          </div>
-                          {isMonthExpanded ? <ChevronDown size={16} color="var(--text-faint)"/> : <ChevronRight size={16} color="var(--text-faint)"/>}
-                        </div>
+                {/* Comentarios / Observaciones */}
+                {aviso.comentarios && (
+                  <div className="aviso-notes-box">
+                    <strong>Notas:</strong> {aviso.comentarios}
+                  </div>
+                )}
 
-                        {isMonthExpanded && monthData.avisos && monthData.avisos.length > 0 && (
-                          <div className="avisos-grid">
-                            {monthData.avisos.filter(aviso => {
-                              if (localidadFilter && aviso.localidad !== localidadFilter) return false;
-                              const plagasArray = parsePlagas(aviso.plagas);
-                              if (plagaFilter && !plagasArray.includes(plagaFilter)) return false;
-                              if (searchQuery) {
-                                const searchLower = searchQuery.toLowerCase();
-                                const plagasStr = plagasArray.join(' ').toLowerCase();
-                                return (
-                                  aviso.direccion?.toLowerCase().includes(searchLower) ||
-                                  aviso.localidad?.toLowerCase().includes(searchLower) ||
-                                  plagasStr.includes(searchLower)
-                                );
-                              }
-                              return true;
-                            }).map(aviso => (
-                              <div key={aviso.id} className="aviso-map-card">
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
-                                  <div>
-                                    <h4 style={{ margin: 0, paddingBottom: '4px' }}>{aviso.direccion}{aviso.portal ? `, ${aviso.portal}` : ''}</h4>
-                                    <div className="aviso-loc" style={{ marginBottom: '8px' }}>
-                                      <MapPin size={14} color="var(--accent-avisomap)" />
-                                      <span>{aviso.localidad}</span>
-                                    </div>
-                                  </div>
-                                  <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'flex-end', flexShrink: 0, marginTop: '-4px' }}>
-                                    {(parsePlagas(aviso.plagas)).map(p => {
-                                      const pc = plagaColors[p] || { color: '#334155', bg: '#f1f5f9' };
-                                      return (
-                                        <div key={p} className="plaga-pill" style={{backgroundColor: pc.bg, color: pc.color, margin: 0, padding: '4px 10px'}}>
-                                          <Bug size={14} /> {p}
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                                <div className="aviso-datetime" style={{marginTop: '12px'}}>
-                                  <span><Calendar size={14} /> {aviso.fecha}</span>
-                                  <span><Clock size={14} /> {aviso.hora}</span>
-                                </div>
-                                {aviso.contacto && (
-                                  <div className="aviso-loc" style={{marginTop: '8px', color: 'var(--text-muted)'}}>
-                                    {aviso.contacto === 'Telefónicamente' ? <Phone size={14} color="var(--text-muted)" /> : <MapPin size={14} color="var(--text-muted)" />}
-                                    <span>{aviso.contacto}</span>
-                                  </div>
-                                )}
-                                {aviso.comentarios && (
-                                  <div style={{marginTop: '12px', fontSize: '0.9rem', color: 'var(--text-secondary)', background: 'var(--bg-input)', padding: '10px', borderRadius: 'var(--radius-sm)', borderLeft: '3px solid #cbd5e1', whiteSpace: 'pre-wrap'}}>
-                                    {aviso.comentarios}
-                                  </div>
-                                )}
-                                <div className="aviso-card-footer">
-                                  <button className="btn-ruta" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(aviso.direccion + (aviso.portal ? ' ' + aviso.portal : '') + ', ' + aviso.localidad)}`, '_blank')}><Navigation size={14}/> Ruta GPS</button>
-                                  <div className="aviso-actions">
-                                    {aviso.adjunto ? (
-                                      <a href={aviso.adjunto} target="_blank" rel="noopener noreferrer" style={{display:'flex',alignItems:'center'}}>
-                                        <Eye size={18} color="#0ea5e9" style={{cursor:'pointer'}} />
-                                      </a>
-                                    ) : (
-                                      <Eye size={18} color="var(--text-faint)" style={{cursor:'not-allowed'}} />
-                                      )}
-                                      {isAdmin && (
-                                      <div className="admin-only" style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
-                                        <Edit3 size={18} color="#14b8a6" style={{cursor: 'pointer'}} onClick={() => {
-                                      setEditingAviso({...aviso, plagasStr: parsePlagas(aviso.plagas).join(', ')});
-                                        setAvisoFileName('');
-                                      }} />
-                                      <Trash2 size={18} color="#ef4444" style={{cursor: 'pointer'}} onClick={() => handleDeleteAviso(aviso.id)} />
-                                      </div>
-                                      )}
-                                    </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
+                {/* Footer Actions */}
+                <div className="aviso-card-footer">
+                  <button 
+                    type="button"
+                    className="btn-ruta" 
+                    onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(aviso.direccion + (aviso.portal ? ' ' + aviso.portal : '') + ', ' + aviso.localidad)}`, '_blank')}
+                    title="Abrir ubicación en Google Maps"
+                  >
+                    <Navigation size={13} /> Ruta GPS
+                  </button>
+
+                  <div className="aviso-actions">
+                    {aviso.adjunto ? (
+                      <a 
+                        href={aviso.adjunto} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="aviso-action-btn view"
+                        title="Ver foto / albarán adjunto"
+                      >
+                        <Eye size={16} /> Foto
+                      </a>
+                    ) : null}
+
+                    {isAdmin && (
+                      <div className="admin-actions-group">
+                        <button 
+                          type="button"
+                          className="aviso-action-icon edit"
+                          title="Editar aviso"
+                          onClick={() => {
+                            setEditingAviso({ ...aviso, plagasStr: plagasArray.join(', ') });
+                            setAvisoFileName('');
+                          }}
+                        >
+                          <Edit3 size={15} />
+                        </button>
+                        <button 
+                          type="button"
+                          className="aviso-action-icon delete"
+                          title="Eliminar aviso"
+                          onClick={() => handleDeleteAviso(aviso.id)}
+                        >
+                          <Trash2 size={15} />
+                        </button>
                       </div>
-                    );
-                  })}
+                    )}
+                  </div>
                 </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 
   const renderEstadisticas = () => (
     <div className="tab-content animate-fade-in">
       <div className="stats-header">
-        <h2>Estadísticas</h2>
+        <div>
+          <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800 }}>Estadísticas Globales</h2>
+          <p style={{ margin: '4px 0 0', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Distribución de incidencias y avisos registrados</p>
+        </div>
         <span className="stats-total-badge">{avisosData.total} avisos totales</span>
       </div>
 
       <div className="stats-cards-container">
         <div className="stats-card">
           <div className="stats-card-title">
-            <Bug size={20} color="var(--accent-avisomap)" />
+            <div className="stats-icon-circle" style={{ background: '#dbeafe', color: '#2563eb' }}>
+              <Bug size={20} />
+            </div>
             <div>
-              <h3>Tipo de Plaga</h3>
-              <p>Toca una fila para filtrar</p>
+              <h3>Por Tipo de Plaga</h3>
+              <p>Haz clic para filtrar en el historial</p>
             </div>
           </div>
           <div className="stats-list">
-            {plagasStats.map(stat => (
-              <div key={stat.name} className="stat-row">
-                <div className="stat-info">
-                  <span className="stat-name"><Bug size={14} color="var(--text-muted)"/> {stat.name}</span>
-                  <span className="stat-numbers">{stat.count} avisos</span>
+            {plagasStats.map(stat => {
+              const pc = plagaColors[stat.name] || { color: '#2563eb', bg: '#eff6ff' };
+              const pct = avisosData.total > 0 ? Math.round((stat.count / avisosData.total) * 100) : 0;
+
+              return (
+                <div 
+                  key={stat.name} 
+                  className="stat-row"
+                  onClick={() => {
+                    setPlagaFilter(stat.name);
+                    setActiveTab('historial');
+                  }}
+                  title={`Filtrar por ${stat.name}`}
+                >
+                  <div className="stat-info">
+                    <span className="stat-name">
+                      <span className="stat-dot" style={{ backgroundColor: pc.color }} />
+                      {stat.name}
+                    </span>
+                    <span className="stat-numbers">
+                      <strong>{stat.count}</strong> <span style={{ opacity: 0.6 }}>({pct}%)</span>
+                    </span>
+                  </div>
+                  <div className="stat-bar-bg">
+                    <div className="stat-bar-fill" style={{ width: `${pct}%`, backgroundColor: pc.color }} />
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
         <div className="stats-card">
           <div className="stats-card-title">
-            <MapPin size={20} color="var(--accent-avisomap)" />
+            <div className="stats-icon-circle" style={{ background: '#e0e7ff', color: '#4338ca' }}>
+              <MapPin size={20} />
+            </div>
             <div>
               <h3>Por Localidad</h3>
-              <p>Toca una fila para filtrar</p>
+              <p>Haz clic para filtrar en el historial</p>
             </div>
           </div>
           <div className="stats-list">
-            {localidadStats.map(stat => (
-              <div key={stat.name} className="stat-row">
-                <div className="stat-info">
-                  <span className="stat-name">{stat.name}</span>
-                  <span className="stat-numbers">{stat.count} avisos</span>
+            {localidadStats.map(stat => {
+              const pct = avisosData.total > 0 ? Math.round((stat.count / avisosData.total) * 100) : 0;
+
+              return (
+                <div 
+                  key={stat.name} 
+                  className="stat-row"
+                  onClick={() => {
+                    setLocalidadFilter(stat.name);
+                    setActiveTab('historial');
+                  }}
+                  title={`Filtrar por ${stat.name}`}
+                >
+                  <div className="stat-info">
+                    <span className="stat-name">
+                      <MapPin size={13} color="var(--text-muted)" style={{ marginRight: '6px' }} />
+                      {stat.name}
+                    </span>
+                    <span className="stat-numbers">
+                      <strong>{stat.count}</strong> <span style={{ opacity: 0.6 }}>({pct}%)</span>
+                    </span>
+                  </div>
+                  <div className="stat-bar-bg">
+                    <div className="stat-bar-fill" style={{ width: `${pct}%`, backgroundColor: '#2563eb' }} />
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
@@ -415,10 +620,16 @@ const Avisomap = () => {
       {/* Top Header */}
       <header className="avisomap-topbar">
         <div className="am-logo">
-          <div className="shield-icon"><ShieldCheck size={24} color="white" /></div>
-          <h1>Avisomap</h1>
+          <div className="shield-icon">
+            <ShieldCheck size={22} color="white" />
+          </div>
+          <div>
+            <h1>Avisomap</h1>
+            <span className="am-subtitle">Gestión de Avisos Mapfre</span>
+          </div>
         </div>
         
+        {/* Search Bar */}
         <div className="am-search">
           <Search size={18} color="var(--text-faint)" />
           <input 
@@ -439,79 +650,163 @@ const Avisomap = () => {
           )}
         </div>
 
-
+        {/* Action Button: Nuevo Aviso */}
+        <button
+          type="button"
+          className="btn-nuevo-aviso-top"
+          onClick={() => {
+            window.dispatchEvent(new CustomEvent('open-universal-form', { 
+              detail: { type: 'avisomap', mode: 'create' } 
+            }));
+          }}
+          title="Crear un nuevo aviso"
+        >
+          <Plus size={16} /> Nuevo Aviso
+        </button>
       </header>
 
+      {/* Tabs Menu */}
+      <div className="avisomap-tabs-menu">
+        <button 
+          type="button"
+          className={`tab-btn-menu ${activeTab === 'historial' ? 'active' : ''}`}
+          onClick={() => setActiveTab('historial')}
+        >
+          <List size={16} /> Mis Avisos ({avisosData.total})
+        </button>
+        <button 
+          type="button"
+          className={`tab-btn-menu ${activeTab === 'stats' ? 'active' : ''}`}
+          onClick={() => setActiveTab('stats')}
+        >
+          <BarChart2 size={16} /> Estadísticas
+        </button>
+      </div>
+
       {/* Main Content */}
-      <div className="aviso-map-content">
+      <div className="avisomap-main-content">
         {activeTab === 'historial' ? renderMisAvisos() : renderEstadisticas()}
       </div>
 
+      {/* Modal Editar Aviso */}
       {editingAviso && (
-        <div className="uf-overlay" onClick={() => setEditingAviso(null)} style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-          <div className="uf-modal animate-fade-in" onClick={e => e.stopPropagation()} style={{background: 'var(--bg-card)', padding: '24px', borderRadius: 'var(--radius-md)', width: '90%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto'}}>
-            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px'}}>
-              <h2 style={{margin: 0}}>Editar Aviso</h2>
-              <XCircle size={24} color="var(--text-muted)" style={{cursor: 'pointer'}} onClick={() => setEditingAviso(null)} />
+        <div className="uf-overlay" onClick={() => setEditingAviso(null)}>
+          <div className="uf-modal animate-fade-in" onClick={e => e.stopPropagation()}>
+            <div className="uf-modal-header">
+              <h2>Editar Aviso Mapfre</h2>
+              <button type="button" className="icon-btn-close" onClick={() => setEditingAviso(null)}>
+                <X size={20} />
+              </button>
             </div>
-            <form onSubmit={handleSaveEdit} style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
-              <div style={{display: 'flex', gap: '12px'}}>
-                <div style={{flex: 2}}>
-                  <label style={{fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)'}}>DIRECCIÓN</label>
-                  <input type="text" value={editingAviso.direccion || ''} onChange={e => setEditingAviso({...editingAviso, direccion: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-input)'}} required />
+            <form onSubmit={handleSaveEdit} className="am-edit-form">
+              <div className="am-form-row">
+                <div style={{ flex: 2 }}>
+                  <label>DIRECCIÓN</label>
+                  <input 
+                    type="text" 
+                    value={editingAviso.direccion || ''} 
+                    onChange={e => setEditingAviso({...editingAviso, direccion: e.target.value})} 
+                    required 
+                  />
                 </div>
-                <div style={{flex: 1}}>
-                  <label style={{fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)'}}>PORTAL</label>
-                  <input type="text" value={editingAviso.portal || ''} onChange={e => setEditingAviso({...editingAviso, portal: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-input)'}} />
+                <div style={{ flex: 1 }}>
+                  <label>PORTAL / PISO</label>
+                  <input 
+                    type="text" 
+                    value={editingAviso.portal || ''} 
+                    onChange={e => setEditingAviso({...editingAviso, portal: e.target.value})} 
+                  />
                 </div>
               </div>
+
               <div>
-                <label style={{fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)'}}>LOCALIDAD</label>
-                <input type="text" value={editingAviso.localidad} onChange={e => setEditingAviso({...editingAviso, localidad: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-input)'}} required />
+                <label>LOCALIDAD</label>
+                <input 
+                  type="text" 
+                  value={editingAviso.localidad || ''} 
+                  onChange={e => setEditingAviso({...editingAviso, localidad: e.target.value})} 
+                  required 
+                />
               </div>
-              <div style={{display: 'flex', gap: '12px'}}>
-                <div style={{flex: 1}}>
-                  <label style={{fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)'}}>FECHA</label>
-                  <input type="date" value={editingAviso.fecha} onChange={e => setEditingAviso({...editingAviso, fecha: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-input)'}} required />
+
+              <div className="am-form-row">
+                <div style={{ flex: 1 }}>
+                  <label>FECHA</label>
+                  <input 
+                    type="date" 
+                    value={editingAviso.fecha || ''} 
+                    onChange={e => setEditingAviso({...editingAviso, fecha: e.target.value})} 
+                    required 
+                  />
                 </div>
-                <div style={{flex: 1}}>
-                  <label style={{fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)'}}>HORA</label>
-                  <input type="time" value={editingAviso.hora} onChange={e => setEditingAviso({...editingAviso, hora: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-input)'}} required />
+                <div style={{ flex: 1 }}>
+                  <label>HORA</label>
+                  <input 
+                    type="time" 
+                    value={editingAviso.hora || ''} 
+                    onChange={e => setEditingAviso({...editingAviso, hora: e.target.value})} 
+                    required 
+                  />
                 </div>
               </div>
+
               <div>
-                <label style={{fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)'}}>TIPO DE RESOLUCIÓN</label>
-                <select value={editingAviso.contacto || 'Presencial'} onChange={e => setEditingAviso({...editingAviso, contacto: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-input)', background: 'var(--bg-input)', color: 'var(--text-main)'}}>
+                <label>TIPO DE RESOLUCIÓN</label>
+                <select 
+                  value={editingAviso.contacto || 'Presencial'} 
+                  onChange={e => setEditingAviso({...editingAviso, contacto: e.target.value})}
+                >
                   <option value="Presencial">Presencial</option>
                   <option value="Telefónicamente">Telefónicamente</option>
                 </select>
               </div>
+
               <div>
-                <label style={{fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)'}}>PLAGAS (Separadas por comas)</label>
-                <input type="text" value={editingAviso.plagasStr} onChange={e => setEditingAviso({...editingAviso, plagasStr: e.target.value})} style={{width: '100%', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-input)'}} required />
+                <label>PLAGAS (Separadas por comas)</label>
+                <input 
+                  type="text" 
+                  value={editingAviso.plagasStr} 
+                  onChange={e => setEditingAviso({...editingAviso, plagasStr: e.target.value})} 
+                  required 
+                />
               </div>
+
               <div>
-                <label style={{fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)'}}>NOTAS / COMENTARIOS</label>
-                <textarea value={editingAviso.comentarios || ''} onChange={e => setEditingAviso({...editingAviso, comentarios: e.target.value})} rows="3" style={{width: '100%', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-input)'}}></textarea>
+                <label>NOTAS / COMENTARIOS</label>
+                <textarea 
+                  value={editingAviso.comentarios || ''} 
+                  onChange={e => setEditingAviso({...editingAviso, comentarios: e.target.value})} 
+                  rows="3"
+                ></textarea>
               </div>
+
               <div>
-                <label style={{fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)'}}>FOTO / ALBARÁN (Opcional)</label>
-                <div style={{position: 'relative', cursor: 'pointer', background: avisoFileName ? 'var(--color-success-light)' : 'var(--bg-input)', border: avisoFileName ? '2px dashed var(--accent-avisomap)' : '1px solid var(--border-input)', borderRadius: 'var(--radius-sm)', padding: '12px', display: 'flex', alignItems: 'center', gap: '8px'}}>
-                  <Camera size={16} color={avisoFileName ? "var(--accent-avisomap)" : "var(--text-muted)"} />
-                  <strong style={{color: avisoFileName ? "#15803d" : "var(--text-secondary)", fontSize: '0.9rem'}}>{avisoFileName || (editingAviso.adjunto ? 'Cambiar archivo adjunto' : 'Adjuntar archivo nuevo')}</strong>
-                  <input name="adjuntoEdit" type="file" onChange={(e) => setAvisoFileName(e.target.files[0]?.name || '')} style={{opacity: 0, position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, cursor: 'pointer'}} />
+                <label>FOTO / ALBARÁN (Opcional)</label>
+                <div className="am-file-upload-box">
+                  <Camera size={18} color="#2563eb" />
+                  <span>{avisoFileName || (editingAviso.adjunto ? 'Cambiar archivo adjunto' : 'Adjuntar archivo nuevo')}</span>
+                  <input 
+                    name="adjuntoEdit" 
+                    type="file" 
+                    onChange={(e) => setAvisoFileName(e.target.files[0]?.name || '')} 
+                  />
                 </div>
               </div>
-              <button type="submit" disabled={isUploading} style={{padding: '12px', background: 'linear-gradient(135deg, var(--accent-avisomap), #047857)', color: 'var(--text-on-primary)', border: 'none', borderRadius: 'var(--radius-sm)', fontWeight: 600, cursor: 'pointer', marginTop: '8px', opacity: isUploading ? 0.7 : 1}}>
+
+              <button 
+                type="submit" 
+                disabled={isUploading} 
+                className="am-btn-submit-edit"
+              >
                 {isUploading ? 'Guardando...' : 'Guardar Cambios'}
               </button>
             </form>
           </div>
         </div>
       )}
-
     </div>
   );
 };
 
 export default Avisomap;
+
