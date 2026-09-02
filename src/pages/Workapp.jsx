@@ -1,14 +1,58 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Briefcase, Settings, History, 
   ChevronDown, ChevronRight, Edit3, Trash2, Clock, Car, 
   Search as SearchIcon, Wallet, MoreVertical, 
-  Paperclip, Plus, Calendar, X
+  Paperclip, Plus, Calendar, X, MapPin, TrendingUp
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import './Workapp.css';
 
 const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+const getMonthColor = (month) => {
+  const colors = {
+    '01': '#0ea5e9', '02': '#8b5cf6', '03': '#10b981', '04': '#f59e0b',
+    '05': '#ef4444', '06': '#3b82f6', '07': '#ec4899', '08': '#14b8a6',
+    '09': '#f97316', '10': '#6366f1', '11': '#84cc16', '12': '#06b6d4',
+    'Enero': '#0ea5e9', 'Febrero': '#8b5cf6', 'Marzo': '#10b981', 'Abril': '#f59e0b',
+    'Mayo': '#ef4444', 'Junio': '#3b82f6', 'Julio': '#ec4899', 'Agosto': '#14b8a6',
+    'Septiembre': '#f97316', 'Octubre': '#6366f1', 'Noviembre': '#84cc16', 'Diciembre': '#06b6d4',
+  };
+  return colors[month] || '#7c3aed';
+};
+
+const getMonthAbbr = (monthName) => {
+  const map = {
+    'Enero': 'Ene', 'Febrero': 'Feb', 'Marzo': 'Mar', 'Abril': 'Abr',
+    'Mayo': 'May', 'Junio': 'Jun', 'Julio': 'Jul', 'Agosto': 'Ago',
+    'Septiembre': 'Sep', 'Octubre': 'Oct', 'Noviembre': 'Nov', 'Diciembre': 'Dic'
+  };
+  return map[monthName] || (monthName ? monthName.substring(0, 3) : '');
+};
+
+const parseJornadaDate = (fechaStr) => {
+  if (!fechaStr) return { year: '1970', monthName: 'Enero', timestamp: 0 };
+  let y = 1970, mIndex = 0, d = 1;
+  if (fechaStr.includes('/')) {
+    const parts = fechaStr.split('/');
+    d = parseInt(parts[0], 10) || 1;
+    mIndex = (parseInt(parts[1], 10) || 1) - 1;
+    y = parseInt(parts[2], 10) || 1970;
+  } else if (fechaStr.includes('-')) {
+    const parts = fechaStr.split('-');
+    y = parseInt(parts[0], 10) || 1970;
+    mIndex = (parseInt(parts[1], 10) || 1) - 1;
+    d = parseInt(parts[2], 10) || 1;
+  }
+  const dateObj = new Date(y, mIndex, d);
+  return {
+    year: String(y),
+    monthName: monthNames[mIndex] || 'Enero',
+    timestamp: dateObj.getTime(),
+    dateObj
+  };
+};
 
 // Strips seconds from time strings like "9:30:00" -> "9:30"
 const formatTime = (t) => {
@@ -85,6 +129,10 @@ const Workapp = () => {
   const [expandedMonths, setExpandedMonths] = useState({});
 
 
+  // Jornadas pill filter state
+  const [selectedYear, setSelectedYear] = useState(() => new Date().getFullYear().toString());
+  const [selectedMonth, setSelectedMonth] = useState('Todos');
+
   // Nóminas year filter
   const [nominaYearFilter, setNominaYearFilter] = useState(new Date().getFullYear().toString());
 
@@ -99,8 +147,6 @@ const Workapp = () => {
   const [cuadrarForm, setCuadrarForm] = useState({ importe: '', fechaCierre: '2026-07-26', mes: '', base: '0.00', liquido: '0.00', irpf: '0.00', ss: '0.00' });
   const [prediccion, setPrediccion] = useState(null);
 
-
-
   // ---- Data Fetching ----
   const fetchJornadas = async () => {
     setLoading(true);
@@ -113,17 +159,17 @@ const Workapp = () => {
       setJornadas(data);
       setTotalRegistros(data.length);
       
-      // Auto-expand current year and month
+      // Auto-set selected year to latest if current selection doesn't exist
       if (data.length > 0) {
-        const now = new Date();
-        const currentYear = now.getFullYear().toString();
-        const currentMonth = monthNames[now.getMonth()];
-        setExpandedYears(prev => ({ ...prev, [currentYear]: true }));
-        setExpandedMonths(prev => ({ ...prev, [`${currentYear}-${currentMonth}`]: true }));
+        const availableYears = [...new Set(data.map(d => parseJornadaDate(d.fecha).year))].filter(y => y !== '1970' && y !== 'Desconocido');
+        if (availableYears.length > 0 && !availableYears.includes(selectedYear) && selectedYear !== 'Todos') {
+          setSelectedYear(availableYears[0]);
+        }
       }
     }
     setLoading(false);
   };
+
 
   const fetchNominas = async () => {
     setLoadingNominas(true);
@@ -165,75 +211,104 @@ const Workapp = () => {
     return () => window.removeEventListener('refresh-workapp', handleRefresh);
   }, []);
 
-  // ---- Group by Year/Month ----
-  const getGroupedData = () => {
-    const filtered = jornadas.filter(j => {
-
-      // Text search filter
-      if (!searchQuery) return true;
-      const q = searchQuery.toLowerCase();
-      // Safely handle paradas being a string (from old DB) or array (from new DB)
-      let paradasStr = '';
-      if (typeof j.paradas === 'string') {
-        paradasStr = j.paradas.toLowerCase();
-      } else if (Array.isArray(j.paradas)) {
-        paradasStr = j.paradas.join(' ').toLowerCase();
+  // ---- Computed Data for Pill Navigation & Bento Grid ----
+  const yearsData = useMemo(() => {
+    const yearsMap = {};
+    jornadas.forEach(j => {
+      const { year, monthName } = parseJornadaDate(j.fecha);
+      if (year === '1970' || year === 'Desconocido') return;
+      if (!yearsMap[year]) {
+        yearsMap[year] = { year, count: 0, monthsMap: {} };
       }
-      return (
-        (j.fecha || '').toLowerCase().includes(q) ||
-        (j.matricula || '').toLowerCase().includes(q) ||
-        paradasStr.includes(q)
-      );
+      yearsMap[year].count++;
+      if (!yearsMap[year].monthsMap[monthName]) {
+        yearsMap[year].monthsMap[monthName] = { month: monthName, count: 0 };
+      }
+      yearsMap[year].monthsMap[monthName].count++;
     });
 
-    const years = [];
-    filtered.forEach(j => {
-      // fecha format: "27/07/2026" (dd/mm/yyyy)
-      let year = 'Desconocido';
-      let month = 'Desconocido';
-      
-      if (j.fecha && j.fecha.includes('/')) {
-        const parts = j.fecha.split('/');
-        year = parts[2];
-        const mi = parseInt(parts[1], 10) - 1;
-        month = monthNames[mi] || 'Desconocido';
-      } else if (j.fecha && j.fecha.includes('-')) {
-        const parts = j.fecha.split('-');
-        year = parts[0];
-        const mi = parseInt(parts[1], 10) - 1;
-        month = monthNames[mi] || 'Desconocido';
-      }
-
-      let yObj = years.find(y => y.year === year);
-      if (!yObj) { yObj = { year, months: [] }; years.push(yObj); }
-      
-      let mObj = yObj.months.find(m => m.month === month);
-      if (!mObj) { mObj = { month, items: [] }; yObj.months.push(mObj); }
-      
-      mObj.items.push(j);
-    });
-    // Sort years descending (most recent first)
-    years.sort((a, b) => parseInt(b.year) - parseInt(a.year));
-
-    // Sort months descending within each year (most recent first)
-    years.forEach(y => {
-      y.months.sort((a, b) => monthNames.indexOf(b.month) - monthNames.indexOf(a.month));
-      // Sort items within each month by date descending
-      y.months.forEach(m => {
-        m.items.sort((a, b) => {
-          const parseDate = (f) => {
-            if (!f) return 0;
-            if (f.includes('/')) { const [d,mo,yr] = f.split('/'); return new Date(yr, mo-1, d).getTime(); }
-            if (f.includes('-')) { const [yr,mo,d] = f.split('-'); return new Date(yr, mo-1, d).getTime(); }
-            return 0;
-          };
-          return parseDate(b.fecha) - parseDate(a.fecha);
-        });
+    const sortedYears = Object.keys(yearsMap)
+      .sort((a, b) => parseInt(b) - parseInt(a))
+      .map(yKey => {
+        const yItem = yearsMap[yKey];
+        const sortedMonths = Object.keys(yItem.monthsMap)
+          .sort((a, b) => monthNames.indexOf(b) - monthNames.indexOf(a))
+          .map(mKey => yItem.monthsMap[mKey]);
+        return { year: yKey, count: yItem.count, months: sortedMonths };
       });
+
+    return sortedYears;
+  }, [jornadas]);
+
+  const activeYearData = useMemo(() => {
+    if (selectedYear === 'Todos') return null;
+    return yearsData.find(y => y.year === selectedYear);
+  }, [yearsData, selectedYear]);
+
+  const filteredJornadas = useMemo(() => {
+    return jornadas.filter(j => {
+      const { year, monthName } = parseJornadaDate(j.fecha);
+
+      // 1. Year filter
+      if (selectedYear !== 'Todos' && year !== selectedYear) return false;
+
+      // 2. Month filter
+      if (selectedMonth !== 'Todos' && monthName !== selectedMonth) return false;
+
+      // 3. Search query
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        let paradasStr = '';
+        if (typeof j.paradas === 'string') {
+          paradasStr = j.paradas.toLowerCase();
+        } else if (Array.isArray(j.paradas)) {
+          paradasStr = j.paradas.join(' ').toLowerCase();
+        }
+        const fechaStr = (j.fecha || '').toLowerCase();
+        const matriculaStr = (j.matricula || '').toLowerCase();
+
+        return (
+          fechaStr.includes(q) ||
+          matriculaStr.includes(q) ||
+          paradasStr.includes(q)
+        );
+      }
+
+      return true;
+    }).sort((a, b) => {
+      return parseJornadaDate(b.fecha).timestamp - parseJornadaDate(a.fecha).timestamp;
+    });
+  }, [jornadas, selectedYear, selectedMonth, searchQuery]);
+
+  const metricsSummary = useMemo(() => {
+    let totalMinutesTrabajadas = 0;
+    let totalMinutesExtras = 0;
+
+    filteredJornadas.forEach(j => {
+      const hDisp = formatHoursDisplay(j.horas_calculadas);
+      if (hDisp) {
+        const [h, m] = hDisp.split(':').map(Number);
+        totalMinutesTrabajadas += (h * 60 + m);
+      }
+      const hExtDisp = formatHoursDisplay(j.horas_extras);
+      if (hExtDisp) {
+        const [h, m] = hExtDisp.split(':').map(Number);
+        totalMinutesExtras += (h * 60 + m);
+      }
     });
 
-    return years;
-  };
+    const hTrab = Math.floor(totalMinutesTrabajadas / 60);
+    const mTrab = totalMinutesTrabajadas % 60;
+    const hExt = Math.floor(totalMinutesExtras / 60);
+    const mExt = totalMinutesExtras % 60;
+
+    return {
+      totalHoras: `${hTrab}h${mTrab > 0 ? ' ' + mTrab + 'm' : ''}`,
+      totalExtras: `${hExt}h${mExt > 0 ? ' ' + mExt + 'm' : ''}`,
+      hasExtras: totalMinutesExtras > 0
+    };
+  }, [filteredJornadas]);
+
 
   const handleDelete = async (id) => {
     if (window.confirm('¿Eliminar este registro permanentemente?')) {
@@ -520,9 +595,9 @@ const Workapp = () => {
       return fecha;
     }
     const date = new Date(y, m, d);
-    const dias = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
-    const meses = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
-    return `${dias[date.getDay()]}, ${d} DE ${meses[m]}`;
+    const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    return `${dias[date.getDay()]}, ${d} ${meses[m]} ${y}`;
   };
 
   // ---- Renders ----
@@ -537,158 +612,268 @@ const Workapp = () => {
         </div>
       </div>
       <div className="wa-header-actions">
-        <button className="icon-btn-round" onClick={() => setIsSettingsOpen(true)}><Settings size={18}/></button>
+        <button 
+          type="button" 
+          className="wa-btn-nueva-jornada"
+          onClick={() => {
+            window.dispatchEvent(new CustomEvent('open-universal-form', { 
+              detail: { type: 'workapp', mode: 'create' } 
+            }));
+          }}
+          title="Registrar nueva jornada"
+        >
+          <Plus size={16} /> Nueva Jornada
+        </button>
+        <button className="icon-btn-round" onClick={() => setIsSettingsOpen(true)} title="Configuración de tarifas"><Settings size={18}/></button>
       </div>
     </header>
   );
 
   const renderHistorial = () => {
-    const grouped = getGroupedData();
-
     return (
       <div className="wa-historial animate-fade-in">
-        <div className="wa-page-header">
-          <h2>Historial <span className="light-text">({totalRegistros} registros)</span></h2>
+        {/* 1. Page Header with Title and Search */}
+        <div className="wa-header-row">
+          <div className="wa-page-title-block">
+            <h2>Historial de Jornadas</h2>
+            <span className="wa-page-subtitle">Registro y cálculo de horas laborales</span>
+          </div>
+
+          <div className="wa-search-box">
+            <SearchIcon size={18} color="var(--accent-workapp, #7c3aed)" />
+            <input 
+              type="text" 
+              placeholder="Buscar por ruta, cliente o matrícula..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button 
+                type="button"
+                className="search-clear-btn"
+                onClick={() => setSearchQuery('')}
+                title="Limpiar búsqueda"
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
         </div>
 
-        <div className="wa-search-box">
-          <SearchIcon size={18} color="var(--accent-estadisticas)" />
-          <input 
-            type="text" 
-            placeholder="Buscar por ruta o matrícula..." 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          {searchQuery && (
+        {/* 2. Year Pills Row */}
+        <div className="wa-pills-row wa-years-row">
+          <button 
+            type="button" 
+            className={`wa-pill-year ${selectedYear === 'Todos' ? 'active' : ''}`}
+            onClick={() => { setSelectedYear('Todos'); setSelectedMonth('Todos'); }}
+          >
+            <span>Todos los años</span>
+            <span className="wa-pill-badge">{jornadas.length}</span>
+          </button>
+          {yearsData.map(yData => (
             <button 
-              type="button"
-              className="search-clear-btn"
-              onClick={() => setSearchQuery('')}
-              title="Limpiar búsqueda"
+              key={yData.year}
+              type="button" 
+              className={`wa-pill-year ${selectedYear === yData.year ? 'active' : ''}`}
+              onClick={() => { setSelectedYear(yData.year); setSelectedMonth('Todos'); }}
             >
-              <X size={16} />
+              <span>{yData.year}</span>
+              <span className="wa-pill-badge">{yData.count}</span>
             </button>
+          ))}
+        </div>
+
+        {/* 3. Month Pills Row */}
+        <div className="wa-pills-row wa-months-row animate-fade-in">
+          <button 
+            type="button" 
+            className={`wa-pill-month ${selectedMonth === 'Todos' ? 'active' : ''}`}
+            onClick={() => setSelectedMonth('Todos')}
+            style={{ '--month-color': '#7c3aed' }}
+          >
+            <span>Todos los meses</span>
+          </button>
+
+          {activeYearData ? (
+            activeYearData.months.map(mGroup => (
+              <button 
+                key={mGroup.month}
+                type="button" 
+                className={`wa-pill-month ${selectedMonth === mGroup.month ? 'active' : ''}`}
+                style={{ '--month-color': getMonthColor(mGroup.month) }}
+                onClick={() => setSelectedMonth(mGroup.month)}
+                title={`${mGroup.month} (${mGroup.count} jornadas)`}
+              >
+                <span className="wa-month-name">{getMonthAbbr(mGroup.month)}</span>
+                <span className="wa-month-badge">{mGroup.count}</span>
+              </button>
+            ))
+          ) : (
+            monthNames.map(mName => (
+              <button 
+                key={mName}
+                type="button" 
+                className={`wa-pill-month ${selectedMonth === mName ? 'active' : ''}`}
+                style={{ '--month-color': getMonthColor(mName) }}
+                onClick={() => setSelectedMonth(mName)}
+              >
+                <span className="wa-month-name">{getMonthAbbr(mName)}</span>
+              </button>
+            ))
           )}
         </div>
 
+        {/* 4. Toolbar con Métricas Rápidas del Filtro */}
+        <div className="wa-toolbar-metrics">
+          <div className="wa-toolbar-left">
+            <span className="wa-toolbar-count">
+              Mostrando <strong>{filteredJornadas.length}</strong> {filteredJornadas.length === 1 ? 'jornada' : 'jornadas'}
+            </span>
+            {searchQuery && (
+              <button 
+                type="button" 
+                className="wa-btn-clear-search"
+                onClick={() => setSearchQuery('')}
+              >
+                <X size={13} /> Quitar filtro de texto
+              </button>
+            )}
+          </div>
 
+          <div className="wa-toolbar-chips">
+            <div className="wa-chip-metric base">
+              <Clock size={14} color="#6d28d9" />
+              <span>{metricsSummary.totalHoras} trabajadas</span>
+            </div>
+            {metricsSummary.hasExtras && (
+              <div className="wa-chip-metric extras">
+                <TrendingUp size={14} color="#f43f5e" />
+                <span><strong>+{metricsSummary.totalExtras}</strong> extras</span>
+              </div>
+            )}
+          </div>
+        </div>
 
+        {/* 5. Cards Grid (Bento Grid) */}
         {loading ? (
-          <div style={{textAlign: 'center', padding: '40px', color: 'var(--text-muted)'}}>Cargando jornadas...</div>
-        ) : grouped.length === 0 ? (
-          <div style={{textAlign: 'center', padding: '40px', color: 'var(--text-muted)'}}>
-            {searchQuery ? 'No se encontraron resultados.' : 'Aún no hay jornadas registradas. Pulsa el botón + para crear la primera.'}
+          <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-muted)' }}>
+            Cargando jornadas...
+          </div>
+        ) : filteredJornadas.length === 0 ? (
+          <div className="wa-empty-state animate-fade-in">
+            <Briefcase size={44} color="var(--text-faint)" />
+            <h3>No se encontraron jornadas</h3>
+            <p>{searchQuery ? 'Prueba a cambiar el término de búsqueda.' : 'No hay jornadas registradas para este periodo seleccionado.'}</p>
           </div>
         ) : (
-          <div style={{marginTop: '16px'}}>
-            {grouped.map(yearData => {
-              const isYearExpanded = expandedYears[yearData.year];
+          <div className="wa-cards-grid animate-fade-in">
+            {filteredJornadas.map(reg => {
+              let finalParadas = [];
+              if (typeof reg.paradas === 'string') {
+                try {
+                  const parsed = JSON.parse(reg.paradas);
+                  if (Array.isArray(parsed)) finalParadas = parsed;
+                  else finalParadas = [reg.paradas.trim()];
+                } catch(e) {
+                  if (reg.paradas.trim() !== '') {
+                    finalParadas = reg.paradas.split(/[,-]+/).map(p => p.trim()).filter(p => p !== '');
+                  }
+                }
+              } else if (Array.isArray(reg.paradas)) {
+                finalParadas = reg.paradas;
+              }
+
               return (
-                <div key={yearData.year}>
-                  <div 
-                    className="wa-accordion bg-pink"
-                    onClick={() => setExpandedYears(prev => ({...prev, [yearData.year]: !prev[yearData.year]}))}
-                    style={{cursor: 'pointer'}}
-                  >
-                    <span>AÑO {yearData.year}</span>
-                    {isYearExpanded ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
+                <div key={reg.id} className="wa-card">
+                  {/* Cabecera con velo tenue (soft violet/indigo tint) */}
+                  <div className="wa-card-top">
+                    <div className="wa-card-date-group">
+                      <Calendar size={14} color="#7c3aed" />
+                      <span className="wa-date-pill">{formatFechaDisplay(reg.fecha)}</span>
+                    </div>
+
+                    <div className="wa-hours-group">
+                      <span className="wa-hour-pill base" title="Horas calculadas de la jornada">
+                        <Clock size={12} />
+                        {formatHoursDisplay(reg.horas_calculadas) || '?'}h
+                      </span>
+                      {formatHoursDisplay(reg.horas_extras) && (
+                        <span className="wa-hour-pill extra" title="Horas extras realizadas">
+                          +{formatHoursDisplay(reg.horas_extras)}h ext
+                        </span>
+                      )}
+                    </div>
                   </div>
 
-                  {isYearExpanded && yearData.months.map(monthData => {
-                    const monthKey = `${yearData.year}-${monthData.month}`;
-                    const isMonthExpanded = expandedMonths[monthKey];
-                    return (
-                      <div key={monthKey}>
-                        <div 
-                          className="wa-accordion bg-light-purple"
-                          onClick={() => setExpandedMonths(prev => ({...prev, [monthKey]: !prev[monthKey]}))}
-                          style={{cursor: 'pointer'}}
-                        >
-                          <span>{monthData.month.toUpperCase()} ({monthData.items.length})</span>
-                          {isMonthExpanded ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
+                  {/* Cuerpo de la tarjeta */}
+                  <div className="wa-card-body">
+                    {/* Paradas / Destinos */}
+                    {finalParadas.length > 0 ? (
+                      <div className="wa-paradas-wrap">
+                        <div className="wa-paradas-grid">
+                          {finalParadas.map((parada, idx) => (
+                            <span key={idx} className="wa-parada-pill">
+                              <MapPin size={12} color="#7c3aed" /> {parada}
+                            </span>
+                          ))}
                         </div>
-
-                        {isMonthExpanded && (
-                          <div className="wa-record-list">
-                            {monthData.items.map(reg => (
-                              <div key={reg.id} className="wa-card">
-                                <div className="wa-card-header">
-                                  <span className="wa-date-pill">{formatFechaDisplay(reg.fecha)}</span>
-                                  <div className="wa-hours-group">
-                                    <span className="wa-hour-pill base">
-                                      {formatHoursDisplay(reg.horas_calculadas) || '?'}h
-                                    </span>
-                                    {formatHoursDisplay(reg.horas_extras) && (
-                                      <span className="wa-hour-pill extra">
-                                        +{formatHoursDisplay(reg.horas_extras)}h ext
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-
-                                {(() => {
-                                  let finalParadas = [];
-                                  if (typeof reg.paradas === 'string') {
-                                    try {
-                                      const parsed = JSON.parse(reg.paradas);
-                                      if (Array.isArray(parsed)) finalParadas = parsed;
-                                      else finalParadas = [reg.paradas.trim()];
-                                    } catch(e) {
-                                      if (reg.paradas.trim() !== '') {
-                                        // Split by comma or hyphen for older plain-text data
-                                        finalParadas = reg.paradas.split(/[,-]+/).map(p => p.trim()).filter(p => p !== '');
-                                      }
-                                    }
-                                  } else if (Array.isArray(reg.paradas)) {
-                                    finalParadas = reg.paradas;
-                                  }
-                                  
-                                  if (finalParadas.length === 0) return null;
-                                  
-                                  return (
-                                    <div className="wa-paradas-grid">
-                                      {finalParadas.map((parada, idx) => (
-                                        <span key={idx} className="wa-parada-pill">{parada}</span>
-                                      ))}
-                                    </div>
-                                  );
-                                })()}
-
-                                <div className="wa-card-footer">
-                                  <div className="wa-card-meta">
-                                    <span><Clock size={16}/> {formatTime(reg.hora_inicio)} - {formatTime(reg.hora_fin)}</span>
-                                    <span><Car size={16}/> {reg.matricula}</span>
-                                  </div>
-                                  
-                                  <div className="wa-card-actions">
-                                    {reg.adjunto && (
-                                      <a href={reg.adjunto} target="_blank" rel="noopener noreferrer" className="wa-action-btn" style={{display:'flex',alignItems:'center',justifyContent:'center'}}>
-                                        <Paperclip size={16} color="var(--accent-estadisticas)" />
-                                      </a>
-                                    )}
-                                    <button className="wa-action-btn" onClick={() => handleOpenEdit(reg)}>
-                                      <Edit3 size={16} />
-                                    </button>
-                                    <button className="wa-action-btn" onClick={(e) => { e.stopPropagation(); toggleMenu(reg.id); }}>
-                                      <MoreVertical size={16} />
-                                    </button>
-                                    
-                                    {activeMenuId === reg.id && (
-                                      <div className="wa-dropdown-menu">
-                                        <button className="wa-dropdown-item danger" onClick={() => handleDelete(reg.id)}>
-                                          <Trash2 size={16} /> Eliminar
-                                        </button>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
                       </div>
-                    );
-                  })}
+                    ) : (
+                      <div className="wa-no-paradas">
+                        <span>Sin paradas registradas</span>
+                      </div>
+                    )}
+
+                    {/* Horario y Matrícula */}
+                    <div className="wa-meta-row">
+                      <span className="wa-meta-item">
+                        <Clock size={13} color="var(--text-muted)" />
+                        {formatTime(reg.hora_inicio)} - {formatTime(reg.hora_fin)}
+                      </span>
+                      {reg.matricula && (
+                        <span className="wa-meta-item wa-matricula-chip">
+                          <Car size={13} color="var(--text-muted)" />
+                          {reg.matricula}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Pie de tarjeta: Adjunto + Acciones */}
+                    <div className="wa-card-footer">
+                      <div>
+                        {reg.adjunto ? (
+                          <a 
+                            href={reg.adjunto} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="wa-btn-attachment"
+                            title="Ver albarán / archivo adjunto"
+                          >
+                            <Paperclip size={14} /> Albarán
+                          </a>
+                        ) : null}
+                      </div>
+
+                      <div className="wa-card-actions">
+                        <button 
+                          type="button"
+                          className="wa-action-icon edit" 
+                          onClick={() => handleOpenEdit(reg)}
+                          title="Editar jornada"
+                        >
+                          <Edit3 size={15} />
+                        </button>
+                        <button 
+                          type="button"
+                          className="wa-action-icon delete" 
+                          onClick={() => handleDelete(reg.id)}
+                          title="Eliminar jornada"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               );
             })}
@@ -697,6 +882,7 @@ const Workapp = () => {
       </div>
     );
   };
+
 
 
 
