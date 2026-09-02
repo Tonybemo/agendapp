@@ -309,6 +309,22 @@ const Workapp = () => {
     };
   }, [filteredJornadas]);
 
+  const nominaYearsData = useMemo(() => {
+    const yearCounts = {};
+    nominas.forEach(n => {
+      const match = (n.mes || '').match(/\d{4}/);
+      const y = match ? match[0] : (n.fecha_cierre ? n.fecha_cierre.substring(0, 4) : null);
+      if (y) {
+        yearCounts[y] = (yearCounts[y] || 0) + 1;
+      }
+    });
+    return Object.keys(yearCounts).sort().reverse().map(year => ({
+      year,
+      count: yearCounts[year]
+    }));
+  }, [nominas]);
+
+
 
   const handleDelete = async (id) => {
     if (window.confirm('¿Eliminar este registro permanentemente?')) {
@@ -612,20 +628,9 @@ const Workapp = () => {
         </div>
       </div>
       <div className="wa-header-actions">
-        <button 
-          type="button" 
-          className="wa-btn-nueva-jornada"
-          onClick={() => {
-            window.dispatchEvent(new CustomEvent('open-universal-form', { 
-              detail: { type: 'workapp', mode: 'create' } 
-            }));
-          }}
-          title="Registrar nueva jornada"
-        >
-          <Plus size={16} /> Nueva Jornada
-        </button>
         <button className="icon-btn-round" onClick={() => setIsSettingsOpen(true)} title="Configuración de tarifas"><Settings size={18}/></button>
       </div>
+
     </header>
   );
 
@@ -901,118 +906,122 @@ const Workapp = () => {
         </button>
       </div>
 
-      <div style={{display: 'inline-block', marginBottom: '24px'}}>
-        <div className="wa-date-pill" style={{display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--accent-estadisticas)', color: 'var(--bg-card)', position: 'relative'}}>
-          <Calendar size={16} />
-          <select
-            value={nominaYearFilter}
-            onChange={(e) => setNominaYearFilter(e.target.value)}
-            style={{
-              appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none',
-              background: 'transparent', border: 'none', color: 'var(--bg-card)',
-              fontWeight: 800, fontSize: '1rem', cursor: 'pointer', outline: 'none',
-              paddingRight: '20px'
-            }}
+      {/* Year Pills for Nóminas */}
+      <div className="wa-pills-row wa-years-row" style={{ marginBottom: '22px' }}>
+        <button 
+          type="button" 
+          className={`wa-pill-year ${nominaYearFilter === 'all' ? 'active' : ''}`}
+          onClick={() => setNominaYearFilter('all')}
+        >
+          <span>Todos los años</span>
+          <span className="wa-pill-badge">{nominas.length}</span>
+        </button>
+        {nominaYearsData.map(yData => (
+          <button 
+            key={yData.year}
+            type="button" 
+            className={`wa-pill-year ${nominaYearFilter === yData.year ? 'active' : ''}`}
+            onClick={() => setNominaYearFilter(yData.year)}
           >
-            <option value="all" style={{color: 'var(--text-main)'}}>Todos</option>
-            {[...new Set([new Date().getFullYear().toString(), ...nominas.map(n => {
-                const match = (n.mes || '').match(/\d{4}/);
-                return match ? match[0] : '';
-            })])].filter(Boolean).sort().reverse().map(y => (
-                <option key={y} value={y} style={{color: 'var(--text-main)'}}>{y}</option>
-            ))}
-          </select>
-          <ChevronDown size={16} style={{pointerEvents: 'none'}} />
+            <span>{yData.year}</span>
+            <span className="wa-pill-badge">{yData.count}</span>
+          </button>
+        ))}
+      </div>
+
+      {fetchError && (
+        <div style={{background: 'var(--color-error-light)', border: '1px solid var(--color-danger)', color: 'var(--color-danger)', padding: '16px', borderRadius: 'var(--radius-sm)', textAlign: 'center', fontWeight: 'bold', marginBottom: '16px'}}>
+          Error de conexión: {fetchError}
+          <br/><small>Por favor, haz una captura de este error.</small>
         </div>
-      </div>
+      )}
 
-      <div className="wa-record-list" style={{marginTop: 0}}>
-        {fetchError && (
-          <div style={{background: 'var(--color-error-light)', border: '1px solid var(--color-danger)', color: 'var(--color-danger)', padding: '16px', borderRadius: 'var(--radius-sm)', textAlign: 'center', fontWeight: 'bold', marginBottom: '16px'}}>
-            Error de conexión: {fetchError}
-            <br/><small>Por favor, haz una captura de este error.</small>
+      {loadingNominas ? (
+        <div style={{textAlign: 'center', padding: '40px', color: 'var(--text-muted)'}}>Cargando nóminas...</div>
+      ) : (() => {
+        const monthOrder = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+        let filteredNominas = nominaYearFilter === 'all' 
+          ? [...nominas] 
+          : nominas.filter(n => (n.mes || '').includes(nominaYearFilter));
+        filteredNominas.sort((a, b) => {
+          const extractYear = (m) => { const match = (m || '').match(/\d{4}/); return match ? parseInt(match[0]) : 0; };
+          const extractMonth = (m) => { const name = (m || '').split(' ')[0]; return monthOrder.indexOf(name); };
+          const yDiff = extractYear(b.mes) - extractYear(a.mes);
+          if (yDiff !== 0) return yDiff;
+          return extractMonth(b.mes) - extractMonth(a.mes);
+        });
+        return filteredNominas.length === 0 ? (
+          <div className="wa-empty-state animate-fade-in">
+            <Wallet size={44} color="var(--text-faint)" />
+            <h3>No hay nóminas registradas</h3>
+            <p>{nominas.length === 0 
+              ? 'Pulsa el botón CUADRAR para añadir la primera.'
+              : `No se encontraron nóminas para el año ${nominaYearFilter}.`}</p>
           </div>
-        )}
-        {loadingNominas ? (
-          <div style={{textAlign: 'center', padding: '40px', color: 'var(--text-muted)'}}>Cargando nóminas...</div>
-        ) : (() => {
-          const monthOrder = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-          let filteredNominas = nominaYearFilter === 'all' 
-            ? [...nominas] 
-            : nominas.filter(n => (n.mes || '').includes(nominaYearFilter));
-          filteredNominas.sort((a, b) => {
-            const extractYear = (m) => { const match = (m || '').match(/\d{4}/); return match ? parseInt(match[0]) : 0; };
-            const extractMonth = (m) => { const name = (m || '').split(' ')[0]; return monthOrder.indexOf(name); };
-            const yDiff = extractYear(b.mes) - extractYear(a.mes);
-            if (yDiff !== 0) return yDiff;
-            return extractMonth(b.mes) - extractMonth(a.mes);
-          });
-          return filteredNominas.length === 0 ? (
-            <div style={{textAlign: 'center', padding: '40px', color: 'var(--text-muted)'}}>
-              {nominas.length === 0 
-                ? 'Aún no hay nóminas registradas. Pulsa CUADRAR para añadir una.'
-                : `No hay nóminas para el año ${nominaYearFilter}.`}
-            </div>
-          ) : filteredNominas.map((nom, idx) => (
-          <div key={nom.id} className="wa-nomina-card">
-            <div className="wa-nom-header" style={{
-              background: NOMINA_ACCENTS[idx % NOMINA_ACCENTS.length].bg,
-              borderBottom: `2px solid ${NOMINA_ACCENTS[idx % NOMINA_ACCENTS.length].border}`
-            }}>
-              <div className="wa-nom-title">
-                <h3>{nom.mes}</h3>
-                <p><Calendar size={14}/> {nom.rango}</p>
-              </div>
-              <div className="wa-nom-total">
-                <h3>{nom.total_extra}</h3>
-                <p>Total Horas Extra</p>
-              </div>
-            </div>
-            
-            <div className="wa-nom-grid">
-              <div className="wa-nom-item">
-                <label>Base Imponible</label>
-                <strong>{nom.base}</strong>
-              </div>
-              <div className="wa-nom-item">
-                <label>Líquido a Cobrar</label>
-                <strong className="green">{nom.liquido}</strong>
-              </div>
-              <div className="wa-nom-item">
-                <label>IRPF</label>
-                <strong className="red">{nom.irpf}</strong>
-              </div>
-              <div className="wa-nom-item">
-                <label>Seguridad Social</label>
-                <strong className="red">{nom.ss}</strong>
-              </div>
-            </div>
+        ) : (
+          <div className="wa-nominas-grid animate-fade-in">
+            {filteredNominas.map((nom, idx) => (
+              <div key={nom.id} className="wa-nomina-card">
+                <div className="wa-nom-header" style={{
+                  background: NOMINA_ACCENTS[idx % NOMINA_ACCENTS.length].bg,
+                  borderBottom: `2px solid ${NOMINA_ACCENTS[idx % NOMINA_ACCENTS.length].border}`
+                }}>
+                  <div className="wa-nom-title">
+                    <h3>{nom.mes}</h3>
+                    <p><Calendar size={14}/> {nom.rango}</p>
+                  </div>
+                  <div className="wa-nom-total">
+                    <h3>{nom.total_extra}</h3>
+                    <p>Total Horas Extra</p>
+                  </div>
+                </div>
+                
+                <div className="wa-nom-grid">
+                  <div className="wa-nom-item">
+                    <label>Base Imponible</label>
+                    <strong>{nom.base}</strong>
+                  </div>
+                  <div className="wa-nom-item">
+                    <label>Líquido a Cobrar</label>
+                    <strong className="green">{nom.liquido}</strong>
+                  </div>
+                  <div className="wa-nom-item">
+                    <label>IRPF</label>
+                    <strong className="red">{nom.irpf}</strong>
+                  </div>
+                  <div className="wa-nom-item">
+                    <label>Seguridad Social</label>
+                    <strong className="red">{nom.ss}</strong>
+                  </div>
+                </div>
 
-            <div className="wa-nom-footer">
-              {nom.adjunto ? (
-                <a href={nom.adjunto} target="_blank" rel="noopener noreferrer" className="wa-btn-archivo" style={{display:'flex',alignItems:'center',gap:'6px',textDecoration:'none'}}>
-                  <Paperclip size={18} /> Ver Archivo
-                </a>
-              ) : (
-                <div style={{width: '120px'}}></div>
-              )}
-              
-              <div className="wa-card-actions">
-                <button className="wa-action-btn" onClick={() => handleOpenEditNomina(nom)}>
-                  <Edit3 size={16} />
-                </button>
-                <button className="wa-action-btn delete" onClick={() => handleDeleteNomina(nom.id)}>
-                  <Trash2 size={16} />
-                </button>
+                <div className="wa-nom-footer">
+                  {nom.adjunto ? (
+                    <a href={nom.adjunto} target="_blank" rel="noopener noreferrer" className="wa-btn-archivo" style={{display:'flex',alignItems:'center',gap:'6px',textDecoration:'none'}}>
+                      <Paperclip size={16} /> Ver Archivo
+                    </a>
+                  ) : (
+                    <div></div>
+                  )}
+                  
+                  <div className="wa-card-actions">
+                    <button className="wa-action-icon edit" onClick={() => handleOpenEditNomina(nom)} title="Editar nómina">
+                      <Edit3 size={15} />
+                    </button>
+                    <button className="wa-action-icon delete" onClick={() => handleDeleteNomina(nom.id)} title="Eliminar nómina">
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
+            ))}
           </div>
-        ));
-        })()
-        }
-      </div>
+        );
+      })()}
     </div>
   );
+
+
 
   return (
     <div className="workapp-container" onClick={() => setActiveMenuId(null)}>
