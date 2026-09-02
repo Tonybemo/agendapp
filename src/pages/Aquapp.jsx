@@ -98,6 +98,12 @@ const Aquapp = () => {
   const [clientData, setClientData] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // Detail navigation state (pill-based)
+  const [detailStep, setDetailStep] = useState('categories'); // 'categories' | 'years' | 'months' | 'records'
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedYear, setSelectedYear] = useState(null);
+  const [selectedMonth, setSelectedMonth] = useState(null);
+
   // Accordion state
   const [expandedCategories, setExpandedCategories] = useState({});
   const [recentTratamientos, setRecentTratamientos] = useState([]);
@@ -341,6 +347,10 @@ const Aquapp = () => {
   const fetchClientDetails = async (client) => {
     setSelectedClient(client);
     setCurrentView('client_detail');
+    setDetailStep('categories');
+    setSelectedCategory(null);
+    setSelectedYear(null);
+    setSelectedMonth(null);
     setLoading(true);
 
     const { data: muestras } = await supabase
@@ -418,7 +428,7 @@ const Aquapp = () => {
     return (
       <div className="animate-fade-in">
         <div className="view-header">
-          <h2>Historial de Clientes (Nube)</h2>
+          <h2>Clientes</h2>
         </div>
 
         <div className="search-box">
@@ -441,449 +451,493 @@ const Aquapp = () => {
           )}
         </div>
 
-        <div className="client-list" style={{display: 'flex', flexDirection: 'column', gap: '16px'}}>
+        <div className="aq-clients-grid">
           {filteredClients.map(client => (
             <div 
               key={client.id} 
-              className="client-card"
-              style={{ display: 'flex', alignItems: 'center', gap: '16px', background: 'var(--bg-card)', padding: '16px 20px', borderRadius: '14px', boxShadow: 'var(--shadow-sm)', cursor: 'pointer', border: '1px solid var(--border-light)', transition: 'all 0.2s' }}
+              className="aq-client-tile"
               onClick={() => fetchClientDetails(client)}
-              onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = 'var(--shadow-md)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'var(--shadow-sm)'; }}
             >
-              <div className="client-avatar" style={{ width: '50px', height: '50px', borderRadius: '14px', backgroundColor: getAvatarColor(client.name), display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '1.2rem', flexShrink: 0, boxShadow: '0 2px 4px -1px rgba(0,0,0,0.1)' }}>
+              <div 
+                className="aq-client-avatar-circle" 
+                style={{ backgroundColor: getAvatarColor(client.name) }}
+              >
                 {client.name.substring(0,2).toUpperCase()}
               </div>
-              <div className="client-info" style={{ flex: 1 }}>
-                <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px'}}>
-                  <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-main)', fontWeight: '700' }}>{client.name}</h3>
-                  <span className="admin-only"><Edit3 size={14} color="#94a3b8" /></span>
-                </div>
-                <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.88rem', fontWeight: '500' }}>Último registro: {client.ultima_muestra}</p>
-              </div>
-              <ChevronDown size={18} color="var(--text-faint)" style={{ transform: 'rotate(-90deg)' }} />
+              <h4 className="aq-client-tile-name">{client.name}</h4>
             </div>
           ))}
         </div>
+
+        {filteredClients.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+            <Search size={40} color="var(--text-faint)" style={{ marginBottom: '12px' }} />
+            <p style={{ fontWeight: '700', fontSize: '1rem' }}>No se encontraron clientes para "{searchQuery}"</p>
+          </div>
+        )}
       </div>
     );
+  };
+
+  const getMonthAbbr = (monthName) => {
+    const map = {
+      'Enero': 'Ene', 'Febrero': 'Feb', 'Marzo': 'Mar', 'Abril': 'Abr',
+      'Mayo': 'May', 'Junio': 'Jun', 'Julio': 'Jul', 'Agosto': 'Ago',
+      'Septiembre': 'Sep', 'Octubre': 'Oct', 'Noviembre': 'Nov', 'Diciembre': 'Dic'
+    };
+    return map[monthName] || (monthName ? monthName.substring(0, 3) : '');
+  };
+
+  const groupCategoryItems = (items) => {
+    const grouped = [];
+    (items || []).forEach(item => {
+      let year = "Desconocido";
+      let month = "Desconocido";
+      if (item.fecha && item.fecha.includes('/')) {
+        const parts = item.fecha.split('/');
+        year = parts[2];
+        const monthIndex = parseInt(parts[1], 10) - 1;
+        const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+        month = monthNames[monthIndex] || "Desconocido";
+      } else if (item.fecha && item.fecha.includes('-')) {
+        const parts = item.fecha.split('T')[0].split('-');
+        year = parts[0];
+        const monthIndex = parseInt(parts[1], 10) - 1;
+        const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+        month = monthNames[monthIndex] || "Desconocido";
+      }
+      let yearObj = grouped.find(y => y.year === year);
+      if (!yearObj) { yearObj = { year, months: [] }; grouped.push(yearObj); }
+      let monthObj = yearObj.months.find(m => m.month === month);
+      if (!monthObj) { monthObj = { month, items: [] }; yearObj.months.push(monthObj); }
+      monthObj.items.push(item);
+    });
+
+    const monthOrder = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    grouped.forEach(yGroup => {
+      yGroup.months.sort((a, b) => {
+        return monthOrder.indexOf(b.month) - monthOrder.indexOf(a.month);
+      });
+      yGroup.months.forEach(mGroup => {
+        mGroup.items.sort((a, b) => {
+          const numA = parseInt((a.numero_muestra || '0').replace(/\D/g, ''), 10) || 0;
+          const numB = parseInt((b.numero_muestra || '0').replace(/\D/g, ''), 10) || 0;
+          return numA - numB;
+        });
+      });
+    });
+
+    grouped.sort((a, b) => {
+      if (a.year === 'Desconocido') return 1;
+      if (b.year === 'Desconocido') return -1;
+      return parseInt(b.year) - parseInt(a.year);
+    });
+
+    return grouped;
   };
 
   const renderClientDetail = () => {
     if (!selectedClient) return null;
 
+    const activeCat = clientData.find(c => c.id === selectedCategory) || clientData[0];
+    const yearGroups = activeCat ? groupCategoryItems(activeCat.items) : [];
+    const activeYearGroup = yearGroups.find(y => y.year === selectedYear) || yearGroups[0];
+    const activeMonthGroup = activeYearGroup?.months?.find(m => m.month === selectedMonth) || activeYearGroup?.months?.[0];
+
+    const currentYearVal = activeYearGroup?.year;
+    const currentMonthVal = activeMonthGroup?.month;
+
     return (
-      <div className="animate-fade-in">
-        <div className="view-header">
-          <button className="icon-btn" onClick={() => setCurrentView('historial')}>
+      <div className="animate-fade-in aq-client-detail-view">
+        {/* Back navigation header */}
+        <div className="view-header" style={{ marginBottom: '16px' }}>
+          <button className="icon-btn" onClick={() => setCurrentView('historial')} title="Volver al listado de clientes">
             <ChevronDown style={{ transform: 'rotate(90deg)' }} size={24} />
           </button>
-          <h2>Detalle Cliente</h2>
+          <h2>{selectedClient.name}</h2>
         </div>
 
-        <div className="client-detail-header">
-          <div className="client-avatar" style={{ backgroundColor: getAvatarColor(selectedClient?.name) }}>
-            {selectedClient?.name ? selectedClient.name.substring(0,2).toUpperCase() : '??'}
+        {/* Hero Client Card (Mockup Style) */}
+        <div className="aq-detail-hero-card animate-fade-in">
+          <div 
+            className="aq-detail-avatar-circle"
+            style={{ backgroundColor: getAvatarColor(selectedClient.name) }}
+          >
+            {selectedClient.name ? selectedClient.name.substring(0, 2).toUpperCase() : '??'}
           </div>
-          <div className="client-info">
-            <h3>{selectedClient.name}</h3>
-            <p>{selectedClient.address}</p>
+          <div className="aq-detail-hero-info">
+            <h3 className="aq-detail-hero-title">{selectedClient.name}</h3>
+            {selectedClient.address && (
+              <p className="aq-detail-hero-address">{selectedClient.address}</p>
+            )}
           </div>
         </div>
 
         {loading ? (
-          <div style={{textAlign: 'center', padding: '40px', color: 'var(--text-muted)'}}>Cargando registros...</div>
+          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>Cargando registros...</div>
         ) : clientData.length === 0 ? (
-          <div style={{textAlign: 'center', padding: '40px', color: 'var(--text-muted)'}}>No hay registros para este cliente. Añade uno pulsando el botón +</div>
+          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+            No hay registros para este cliente. Añade uno pulsando el botón +
+          </div>
         ) : (
-          <div className="accordion-list">
-            {clientData.map(category => {
-              const CatIcon = IconMap[category.iconType] || Box;
-              const isExpanded = expandedCategories[category.id];
+          <div className="aq-pills-navigation-container animate-fade-in">
+            {/* 1. Category Pills Row */}
+            <div className="aq-category-pills-row">
+              {clientData.map(category => {
+                const CatIcon = IconMap[category.iconType] || Box;
+                const isSelected = (activeCat?.id === category.id);
+                const catColor = ColorMap[category.iconType] || '#4f46e5';
 
-              return (
-                <div key={category.id} className="accordion-item">
-                  <div className="accordion-header" onClick={() => toggleCategory(category.id)}>
-                    <div style={{ backgroundColor: ColorMap[category.iconType] || '#333', padding: '8px', borderRadius: '50%', color: 'white', display: 'flex' }}>
-                      <CatIcon size={20} />
+                return (
+                  <button
+                    key={category.id}
+                    type="button"
+                    className={`aq-category-pill ${isSelected ? 'active' : ''}`}
+                    style={{
+                      '--cat-color': catColor
+                    }}
+                    onClick={() => {
+                      setSelectedCategory(category.id);
+                      setSelectedYear(null);
+                      setSelectedMonth(null);
+                    }}
+                  >
+                    <div className="aq-cat-icon-wrap">
+                      <CatIcon size={18} />
                     </div>
-                    <h3>{category.name} ({category.items.length})</h3>
-                    {isExpanded ? <ChevronUp size={20} color="#94a3b8" /> : <ChevronDown size={20} color="#94a3b8" />}
-                  </div>
+                    <span className="aq-cat-name">{category.name}</span>
+                    <span className="aq-cat-count">({category.items.length})</span>
+                  </button>
+                );
+              })}
+            </div>
 
-                  {isExpanded && (
-                    <div className="accordion-content animate-fade-in">
-                      {(() => {
-                        const grouped = [];
-                        category.items.forEach(item => {
-                          let year = "Desconocido";
-                          let month = "Desconocido";
-                          if (item.fecha && item.fecha.includes('/')) {
-                            const parts = item.fecha.split('/');
-                            year = parts[2];
-                            const monthIndex = parseInt(parts[1], 10) - 1;
-                            const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-                            month = monthNames[monthIndex] || "Desconocido";
-                          } else if (item.fecha && item.fecha.includes('-')) {
-                            const parts = item.fecha.split('T')[0].split('-');
-                            year = parts[0];
-                            const monthIndex = parseInt(parts[1], 10) - 1;
-                            const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-                            month = monthNames[monthIndex] || "Desconocido";
-                          } else if (item.fecha && item.fecha.includes('-')) {
-                            const parts = item.fecha.split('-');
-                            year = parts[0];
-                            const monthIndex = parseInt(parts[1], 10) - 1;
-                            const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-                            month = monthNames[monthIndex] || "Desconocido";
-                          }
-                          let yearObj = grouped.find(y => y.year === year);
-                          if (!yearObj) { yearObj = { year, months: [] }; grouped.push(yearObj); }
-                          let monthObj = yearObj.months.find(m => m.month === month);
-                          if (!monthObj) { monthObj = { month, items: [] }; yearObj.months.push(monthObj); }
-                          monthObj.items.push(item);
-                        });
+            {/* 2. Year Pills Row */}
+            {yearGroups.length > 0 && (
+              <div className="aq-years-pills-row animate-fade-in">
+                {yearGroups.map(yGroup => {
+                  const isYearSelected = (currentYearVal === yGroup.year);
+                  const totalInYear = yGroup.months.reduce((acc, m) => acc + m.items.length, 0);
 
-                        // Sort items within each month by numero_muestra
-                        grouped.forEach(yGroup => {
-                          const monthOrder = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-                          yGroup.months.sort((a, b) => {
-                            return monthOrder.indexOf(b.month) - monthOrder.indexOf(a.month);
-                          });
-                          
-                          yGroup.months.forEach(mGroup => {
-                            mGroup.items.sort((a, b) => {
-                              const numA = parseInt((a.numero_muestra || '0').replace(/\D/g, ''), 10) || 0;
-                              const numB = parseInt((b.numero_muestra || '0').replace(/\D/g, ''), 10) || 0;
-                              return numA - numB;
-                            });
-                          });
-                        });
-                        
-                        grouped.sort((a, b) => {
-                          if (a.year === 'Desconocido') return 1;
-                          if (b.year === 'Desconocido') return -1;
-                          return parseInt(b.year) - parseInt(a.year);
-                        });
+                  return (
+                    <button
+                      key={yGroup.year}
+                      type="button"
+                      className={`aq-year-pill ${isYearSelected ? 'active' : ''}`}
+                      onClick={() => {
+                        setSelectedYear(yGroup.year);
+                        setSelectedMonth(null);
+                      }}
+                    >
+                      <span className="aq-year-label">{yGroup.year}</span>
+                      {totalInYear > 0 && (
+                        <span className="aq-year-badge">{totalInYear}</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
 
-                        return grouped.map(yGroup => {
-                          const yId = `client-year-${category.id}-${yGroup.year}`;
-                          const isYearExpanded = expandedYears[yId];
-                          const totalItems = yGroup.months.reduce((acc, m) => acc + m.items.length, 0);
-                          
-                          return (
-                          <div key={yGroup.year} style={{marginBottom: '16px', background: 'var(--bg-card)', borderRadius: '12px', border: '1px solid var(--border-light)', overflow: 'hidden'}}>
-                            <div 
-                              onClick={() => toggleYear(yId)}
-                              style={{
-                                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                padding: '12px 16px', background: 'var(--bg-card-hover)', cursor: 'pointer', userSelect: 'none'
-                              }}
-                            >
-                              <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-                                <Calendar size={18} color="#64748b" />
-                                <h4 style={{margin: 0, color: 'var(--text-secondary)', fontSize: '1.1rem'}}>{yGroup.year}</h4>
-                                <span style={{background: '#fee2e2', color: 'var(--color-error)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold'}}>
-                                  {totalItems} {totalItems === 1 ? 'registro' : 'registros'}
-                                </span>
-                              </div>
-                              {isYearExpanded ? <ChevronUp size={18} color="#94a3b8" /> : <ChevronDown size={18} color="#94a3b8" />}
+            {/* 3. Month Pills Row (Colored with counts) */}
+            {activeYearGroup?.months?.length > 0 && (
+              <div className="aq-months-pills-row animate-fade-in">
+                {activeYearGroup.months.map(mGroup => {
+                  const isMonthSelected = (currentMonthVal === mGroup.month);
+                  const monthColor = getMonthColor(mGroup.month);
+                  const abbr = getMonthAbbr(mGroup.month);
+
+                  return (
+                    <button
+                      key={mGroup.month}
+                      type="button"
+                      className={`aq-month-pill ${isMonthSelected ? 'active' : ''}`}
+                      style={{
+                        '--month-color': monthColor
+                      }}
+                      onClick={() => setSelectedMonth(mGroup.month)}
+                      title={`${mGroup.month} (${mGroup.items.length} registros)`}
+                    >
+                      <span className="aq-month-name">{abbr}</span>
+                      <span className="aq-month-count">{mGroup.items.length}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* 4. Active Month Cards Grid */}
+            {activeMonthGroup?.items?.length > 0 ? (
+              <div className="unified-cards-grid animate-fade-in" style={{ marginTop: '24px' }}>
+                {activeMonthGroup.items.map(item => {
+                  const displayDate = formatDisplayDate(item.fecha);
+                  const displayTime = item.hora ? item.hora.substring(0, 5) : '-';
+
+                  if (activeCat?.id === 'Tratamiento') {
+                    const tratStyle = getTratamientoStyle(item.tipo_tratamiento);
+                    const motStyle = getMotivoStyle(item.motivo);
+                    const dotColor = motStyle.isHigh ? '#ef4444' : '#10b981';
+
+                    return (
+                      <div key={item.id} className="unified-card">
+                        <div className="unified-card-top">
+                          <div className="unified-card-top-left">
+                            <div className="unified-card-dot" style={{ backgroundColor: dotColor }} />
+                            <span style={{ fontWeight: 800, color: 'var(--text-main)', fontSize: '1.05rem' }}>
+                              {item.cliente_nombre || selectedClient?.name || 'Cliente'}
+                            </span>
+                          </div>
+                          <div className="unified-card-meta" style={{ margin: 0 }}>
+                            <span>{displayDate}</span>
+                            {displayTime !== '-' && <span>{displayTime}</span>}
+                          </div>
+                        </div>
+
+                        <div className="trat-badges-row" style={{ marginTop: '8px' }}>
+                          <span className="trat-badge-tipo" style={{ background: tratStyle.bg, color: tratStyle.color }}>
+                            {tratStyle.label}
+                          </span>
+                          <span className={`trat-badge-motivo ${motStyle.isHigh ? 'recuento-alto' : 'prevencion'}`}>
+                            {motStyle.label}
+                          </span>
+                        </div>
+
+                        {item.notas && (
+                          <div className="unified-card-notes">
+                            <strong>Notas:</strong> {item.notas}
+                          </div>
+                        )}
+
+                        <div className="unified-card-footer admin-only">
+                          <button 
+                            className="card-action-icon-btn edit" 
+                            title="Editar"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.dispatchEvent(new CustomEvent('edit-record', { detail: { ...item, editType: 'tratamiento' } }));
+                            }}
+                          >
+                            <Edit3 size={15}/>
+                          </button>
+                          <button 
+                            className="card-action-icon-btn delete" 
+                            title="Borrar"
+                            onClick={(e) => { 
+                              e.stopPropagation(); 
+                              handleDeleteTratamiento(item.id); 
+                            }}
+                          >
+                            <Trash2 size={15}/>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  if (activeCat?.id === 'Plagas') {
+                    return (
+                      <div key={item.id} className="unified-card">
+                        <div className="unified-card-top">
+                          <div className="unified-card-top-left">
+                            <div className="unified-card-dot" style={{ backgroundColor: '#10b981' }} />
+                            <span style={{ fontWeight: 800, color: 'var(--text-main)', fontSize: '1.05rem' }}>
+                              {item.cliente_nombre || selectedClient?.name || 'Cliente'}
+                            </span>
+                          </div>
+                          <div className="unified-card-meta" style={{ margin: 0 }}>
+                            <span>{displayDate}</span>
+                            {displayTime !== '-' && <span>{displayTime}</span>}
+                          </div>
+                        </div>
+
+                        <div className="trat-badges-row" style={{ marginTop: '8px' }}>
+                          <span className="trat-badge-tipo" style={{ background: '#d1fae5', color: '#047857' }}>
+                            <Bug size={14} style={{ marginRight: '4px' }}/> {item.tipo_actuacion || 'Aviso de Plaga'}
+                          </span>
+                        </div>
+
+                        {item.descripcion && (
+                          <div className="unified-card-notes">
+                            <strong>Notas:</strong> {item.descripcion}
+                          </div>
+                        )}
+
+                        <div className="unified-card-footer admin-only">
+                          <button 
+                            className="card-action-icon-btn edit" 
+                            title="Editar"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.dispatchEvent(new CustomEvent('edit-record', { detail: { ...item, editType: 'plaga' } }));
+                            }}
+                          >
+                            <Edit3 size={15}/>
+                          </button>
+                          <button 
+                            className="card-action-icon-btn delete" 
+                            title="Borrar"
+                            onClick={(e) => { 
+                              e.stopPropagation(); 
+                              handleDeletePlaga(item.id); 
+                            }}
+                          >
+                            <Trash2 size={15}/>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  // Muestras (Estandar, Torre, Piscina, Jacuzzi...)
+                  const tipo = item.tipo_muestra || 'Estándar';
+                  const tipoBadgeClass = tipo === 'Torre' ? 'badge-tipo-torre' : tipo === 'Piscina' ? 'badge-tipo-piscina' : tipo === 'Jacuzzi' ? 'badge-tipo-jacuzzi' : 'badge-tipo-estandar';
+                  const isTorre = tipo === 'Torre';
+
+                  return (
+                    <div key={item.id} className="unified-card">
+                      {/* Top: Muestra num + Badges */}
+                      <div className="unified-card-top">
+                        <div className="unified-card-top-left">
+                          <span>{item.numero_muestra || 'Muestra'}</span>
+                        </div>
+                        <div className="unified-card-top-right">
+                          <span className={`badge-tipo-pill ${tipoBadgeClass}`}>
+                            <Droplet size={12}/> {tipo}
+                          </span>
+                          {item.cod_envase && (
+                            <span className="badge-envase-pill">
+                              #{item.cod_envase}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Main Title: Ubicación / Descripción */}
+                      <h3 className="unified-card-title">
+                        {item.descripcion || 'Sin descripción'}
+                      </h3>
+
+                      {/* Date & Time */}
+                      <div className="unified-card-meta">
+                        <span className="unified-card-meta-item">
+                          <Clock size={13}/> {displayTime}
+                        </span>
+                        <span className="unified-card-meta-item">
+                          <Calendar size={13}/> {displayDate}
+                        </span>
+                      </div>
+
+                      {/* 2x2 Parameter Capsules */}
+                      {isTorre ? (
+                        <div className="sample-capsules-grid">
+                          <div className="sample-capsule ph">
+                            <div className="capsule-left">
+                              <div className="capsule-icon-circle"><FlaskConical size={15}/></div>
+                              <span className="capsule-label">PH</span>
                             </div>
-                            
-                            {isYearExpanded && (
-                              <div style={{padding: '16px'}}>
-                                {yGroup.months.map(mGroup => {
-                                  const monthId = mGroup.month + '-' + category.id + '-' + yGroup.year;
-                                  const isMonthExpanded = expandedMonths[monthId];
-                                  return (
-                              <div key={mGroup.month} style={{marginBottom: '16px', marginLeft: '12px'}}>
-                                <div onClick={() => toggleMonth(monthId)} style={{display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginBottom: '12px', userSelect: 'none'}}>
-                                  {isMonthExpanded ? <ChevronDown size={18} color="#64748b"/> : <ChevronRight size={18} color="#64748b"/>}
-                                  <div style={{display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold'}}>
-                                    <Folder fill={getMonthColor(mGroup.month)} color={getMonthColor(mGroup.month)} size={18} /> <span style={{color: 'var(--text-main)'}}>{mGroup.month}</span> <span style={{background: 'var(--bg-main)', color: 'var(--text-muted)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.7rem'}}>{mGroup.items.length}</span>
-                                  </div>
-                                </div>
-                                {isMonthExpanded && (
-                                  <div className="unified-cards-grid">
-                                    {mGroup.items.map(item => {
-                                      const displayDate = formatDisplayDate(item.fecha);
-                                      const displayTime = item.hora ? item.hora.substring(0, 5) : '-';
-
-                                  if (category.id === 'Tratamiento') {
-                                    const tratStyle = getTratamientoStyle(item.tipo_tratamiento);
-                                    const motStyle = getMotivoStyle(item.motivo);
-                                    const dotColor = motStyle.isHigh ? '#ef4444' : '#10b981';
-
-                                    return (
-                                      <div key={item.id} className="unified-card">
-                                        <div className="unified-card-top">
-                                          <div className="unified-card-top-left">
-                                            <div className="unified-card-dot" style={{ backgroundColor: dotColor }} />
-                                            <span style={{ fontWeight: 800, color: 'var(--text-main)', fontSize: '1.05rem' }}>
-                                              {item.cliente_nombre || 'Cliente Desconocido'}
-                                            </span>
-                                          </div>
-                                          <div className="unified-card-meta" style={{ margin: 0 }}>
-                                            <span>{displayDate}</span>
-                                            {displayTime !== '-' && <span>{displayTime}</span>}
-                                          </div>
-                                        </div>
-
-                                        <div className="trat-badges-row" style={{ marginTop: '8px' }}>
-                                          <span className="trat-badge-tipo" style={{ background: tratStyle.bg, color: tratStyle.color }}>
-                                            {tratStyle.label}
-                                          </span>
-                                          <span className={`trat-badge-motivo ${motStyle.isHigh ? 'recuento-alto' : 'prevencion'}`}>
-                                            {motStyle.label}
-                                          </span>
-                                        </div>
-
-                                        {item.notas && (
-                                          <div className="unified-card-notes">
-                                            <strong>Notas:</strong> {item.notas}
-                                          </div>
-                                        )}
-
-                                        <div className="unified-card-footer admin-only">
-                                          <button 
-                                            className="card-action-icon-btn edit" 
-                                            title="Editar"
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              window.dispatchEvent(new CustomEvent('edit-record', { detail: { ...item, editType: 'tratamiento' } }));
-                                            }}
-                                          >
-                                            <Edit3 size={15}/>
-                                          </button>
-                                          <button 
-                                            className="card-action-icon-btn delete" 
-                                            title="Borrar"
-                                            onClick={(e) => { 
-                                              e.stopPropagation(); 
-                                              handleDeleteTratamiento(item.id); 
-                                            }}
-                                          >
-                                            <Trash2 size={15}/>
-                                          </button>
-                                        </div>
-                                      </div>
-                                    );
-                                  }
-
-                                  if (category.id === 'Plagas') {
-                                    return (
-                                      <div key={item.id} className="unified-card">
-                                        <div className="unified-card-top">
-                                          <div className="unified-card-top-left">
-                                            <div className="unified-card-dot" style={{ backgroundColor: '#10b981' }} />
-                                            <span style={{ fontWeight: 800, color: 'var(--text-main)', fontSize: '1.05rem' }}>
-                                              {item.cliente_nombre || 'Cliente Desconocido'}
-                                            </span>
-                                          </div>
-                                          <div className="unified-card-meta" style={{ margin: 0 }}>
-                                            <span>{displayDate}</span>
-                                            {displayTime !== '-' && <span>{displayTime}</span>}
-                                          </div>
-                                        </div>
-
-                                        <div className="trat-badges-row" style={{ marginTop: '8px' }}>
-                                          <span className="trat-badge-tipo" style={{ background: '#d1fae5', color: '#047857' }}>
-                                            <Bug size={14} style={{ marginRight: '4px' }}/> {item.tipo_actuacion || 'Aviso de Plaga'}
-                                          </span>
-                                        </div>
-
-                                        {item.descripcion && (
-                                          <div className="unified-card-notes">
-                                            <strong>Notas:</strong> {item.descripcion}
-                                          </div>
-                                        )}
-
-                                        <div className="unified-card-footer admin-only">
-                                          <button 
-                                            className="card-action-icon-btn edit" 
-                                            title="Editar"
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              window.dispatchEvent(new CustomEvent('edit-record', { detail: { ...item, editType: 'plaga' } }));
-                                            }}
-                                          >
-                                            <Edit3 size={15}/>
-                                          </button>
-                                          <button 
-                                            className="card-action-icon-btn delete" 
-                                            title="Borrar"
-                                            onClick={(e) => { 
-                                              e.stopPropagation(); 
-                                              handleDeletePlaga(item.id); 
-                                            }}
-                                          >
-                                            <Trash2 size={15}/>
-                                          </button>
-                                        </div>
-                                      </div>
-                                    );
-                                  }
-
-                                  // MUESTRAS (Estandar, Torre, Piscina, Jacuzzi...)
-                                  const tipo = item.tipo_muestra || 'Estándar';
-                                  const tipoBadgeClass = tipo === 'Torre' ? 'badge-tipo-torre' : tipo === 'Piscina' ? 'badge-tipo-piscina' : tipo === 'Jacuzzi' ? 'badge-tipo-jacuzzi' : 'badge-tipo-estandar';
-                                  const isTorre = tipo === 'Torre';
-
-                                  return (
-                                    <div key={item.id} className="unified-card">
-                                      {/* Top: Muestra num + Badges */}
-                                      <div className="unified-card-top">
-                                        <div className="unified-card-top-left">
-                                          <span>{item.numero_muestra || 'Muestra'}</span>
-                                        </div>
-                                        <div className="unified-card-top-right">
-                                          <span className={`badge-tipo-pill ${tipoBadgeClass}`}>
-                                            <Droplet size={12}/> {tipo}
-                                          </span>
-                                          {item.cod_envase && (
-                                            <span className="badge-envase-pill">
-                                              #{item.cod_envase}
-                                            </span>
-                                          )}
-                                        </div>
-                                      </div>
-
-                                      {/* Main Title: Ubicación / Descripción */}
-                                      <h3 className="unified-card-title">
-                                        {item.descripcion || 'Sin descripción'}
-                                      </h3>
-
-                                      {/* Date & Time */}
-                                      <div className="unified-card-meta">
-                                        <span className="unified-card-meta-item">
-                                          <Clock size={13}/> {displayTime}
-                                        </span>
-                                        <span className="unified-card-meta-item">
-                                          <Calendar size={13}/> {displayDate}
-                                        </span>
-                                      </div>
-
-                                      {/* 2x2 Parameter Capsules */}
-                                      {isTorre ? (
-                                        <div className="sample-capsules-grid">
-                                          <div className="sample-capsule ph">
-                                            <div className="capsule-left">
-                                              <div className="capsule-icon-circle"><FlaskConical size={15}/></div>
-                                              <span className="capsule-label">PH</span>
-                                            </div>
-                                            <span className="capsule-value">{item.ph || '-'}</span>
-                                          </div>
-                                          <div className="sample-capsule temp">
-                                            <div className="capsule-left">
-                                              <div className="capsule-icon-circle"><Thermometer size={15}/></div>
-                                              <span className="capsule-label">TEMP</span>
-                                            </div>
-                                            <span className="capsule-value">{item.temp ? `${item.temp}°` : '-'}</span>
-                                          </div>
-                                          <div className="sample-capsule cond">
-                                            <div className="capsule-left">
-                                              <div className="capsule-icon-circle"><Zap size={15}/></div>
-                                              <span className="capsule-label">COND.</span>
-                                            </div>
-                                            <span className="capsule-value">{item.conductividad || '-'}</span>
-                                          </div>
-                                          <div className="sample-capsule turb">
-                                            <div className="capsule-left">
-                                              <div className="capsule-icon-circle"><Waves size={15}/></div>
-                                              <span className="capsule-label">TURB.</span>
-                                            </div>
-                                            <span className="capsule-value">{item.turbidez || '-'}</span>
-                                          </div>
-                                          <div className="sample-capsule hierro">
-                                            <div className="capsule-left">
-                                              <div className="capsule-icon-circle"><Box size={15}/></div>
-                                              <span className="capsule-label">HIERRO</span>
-                                            </div>
-                                            <span className="capsule-value">{item.hierro || '-'}</span>
-                                          </div>
-                                          <div className="sample-capsule f8583">
-                                            <div className="capsule-left">
-                                              <div className="capsule-icon-circle"><Droplet size={15}/></div>
-                                              <span className="capsule-label">F-8583</span>
-                                            </div>
-                                            <span className="capsule-value">{item.f_8583_kit || '-'}</span>
-                                          </div>
-                                        </div>
-                                      ) : (
-                                        <div className="sample-capsules-grid">
-                                          <div className="sample-capsule ph">
-                                            <div className="capsule-left">
-                                              <div className="capsule-icon-circle"><FlaskConical size={15}/></div>
-                                              <span className="capsule-label">PH</span>
-                                            </div>
-                                            <span className="capsule-value">{item.ph || '-'}</span>
-                                          </div>
-                                          <div className="sample-capsule temp">
-                                            <div className="capsule-left">
-                                              <div className="capsule-icon-circle"><Thermometer size={15}/></div>
-                                              <span className="capsule-label">TEMP</span>
-                                            </div>
-                                            <span className="capsule-value">{item.temp ? `${item.temp}°` : '-'}</span>
-                                          </div>
-                                          <div className="sample-capsule cloro">
-                                            <div className="capsule-left">
-                                              <div className="capsule-icon-circle"><Droplet size={15}/></div>
-                                              <span className="capsule-label">CLORO</span>
-                                            </div>
-                                            <span className="capsule-value">{item.cloro || item.cloro_libre || '-'}</span>
-                                          </div>
-                                          <div className="sample-capsule hierro">
-                                            <div className="capsule-left">
-                                              <div className="capsule-icon-circle"><Box size={15}/></div>
-                                              <span className="capsule-label">HIERRO</span>
-                                            </div>
-                                            <span className="capsule-value">{item.hierro || '0'}</span>
-                                          </div>
-                                        </div>
-                                      )}
-
-                                      {/* Actions */}
-                                      <div className="unified-card-footer admin-only">
-                                        <button 
-                                          className="card-action-icon-btn edit" 
-                                          title="Editar"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            window.dispatchEvent(new CustomEvent('edit-record', { detail: { ...item, editType: 'muestra' } }));
-                                          }}
-                                        >
-                                          <Edit3 size={15}/>
-                                        </button>
-                                        <button 
-                                          className="card-action-icon-btn delete" 
-                                          title="Borrar"
-                                          onClick={(e) => { 
-                                            e.stopPropagation(); 
-                                            handleDeleteMuestra(item.id); 
-                                          }}
-                                        >
-                                          <Trash2 size={15}/>
-                                        </button>
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                                  </div>
-                                )}
-                              </div>
-                            )
-                          })} 
+                            <span className="capsule-value">{item.ph || '-'}</span>
+                          </div>
+                          <div className="sample-capsule temp">
+                            <div className="capsule-left">
+                              <div className="capsule-icon-circle"><Thermometer size={15}/></div>
+                              <span className="capsule-label">TEMP</span>
+                            </div>
+                            <span className="capsule-value">{item.temp ? `${item.temp}°` : '-'}</span>
+                          </div>
+                          <div className="sample-capsule cond">
+                            <div className="capsule-left">
+                              <div className="capsule-icon-circle"><Zap size={15}/></div>
+                              <span className="capsule-label">COND.</span>
+                            </div>
+                            <span className="capsule-value">{item.conductividad || '-'}</span>
+                          </div>
+                          <div className="sample-capsule turb">
+                            <div className="capsule-left">
+                              <div className="capsule-icon-circle"><Waves size={15}/></div>
+                              <span className="capsule-label">TURB.</span>
+                            </div>
+                            <span className="capsule-value">{item.turbidez || '-'}</span>
+                          </div>
+                          <div className="sample-capsule hierro">
+                            <div className="capsule-left">
+                              <div className="capsule-icon-circle"><Box size={15}/></div>
+                              <span className="capsule-label">HIERRO</span>
+                            </div>
+                            <span className="capsule-value">{item.hierro || '-'}</span>
+                          </div>
+                          <div className="sample-capsule f8583">
+                            <div className="capsule-left">
+                              <div className="capsule-icon-circle"><Droplet size={15}/></div>
+                              <span className="capsule-label">F-8583</span>
+                            </div>
+                            <span className="capsule-value">{item.f_8583_kit || '-'}</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="sample-capsules-grid">
+                          <div className="sample-capsule ph">
+                            <div className="capsule-left">
+                              <div className="capsule-icon-circle"><FlaskConical size={15}/></div>
+                              <span className="capsule-label">PH</span>
+                            </div>
+                            <span className="capsule-value">{item.ph || '-'}</span>
+                          </div>
+                          <div className="sample-capsule temp">
+                            <div className="capsule-left">
+                              <div className="capsule-icon-circle"><Thermometer size={15}/></div>
+                              <span className="capsule-label">TEMP</span>
+                            </div>
+                            <span className="capsule-value">{item.temp ? `${item.temp}°` : '-'}</span>
+                          </div>
+                          <div className="sample-capsule cloro">
+                            <div className="capsule-left">
+                              <div className="capsule-icon-circle"><Droplet size={15}/></div>
+                              <span className="capsule-label">CLORO</span>
+                            </div>
+                            <span className="capsule-value">{item.cloro || item.cloro_libre || '-'}</span>
+                          </div>
+                          <div className="sample-capsule hierro">
+                            <div className="capsule-left">
+                              <div className="capsule-icon-circle"><Box size={15}/></div>
+                              <span className="capsule-label">HIERRO</span>
+                            </div>
+                            <span className="capsule-value">{item.hierro || '0'}</span>
+                          </div>
                         </div>
                       )}
+
+                      {/* Actions */}
+                      <div className="unified-card-footer admin-only">
+                        <button 
+                          className="card-action-icon-btn edit" 
+                          title="Editar"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.dispatchEvent(new CustomEvent('edit-record', { detail: { ...item, editType: 'muestra' } }));
+                          }}
+                        >
+                          <Edit3 size={15}/>
+                        </button>
+                        <button 
+                          className="card-action-icon-btn delete" 
+                          title="Borrar"
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            handleDeleteMuestra(item.id); 
+                          }}
+                        >
+                          <Trash2 size={15}/>
+                        </button>
+                      </div>
                     </div>
                   );
-                });
-              })()}
-            </div>
-                  )}
-                </div>
-              );
-            })}
+                })}
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
+                No hay registros para este período seleccionado.
+              </div>
+            )}
           </div>
         )}
       </div>
