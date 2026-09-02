@@ -10,14 +10,18 @@ import './Avisomap.css';
 
 const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
-const plagaColors = {
-  'Cucarachas': { color: '#b91c1c', bg: '#fee2e2' },
-  'Avispas': { color: '#d97706', bg: '#fef3c7' },
-  'Roedores': { color: '#c2410c', bg: '#ffedd5' },
-  'Hormigas': { color: '#4338ca', bg: '#e0e7ff' },
-  'Termitas': { color: '#78350f', bg: '#ffedd5' },
-  'Procesionaria': { color: '#047857', bg: '#d1fae5' },
-  'Chinches': { color: '#15803d', bg: '#dcfce7' },
+const getPlagaStyle = (plaga) => {
+  const pLower = (plaga || '').toLowerCase().trim();
+  if (pLower.includes('cucaracha')) return { label: 'Cucarachas', color: '#b91c1c', bg: '#fee2e2' };
+  if (pLower.includes('avispa')) return { label: 'Avispas', color: '#d97706', bg: '#fef3c7' };
+  if (pLower.includes('roedor') || pLower.includes('rata') || pLower.includes('raton') || pLower.includes('ratón')) return { label: 'Roedores', color: '#c2410c', bg: '#ffedd5' };
+  if (pLower.includes('hormiga')) return { label: 'Hormigas', color: '#4338ca', bg: '#e0e7ff' };
+  if (pLower.includes('termita')) return { label: 'Termitas', color: '#78350f', bg: '#ffedd5' };
+  if (pLower.includes('procesionaria')) return { label: 'Procesionaria', color: '#047857', bg: '#d1fae5' };
+  if (pLower.includes('chinche')) return { label: 'Chinches', color: '#15803d', bg: '#dcfce7' };
+  
+  const formatted = plaga ? (plaga.charAt(0).toUpperCase() + plaga.slice(1).toLowerCase()) : 'Plaga';
+  return { label: formatted, color: '#2563eb', bg: '#eff6ff' };
 };
 
 const getMonthColor = (month) => {
@@ -187,8 +191,9 @@ const Avisomap = () => {
         
         const plagas = parsePlagas(aviso.plagas);
         plagas.forEach(p => {
-          if (!pStats[p]) pStats[p] = 0;
-          pStats[p]++;
+          const norm = getPlagaStyle(p).label;
+          if (!pStats[norm]) pStats[norm] = 0;
+          pStats[norm]++;
         });
         
         const loc = aviso.localidad || 'Desconocida';
@@ -257,7 +262,8 @@ const Avisomap = () => {
 
       // 4. Plagas filter
       const plagasArray = parsePlagas(aviso.plagas);
-      if (plagaFilter && !plagasArray.includes(plagaFilter)) return false;
+      const normalizedPlagas = plagasArray.map(p => getPlagaStyle(p).label);
+      if (plagaFilter && !normalizedPlagas.includes(plagaFilter) && !plagasArray.includes(plagaFilter)) return false;
 
       // 5. Search query
       if (searchQuery) {
@@ -411,9 +417,9 @@ const Avisomap = () => {
 
             return (
               <div key={aviso.id} className="aviso-map-card">
-                {/* Header: Dirección y Localidad */}
+                {/* Header: Dirección, Localidad y Plagas (Velo Azul Tenue) */}
                 <div className="aviso-card-top">
-                  <div>
+                  <div className="aviso-card-title-group">
                     <h4 className="aviso-address">
                       {aviso.direccion}{aviso.portal ? `, ${aviso.portal}` : ''}
                     </h4>
@@ -426,86 +432,88 @@ const Avisomap = () => {
                   {/* Plagas Badges */}
                   <div className="aviso-plagas-wrap">
                     {plagasArray.map(p => {
-                      const pc = plagaColors[p] || { color: '#475569', bg: '#f1f5f9' };
+                      const pc = getPlagaStyle(p);
                       return (
                         <span 
                           key={p} 
                           className="plaga-pill" 
                           style={{ backgroundColor: pc.bg, color: pc.color }}
                         >
-                          <Bug size={13} /> {p}
+                          <Bug size={13} /> {pc.label}
                         </span>
                       );
                     })}
                   </div>
                 </div>
 
-                {/* Metadata: Fecha, Hora, Tipo de Contacto */}
-                <div className="aviso-datetime">
-                  <span><Calendar size={13} /> {aviso.fecha}</span>
-                  <span><Clock size={13} /> {aviso.hora}</span>
-                  {aviso.contacto && (
-                    <span className="aviso-contact-badge">
-                      {aviso.contacto === 'Telefónicamente' ? <Phone size={13} /> : <MapPin size={13} />}
-                      {aviso.contacto}
-                    </span>
-                  )}
-                </div>
-
-                {/* Comentarios / Observaciones */}
-                {aviso.comentarios && (
-                  <div className="aviso-notes-box">
-                    <strong>Notas:</strong> {aviso.comentarios}
-                  </div>
-                )}
-
-                {/* Footer Actions */}
-                <div className="aviso-card-footer">
-                  <button 
-                    type="button"
-                    className="btn-ruta" 
-                    onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(aviso.direccion + (aviso.portal ? ' ' + aviso.portal : '') + ', ' + aviso.localidad)}`, '_blank')}
-                    title="Abrir ubicación en Google Maps"
-                  >
-                    <Navigation size={13} /> Ruta GPS
-                  </button>
-
-                  <div className="aviso-actions">
-                    {aviso.adjunto ? (
-                      <a 
-                        href={aviso.adjunto} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="aviso-action-btn view"
-                        title="Ver foto / albarán adjunto"
-                      >
-                        <Eye size={16} /> Foto
-                      </a>
-                    ) : null}
-
-                    {isAdmin && (
-                      <div className="admin-actions-group">
-                        <button 
-                          type="button"
-                          className="aviso-action-icon edit"
-                          title="Editar aviso"
-                          onClick={() => {
-                            setEditingAviso({ ...aviso, plagasStr: plagasArray.join(', ') });
-                            setAvisoFileName('');
-                          }}
-                        >
-                          <Edit3 size={15} />
-                        </button>
-                        <button 
-                          type="button"
-                          className="aviso-action-icon delete"
-                          title="Eliminar aviso"
-                          onClick={() => handleDeleteAviso(aviso.id)}
-                        >
-                          <Trash2 size={15} />
-                        </button>
-                      </div>
+                <div className="aviso-card-body">
+                  {/* Metadata: Fecha, Hora, Tipo de Contacto */}
+                  <div className="aviso-datetime">
+                    <span><Calendar size={13} /> {aviso.fecha}</span>
+                    <span><Clock size={13} /> {aviso.hora}</span>
+                    {aviso.contacto && (
+                      <span className="aviso-contact-badge">
+                        {aviso.contacto === 'Telefónicamente' ? <Phone size={13} /> : <MapPin size={13} />}
+                        {aviso.contacto}
+                      </span>
                     )}
+                  </div>
+
+                  {/* Comentarios / Observaciones */}
+                  {aviso.comentarios && (
+                    <div className="aviso-notes-box">
+                      <strong>Notas:</strong> {aviso.comentarios}
+                    </div>
+                  )}
+
+                  {/* Footer Actions */}
+                  <div className="aviso-card-footer">
+                    <button 
+                      type="button"
+                      className="btn-ruta" 
+                      onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(aviso.direccion + (aviso.portal ? ' ' + aviso.portal : '') + ', ' + aviso.localidad)}`, '_blank')}
+                      title="Abrir ubicación en Google Maps"
+                    >
+                      <Navigation size={13} /> Ruta GPS
+                    </button>
+
+                    <div className="aviso-actions">
+                      {aviso.adjunto ? (
+                        <a 
+                          href={aviso.adjunto} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="aviso-action-btn view"
+                          title="Ver foto / albarán adjunto"
+                        >
+                          <Eye size={16} /> Foto
+                        </a>
+                      ) : null}
+
+                      {isAdmin && (
+                        <div className="admin-actions-group">
+                          <button 
+                            type="button"
+                            className="aviso-action-icon edit"
+                            title="Editar aviso"
+                            onClick={() => {
+                              setEditingAviso({ ...aviso, plagasStr: plagasArray.join(', ') });
+                              setAvisoFileName('');
+                            }}
+                          >
+                            <Edit3 size={15} />
+                          </button>
+                          <button 
+                            type="button"
+                            className="aviso-action-icon delete"
+                            title="Eliminar aviso"
+                            onClick={() => handleDeleteAviso(aviso.id)}
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -539,7 +547,7 @@ const Avisomap = () => {
           </div>
           <div className="stats-list">
             {plagasStats.map(stat => {
-              const pc = plagaColors[stat.name] || { color: '#2563eb', bg: '#eff6ff' };
+              const pc = getPlagaStyle(stat.name);
               const pct = avisosData.total > 0 ? Math.round((stat.count / avisosData.total) * 100) : 0;
 
               return (
@@ -569,6 +577,7 @@ const Avisomap = () => {
             })}
           </div>
         </div>
+
 
         <div className="stats-card">
           <div className="stats-card-title">
