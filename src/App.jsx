@@ -14,6 +14,7 @@ import Inicio from './pages/Inicio';
 import Estadisticas from './pages/Estadisticas';
 import Calendario from './pages/Calendario';
 import GestorGlobal from './pages/GestorGlobal';
+import Calculadora from './pages/Calculadora';
 import Login from './pages/Login';
 
 const ProtectedRoute = ({ children }) => {
@@ -65,6 +66,7 @@ function AppContent() {
           <Route path="/aquapp" element={<Aquapp />} />
           <Route path="/avisomap" element={<Avisomap />} />
           <Route path="/calendario" element={<Calendario />} />
+          <Route path="/calculadora" element={<Calculadora />} />
           
           {/* Private Routes (Admin only) */}
           <Route path="/tareas" element={<ProtectedRoute><Tareasapp /></ProtectedRoute>} />

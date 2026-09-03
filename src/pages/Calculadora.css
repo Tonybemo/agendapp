@@ -1,0 +1,1206 @@
+/* ── CONTENEDOR PRINCIPAL ─────────────────────────────────────────── */
+.calc-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 16px 80px 16px;
+}
+
+/* ── HEADER DEL MÓDULO ────────────────────────────────────────────── */
+.calc-header-block {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.calc-title-group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.calc-icon-badge {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #0284c7, #0ea5e9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(14, 165, 233, 0.35);
+  flex-shrink: 0;
+}
+
+.calc-title-group h1 {
+  margin: 0 0 4px 0;
+  font-size: 1.65rem;
+  font-weight: 900;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+}
+
+.calc-title-group p {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* ── NAVEGACIÓN POR PÍLDORAS (TABS) ────────────────────────────────── */
+.calc-pills-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 28px;
+  padding-bottom: 4px;
+}
+
+.calc-nav-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.calc-nav-pill:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-main);
+  border-color: var(--border-input);
+  transform: translateY(-1px);
+}
+
+.calc-nav-pill.active {
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.calc-nav-pill.active.tab-cloro {
+  background: linear-gradient(135deg, #0284c7, #0ea5e9);
+  box-shadow: 0 4px 14px rgba(14, 165, 233, 0.35);
+}
+
+.calc-nav-pill.active.tab-neutral {
+  background: linear-gradient(135deg, #6d28d9, #8b5cf6);
+  box-shadow: 0 4px 14px rgba(139, 92, 246, 0.35);
+}
+
+.calc-nav-pill.active.tab-plagas {
+  background: linear-gradient(135deg, #e11d48, #f43f5e);
+  box-shadow: 0 4px 14px rgba(244, 63, 94, 0.35);
+}
+
+.calc-nav-pill.active.tab-normativa {
+  background: linear-gradient(135deg, #0f766e, #14b8a6);
+  box-shadow: 0 4px 14px rgba(20, 184, 166, 0.35);
+}
+
+.calc-badge-count {
+  background: rgba(255, 255, 255, 0.25);
+  color: inherit;
+  font-size: 0.75rem;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-weight: 800;
+}
+
+/* ── TARJETA INTRODUCTORIA ─────────────────────────────────────────── */
+.calc-intro-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.calc-intro-text h3 {
+  margin: 0 0 4px 0;
+  font-size: 1.08rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.calc-intro-text p {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+.calc-source-tag {
+  background: var(--bg-card-hover);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+/* ── LAYOUT DE 2 COLUMNAS (BENTO GRID) ────────────────────────────── */
+.calc-grid-2col {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 22px;
+  align-items: start;
+}
+
+/* Panel de Entradas */
+.calc-panel-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.calc-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 20px 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-main);
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.calc-field-group {
+  margin-bottom: 22px;
+}
+
+.calc-field-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.calc-field-header label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.calc-unit-pill {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  background: var(--bg-card-hover);
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+}
+
+.calc-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.calc-main-input {
+  width: 100%;
+  padding: 12px 60px 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border-input);
+  background: var(--bg-input);
+  color: var(--text-main);
+  font-size: 1.15rem;
+  font-weight: 800;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.calc-main-input:focus {
+  border-color: #0284c7;
+  background: var(--bg-card);
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+}
+
+.calc-input-suffix {
+  position: absolute;
+  right: 14px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+/* Fila de chips de valores rápidos */
+.calc-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.calc-chip-btn {
+  background: var(--bg-card-hover);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  border-radius: var(--radius-xs);
+  padding: 5px 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.calc-chip-btn:hover {
+  background: #f1f5f9;
+  border-color: var(--border-input);
+  color: var(--text-main);
+}
+
+.calc-chip-btn.active {
+  background: #0284c7;
+  border-color: #0284c7;
+  color: #ffffff;
+  font-weight: 800;
+}
+
+/* Selector de Biocidas (Neutralizante) */
+.calc-biocide-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.calc-biocide-btn {
+  padding: 14px 12px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  background: var(--bg-card-hover);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.calc-biocide-btn:hover {
+  border-color: var(--border-input);
+  background: var(--bg-card);
+}
+
+.calc-biocide-btn.active {
+  border-color: #7c3aed;
+  background: #f5f3ff;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.15);
+}
+
+.calc-biocide-btn strong {
+  display: block;
+  font-size: 0.88rem;
+  color: var(--text-main);
+  font-weight: 800;
+}
+
+.calc-biocide-btn span {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+/* Slider de pH */
+.calc-ph-slider-box {
+  background: var(--bg-card-hover);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  border: 1px solid var(--border-light);
+}
+
+.calc-ph-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.calc-ph-badge {
+  font-size: 0.9rem;
+  font-weight: 900;
+  padding: 4px 12px;
+  border-radius: 999px;
+  letter-spacing: 0.5px;
+}
+
+.calc-ph-badge.state-optimo {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.calc-ph-badge.state-bueno {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.calc-ph-badge.state-insuficiente {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.calc-ph-badge.state-muy_deficiente {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.calc-ph-badge.state-ineficaz {
+  background: #7f1d1d;
+  color: #ffffff;
+}
+
+.calc-slider-input {
+  width: 100%;
+  height: 8px;
+  margin: 12px 0 6px 0;
+  accent-color: #0284c7;
+  cursor: pointer;
+}
+
+.calc-slider-ticks {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.calc-formula-footer {
+  margin-top: 20px;
+  padding: 12px 14px;
+  background: var(--bg-card-hover);
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.calc-formula-badge {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+}
+
+.calc-formula-footer code {
+  font-size: 0.85rem;
+  color: var(--text-main);
+  font-weight: 700;
+  font-family: monospace;
+}
+
+/* ── PANEL DE RESULTADOS ───────────────────────────────────────────── */
+.calc-panel-results {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Tarjeta Principal de Resultado */
+.calc-result-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border: 2px solid var(--border-light);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.25s ease;
+}
+
+.calc-result-card.border-optimo { border-color: #22c55e; }
+.calc-result-card.border-bueno { border-color: #10b981; }
+.calc-result-card.border-insuficiente { border-color: #f59e0b; }
+.calc-result-card.border-muy_deficiente { border-color: #ef4444; }
+.calc-result-card.border-ineficaz { border-color: #991b1b; }
+
+.calc-result-badge {
+  display: inline-block;
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.6px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.calc-result-big-number {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.calc-result-big-number strong {
+  font-size: 3.2rem;
+  font-weight: 950;
+  color: var(--text-main);
+  line-height: 1;
+}
+
+.calc-result-big-number span {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #0284c7;
+}
+
+.calc-result-subtext {
+  margin: 0 0 16px 0;
+  font-size: 0.86rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.calc-compare-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--border);
+}
+
+.calc-compare-item span {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.calc-compare-item strong {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.calc-tag-factor {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--radius-xs);
+  font-weight: 900 !important;
+}
+
+.calc-tag-factor.state-optimo { background: #dcfce7; color: #15803d; }
+.calc-tag-factor.state-bueno { background: #ecfdf5; color: #047857; }
+.calc-tag-factor.state-insuficiente { background: #fef3c7; color: #b45309; }
+.calc-tag-factor.state-muy_deficiente { background: #fee2e2; color: #b91c1c; }
+.calc-tag-factor.state-ineficaz { background: #7f1d1d; color: #ffffff; }
+
+/* Diagnóstico de Eficacia */
+.calc-diagnostic-card {
+  padding: 16px 18px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+}
+
+.calc-diagnostic-card.state-optimo {
+  background: #f0fdf4;
+  border-color: #86efac;
+}
+
+.calc-diagnostic-card.state-bueno {
+  background: #f0fdf4;
+  border-color: #a7f3d0;
+}
+
+.calc-diagnostic-card.state-insuficiente {
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+
+.calc-diagnostic-card.state-muy_deficiente {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.calc-diagnostic-card.state-ineficaz {
+  background: #fef2f2;
+  border-color: #fca5a5;
+}
+
+.calc-diag-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.calc-diag-icon {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.calc-diag-header h4 {
+  margin: 0 0 4px 0;
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.calc-diag-header p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.calc-acid-callout {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: rgba(239, 68, 68, 0.08);
+  border-left: 3px solid #ef4444;
+  border-radius: var(--radius-xs);
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: #991b1b;
+  line-height: 1.4;
+}
+
+/* Tabla Mini de Referencia pH */
+.calc-ph-table-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+}
+
+.calc-ph-table-card h5 {
+  margin: 0 0 10px 0;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.calc-ph-mini-table {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.calc-ph-row {
+  display: grid;
+  grid-template-columns: 70px 60px 120px 1fr;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: var(--radius-xs);
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
+}
+
+.calc-ph-row.highlight {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  font-weight: 700;
+  color: #0369a1;
+}
+
+.calc-ph-row .col-ph { font-weight: 800; }
+.calc-ph-row .col-factor { font-family: monospace; font-weight: 700; }
+.calc-ph-row .col-eff.opt { color: #16a34a; font-weight: 800; }
+.calc-ph-row .col-eff.good { color: #059669; font-weight: 800; }
+.calc-ph-row .col-eff.warn { color: #d97706; font-weight: 800; }
+.calc-ph-row .col-eff.bad { color: #dc2626; font-weight: 800; }
+.calc-ph-row .col-eff.crit { color: #991b1b; font-weight: 800; }
+.calc-ph-row .col-desc { font-size: 0.76rem; color: var(--text-muted); }
+
+/* ── RESULTADOS NEUTRALIZANTE ─────────────────────────────────────── */
+.calc-neutral-results-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.calc-neutral-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  border: 1.5px solid var(--border-light);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+}
+
+.calc-neutral-card.primary { border-color: #8b5cf6; }
+.calc-neutral-card.secondary { border-color: #10b981; }
+
+.calc-neutral-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.calc-neutral-head span {
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+}
+
+.calc-neutral-val {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.calc-neutral-val strong {
+  font-size: 2.4rem;
+  font-weight: 950;
+  color: var(--text-main);
+  line-height: 1;
+}
+
+.calc-neutral-val .unit {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text-secondary);
+}
+
+.calc-neutral-sub {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.calc-neutral-sub strong {
+  color: var(--text-main);
+  font-weight: 800;
+}
+
+/* Info Card */
+.calc-info-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.calc-info-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.calc-info-title h5 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.calc-info-list {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+/* ── RESULTADOS PLAGAS & DILUCIÓN ─────────────────────────────────── */
+.calc-plagas-summary-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  border: 1.5px solid #fecdd3;
+  padding: 24px;
+  box-shadow: 0 4px 18px rgba(244, 63, 94, 0.08);
+}
+
+.calc-plagas-badge {
+  font-size: 0.74rem;
+  font-weight: 900;
+  color: #e11d48;
+  letter-spacing: 0.6px;
+  margin-bottom: 14px;
+  display: inline-block;
+}
+
+.calc-plagas-big-stat {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.calc-plagas-stat-box {
+  flex: 1;
+  background: var(--bg-card-hover);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  border: 1px solid var(--border-light);
+  text-align: center;
+}
+
+.calc-plagas-stat-box.product {
+  background: #fff1f2;
+  border-color: #fecdd3;
+}
+
+.calc-plagas-stat-box.water {
+  background: #f0f9ff;
+  border-color: #bae6fd;
+}
+
+.calc-plagas-stat-box .stat-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.calc-plagas-stat-box.product .stat-label { color: #e11d48; }
+.calc-plagas-stat-box.water .stat-label { color: #0284c7; }
+
+.calc-plagas-stat-box .stat-val {
+  display: block;
+  font-size: 2.1rem;
+  font-weight: 950;
+  line-height: 1.1;
+  margin-bottom: 2px;
+}
+
+.calc-plagas-stat-box.product .stat-val { color: #be123c; }
+.calc-plagas-stat-box.water .stat-val { color: #0369a1; }
+
+.calc-plagas-stat-box .stat-sub {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.calc-plagas-plus {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: var(--text-muted);
+}
+
+/* Esquema visual del tanque */
+.calc-tank-visual {
+  background: var(--bg-card-hover);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  border: 1px solid var(--border-light);
+}
+
+.calc-tank-bar {
+  height: 38px;
+  border-radius: 8px;
+  background: #e2e8f0;
+  overflow: hidden;
+  display: flex;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.calc-tank-water {
+  background: linear-gradient(135deg, #38bdf8, #0284c7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 800;
+  transition: width 0.3s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 8px;
+}
+
+.calc-tank-product {
+  background: linear-gradient(135deg, #f43f5e, #be123c);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 800;
+  transition: width 0.3s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 8px;
+}
+
+.calc-tank-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.calc-tank-footer strong {
+  color: var(--text-main);
+}
+
+/* Ejemplo práctico */
+.calc-example-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.calc-example-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.calc-example-title h5 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.calc-example-steps {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+/* ── TAB 4: GUÍA NORMATIVA RD 487/2022 ────────────────────────────── */
+.calc-norm-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.calc-norm-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.calc-norm-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.calc-norm-filter-btn:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-main);
+}
+
+.calc-norm-filter-btn.active {
+  background: #0f766e;
+  border-color: #0f766e;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(15, 118, 110, 0.3);
+}
+
+.calc-norm-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 280px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-input);
+  border-radius: var(--radius-sm);
+  padding: 0 12px;
+  transition: all 0.2s;
+}
+
+.calc-norm-search:focus-within {
+  border-color: #0f766e;
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+}
+
+.calc-norm-search input {
+  width: 100%;
+  padding: 8px 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-main);
+  font-size: 0.88rem;
+  outline: none;
+}
+
+.calc-search-clear {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+}
+
+/* Tarjetas de Parámetros Normativos */
+.calc-norm-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 18px;
+}
+
+.calc-param-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.calc-param-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+.calc-param-card.has-cierre {
+  border-top: 3px solid #dc2626;
+}
+
+.calc-param-header {
+  padding: 14px 16px;
+  background: var(--bg-card-hover);
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.calc-param-sys-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #0f766e;
+  margin-bottom: 2px;
+}
+
+.calc-param-title-wrap h4 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: var(--text-main);
+}
+
+.calc-param-freq-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: var(--bg-card);
+  color: var(--text-muted);
+  padding: 3px 8px;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.calc-param-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.calc-param-metric-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.calc-metric-box {
+  border-radius: var(--radius-xs);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.calc-metric-box .lbl {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  margin-bottom: 3px;
+}
+
+.calc-metric-box.ok {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+
+.calc-metric-box.ok .lbl { color: #15803d; }
+.calc-metric-box.ok .val { font-size: 0.95rem; font-weight: 900; color: #166534; }
+
+.calc-metric-box.alarm {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+}
+
+.calc-metric-box.alarm .lbl { color: #b45309; }
+.calc-metric-box.alarm .val-text { font-size: 0.78rem; font-weight: 700; color: #92400e; line-height: 1.35; }
+
+.calc-cierre-alert {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-xs);
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: #991b1b;
+}
+
+.calc-actions-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border-light);
+}
+
+.calc-action-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.action-tag {
+  font-size: 0.68rem;
+  font-weight: 800;
+  display: inline-block;
+}
+
+.action-tag.bajo { color: #0284c7; }
+.action-tag.alto { color: #dc2626; }
+
+.calc-action-item p {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.35;
+}
+
+.calc-empty-norm {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+}
+
+.calc-empty-norm p {
+  margin-top: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+/* ── RESPONSIVE PARA MÓVIL ────────────────────────────────────────── */
+@media (max-width: 860px) {
+  .calc-grid-2col {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .calc-norm-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .calc-norm-search {
+    width: 100%;
+  }
+
+  .calc-norm-cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .calc-ph-mini-table .calc-ph-row {
+    grid-template-columns: 55px 50px 105px 1fr;
+    font-size: 0.76rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .calc-pills-nav {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 8px;
+  }
+
+  .calc-nav-pill {
+    flex-shrink: 0;
+    padding: 8px 14px;
+    font-size: 0.85rem;
+  }
+
+  .calc-biocide-selector {
+    grid-template-columns: 1fr;
+  }
+
+  .calc-neutral-results-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .calc-plagas-big-stat {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .calc-plagas-plus {
+    display: none;
+  }
+
+  .calc-param-metric-row {
+    grid-template-columns: 1fr;
+  }
+
+  .calc-ph-mini-table .calc-ph-row {
+    grid-template-columns: 50px 45px 95px 1fr;
+    padding: 4px 6px;
+  }
+
+  .calc-ph-mini-table .col-desc {
+    display: none;
+  }
+}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, CalendarCheck, Droplet, MapPin, BookOpen, Clock, Menu, X, BarChart2, Calendar as CalendarIcon, Database, ArrowLeft, LogOut, LogIn, Bell, CheckCircle2, Moon, Sun } from 'lucide-react';
+import { LayoutDashboard, CalendarCheck, Droplet, MapPin, BookOpen, Clock, Menu, X, BarChart2, Calendar as CalendarIcon, Database, ArrowLeft, LogOut, LogIn, Bell, CheckCircle2, Moon, Sun, Calculator } from 'lucide-react';
 import UniversalForm from './UniversalForm';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -94,6 +94,7 @@ const Layout = ({ children }) => {
     { path: '/calendario', label: 'Calendario Global', icon: <CalendarIcon size={20} />, public: true },
     { path: '/aquapp', label: 'Muestras y Tratamientos', icon: <Droplet size={20} />, public: true },
     { path: '/avisomap', label: 'Avisos Mapfre', icon: <MapPin size={20} />, public: true },
+    { path: '/calculadora', label: 'Calculadora Técnica', icon: <Calculator size={20} />, public: true },
     { path: '/tareas', label: 'Tareas Mensuales', icon: <CalendarCheck size={20} />, public: false },
     { path: '/catalogo', label: 'Productos', icon: <BookOpen size={20} />, public: false },
     { path: '/workapp', label: 'Resumen Jornada', icon: <Clock size={20} />, public: false },

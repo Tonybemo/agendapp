@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Droplet, MapPin, Briefcase, BookOpen, CalendarCheck, ChevronRight, BarChart2, Calendar, LayoutDashboard, Settings, Search, User, X } from 'lucide-react';
+import { Droplet, MapPin, Briefcase, BookOpen, CalendarCheck, ChevronRight, BarChart2, Calendar, LayoutDashboard, Settings, Search, User, X, Calculator } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import './Dashboard.css';
 
@@ -169,8 +169,17 @@ const Inicio = () => {
       icon: <Calendar size={24} color="var(--accent-calendario)" />,
       path: '/calendario',
       bgColor: 'linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%)',
+    },
+    {
+      id: 'calculadora',
+      title: 'Calculadora',
+      description: 'Dosificación de hipoclorito, neutralizantes, dilución de plagas y normativa.',
+      icon: <Calculator size={24} color="#0284c7" />,
+      path: '/calculadora',
+      bgColor: 'linear-gradient(135deg, #cffafe 0%, #a5f3fc 100%)',
     }
   ];
+
 
   return (
     <div className="dashboard-container animate-fade-in">
