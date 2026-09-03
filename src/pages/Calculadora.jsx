@@ -3,8 +3,9 @@ import {
   Calculator, Droplet, ShieldAlert, Bug, FileText, 
   CheckCircle2, AlertTriangle, XCircle, Info, ArrowRight, 
   FlaskConical, Scale, Thermometer, Waves, Building2, Search,
-  Sliders, Zap, HelpCircle, ChevronRight, X
+  Sliders, Zap, HelpCircle, ChevronRight, X, Sparkles
 } from 'lucide-react';
+
 import './Calculadora.css';
 
 // ── Datos Normativos RD 487/2022 (Captura 2) ─────────────────────────
@@ -1004,7 +1005,7 @@ const Calculadora = () => {
                   <h5>Procedimiento Recomendado de Carga</h5>
                 </div>
                 <ol className="calc-example-steps">
-                  <li>Llenar el pulverizador con la mitad del agua calculada (<strong>{(calculoPlagas.aguaL / 2).toFixed(2)} L</strong>).</li>
+                  <li>Llenar el pulverizador con la mitad del agua calculada (<strong>{(parseFloat(calculoPlagas.aguaL || 0) / 2).toFixed(2)} L</strong>).</li>
                   <li>Medir y verter los <strong>{calculoPlagas.productoMl} ml</strong> de producto con probeta o jeringa dosificadora.</li>
                   <li>Completar con el resto del agua hasta alcanzar los <strong>{capacidadPulverizador} L</strong> finales.</li>
                   <li>Cerrar y agitar enérgicamente antes de presurizar o nebulizar.</li>
