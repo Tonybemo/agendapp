@@ -68,6 +68,13 @@ const Catalogo = () => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [isSavingProduct, setIsSavingProduct] = useState(false);
   const [imageErrorMap, setImageErrorMap] = useState({});
+  const [newFichaFile, setNewFichaFile] = useState(null);
+  const [newImageFile, setNewImageFile] = useState(null);
+
+  const isOldServerUrl = (url) => {
+    if (!url) return false;
+    return url.includes('cuhbqppdndzvxvlhlszn.supabase.co');
+  };
 
   useEffect(() => {
     fetchProducts();
@@ -179,29 +186,79 @@ const Catalogo = () => {
   const handleSaveProductEdit = async (e) => {
     e.preventDefault();
     setIsSavingProduct(true);
-    const { error } = await supabase.from('productos').update({
-      nombre: editingProduct.name,
-      badge: editingProduct.badge,
-      registro: editingProduct.registro,
-      lote: editingProduct.lote,
-      materia_activa: editingProduct.materiaActiva,
-      plaga_diana: editingProduct.plagaDiana,
-      metodo_aplicacion: editingProduct.metodoAplicacion,
-      caducidad: editingProduct.caducidad,
-      plazo_seguridad: editingProduct.plazoSeguridad,
-      has_warning: editingProduct.hasWarning
-    }).eq('id', editingProduct.id);
-    
-    setIsSavingProduct(false);
-    if (!error) {
-      setSelectedProduct(editingProduct);
-      setEditingProduct(null);
-      fetchProducts();
-      window.__toast?.success("Producto actualizado correctamente");
-    } else {
-      window.__toast?.error("Error al guardar el producto");
+    try {
+      let updatedPdfUrl = editingProduct.pdfUrl;
+      let updatedImageUrl = editingProduct.image;
+
+      // 1. Subir nueva ficha SDS si se ha seleccionado un archivo
+      if (newFichaFile) {
+        const fileExt = newFichaFile.name.split('.').pop();
+        const fileName = `sds_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+        const filePath = `productos/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage.from('adjuntos').upload(filePath, newFichaFile);
+        if (!uploadError) {
+          const { data: publicUrlData } = supabase.storage.from('adjuntos').getPublicUrl(filePath);
+          updatedPdfUrl = publicUrlData.publicUrl;
+        } else {
+          console.error("Error subiendo ficha SDS:", uploadError);
+          window.__toast?.error("Error al subir el archivo PDF: " + uploadError.message);
+        }
+      }
+
+      // 2. Subir nueva foto si se ha seleccionado un archivo
+      if (newImageFile) {
+        const fileExt = newImageFile.name.split('.').pop();
+        const fileName = `img_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+        const filePath = `productos/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage.from('adjuntos').upload(filePath, newImageFile);
+        if (!uploadError) {
+          const { data: publicUrlData } = supabase.storage.from('adjuntos').getPublicUrl(filePath);
+          updatedImageUrl = publicUrlData.publicUrl;
+        } else {
+          console.error("Error subiendo foto:", uploadError);
+          window.__toast?.error("Error al subir la imagen: " + uploadError.message);
+        }
+      }
+
+      const { error } = await supabase.from('productos').update({
+        nombre: editingProduct.name,
+        badge: editingProduct.badge,
+        registro: editingProduct.registro,
+        lote: editingProduct.lote,
+        materia_activa: editingProduct.materiaActiva,
+        plaga_diana: editingProduct.plagaDiana,
+        metodo_aplicacion: editingProduct.metodoAplicacion,
+        caducidad: editingProduct.caducidad,
+        plazo_seguridad: editingProduct.plazoSeguridad,
+        has_warning: editingProduct.hasWarning,
+        pdf_url: updatedPdfUrl,
+        image_url: updatedImageUrl
+      }).eq('id', editingProduct.id);
+
+      if (!error) {
+        setSelectedProduct(prev => prev && prev.id === editingProduct.id ? {
+          ...editingProduct,
+          pdfUrl: updatedPdfUrl,
+          image: updatedImageUrl
+        } : prev);
+        setEditingProduct(null);
+        setNewFichaFile(null);
+        setNewImageFile(null);
+        fetchProducts();
+        window.__toast?.success("Producto actualizado correctamente");
+      } else {
+        window.__toast?.error("Error al guardar el producto: " + error.message);
+      }
+    } catch (err) {
+      console.error("Error inesperado:", err);
+      window.__toast?.error("Error inesperado al guardar");
+    } finally {
+      setIsSavingProduct(false);
     }
   };
+
 
   const deleteProduct = async (id) => {
     if (window.confirm('¿Seguro que deseas eliminar este producto del catálogo?')) {
@@ -453,17 +510,45 @@ const Catalogo = () => {
                   <div className="cat-card-footer">
                     <div>
                       {prod.pdfUrl ? (
-                        <a 
-                          href={prod.pdfUrl} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="cat-btn-sds"
-                          title="Abrir Ficha de Datos de Seguridad (PDF)"
-                        >
-                          <FileText size={14} /> Ficha SDS
-                        </a>
+                        isOldServerUrl(prod.pdfUrl) ? (
+                          <button 
+                            type="button" 
+                            className="cat-btn-sds-old"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingProduct(prod);
+                              setNewFichaFile(null);
+                              setNewImageFile(null);
+                            }}
+                            title="Esta ficha pertenecía al servidor anterior. Pulsa aquí para adjuntar el PDF actualizado."
+                          >
+                            <AlertTriangle size={13} /> Resubir SDS
+                          </button>
+                        ) : (
+                          <a 
+                            href={prod.pdfUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="cat-btn-sds"
+                            title="Abrir Ficha de Datos de Seguridad (PDF)"
+                          >
+                            <FileText size={14} /> Ficha SDS
+                          </a>
+                        )
                       ) : (
-                        <span className="cat-no-sds">Sin Ficha</span>
+                        <button 
+                          type="button" 
+                          className="cat-btn-sds-empty"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingProduct(prod);
+                            setNewFichaFile(null);
+                            setNewImageFile(null);
+                          }}
+                          title="Adjuntar Ficha SDS en PDF"
+                        >
+                          <Plus size={13} /> Adjuntar SDS
+                        </button>
                       )}
                     </div>
 
@@ -568,16 +653,42 @@ const Catalogo = () => {
               <div className="cat-modal-footer">
                 <div>
                   {selectedProduct.pdfUrl ? (
-                    <a 
-                      href={selectedProduct.pdfUrl} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="cat-btn-sds large"
-                    >
-                      <FileText size={16} /> Ver Ficha Técnica / SDS <ExternalLink size={14} />
-                    </a>
+                    isOldServerUrl(selectedProduct.pdfUrl) ? (
+                      <button 
+                        type="button" 
+                        className="cat-btn-sds-old large"
+                        onClick={() => {
+                          setEditingProduct(selectedProduct);
+                          setSelectedProduct(null);
+                          setNewFichaFile(null);
+                          setNewImageFile(null);
+                        }}
+                      >
+                        <AlertTriangle size={16} /> Ficha del servidor anterior (Resubir PDF)
+                      </button>
+                    ) : (
+                      <a 
+                        href={selectedProduct.pdfUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="cat-btn-sds large"
+                      >
+                        <FileText size={16} /> Ver Ficha Técnica / SDS <ExternalLink size={14} />
+                      </a>
+                    )
                   ) : (
-                    <span className="cat-no-sds">Sin Ficha Adjunta</span>
+                    <button 
+                      type="button" 
+                      className="cat-btn-sds-empty large"
+                      onClick={() => {
+                        setEditingProduct(selectedProduct);
+                        setSelectedProduct(null);
+                        setNewFichaFile(null);
+                        setNewImageFile(null);
+                      }}
+                    >
+                      <Plus size={16} /> Adjuntar Ficha Técnica (PDF)
+                    </button>
                   )}
                 </div>
 
@@ -706,6 +817,54 @@ const Catalogo = () => {
                   value={editingProduct.plazoSeguridad || ''} 
                   onChange={e => setEditingProduct({...editingProduct, plazoSeguridad: e.target.value})} 
                 />
+              </div>
+
+              {/* Adjunto de Ficha Técnica / SDS */}
+              <div className="cat-form-group">
+                <label>Ficha Técnica / SDS (PDF)</label>
+                {editingProduct.pdfUrl && (
+                  <div className="cat-file-preview-row">
+                    <FileText size={16} color={isOldServerUrl(editingProduct.pdfUrl) ? '#ef4444' : '#0284c7'} />
+                    <span className="cat-file-preview-text">
+                      {isOldServerUrl(editingProduct.pdfUrl) 
+                        ? '⚠️ Ficha del servidor anterior (no disponible, sube el PDF para renovarla)' 
+                        : 'Ficha actual vinculada'}
+                    </span>
+                  </div>
+                )}
+                <input 
+                  type="file" 
+                  accept="application/pdf"
+                  onChange={e => setNewFichaFile(e.target.files[0] || null)}
+                  className="cat-file-input"
+                />
+                {newFichaFile && (
+                  <span className="cat-file-selected-pill">
+                    📎 Seleccionado: {newFichaFile.name} ({(newFichaFile.size / 1024).toFixed(0)} KB)
+                  </span>
+                )}
+              </div>
+
+              {/* Subir o cambiar Foto del Producto */}
+              <div className="cat-form-group">
+                <label>Foto del Producto (Imagen)</label>
+                {editingProduct.image && (
+                  <div className="cat-current-thumb-preview">
+                    <img src={editingProduct.image} alt="Preview" />
+                    <span>Foto actual</span>
+                  </div>
+                )}
+                <input 
+                  type="file" 
+                  accept="image/*"
+                  onChange={e => setNewImageFile(e.target.files[0] || null)}
+                  className="cat-file-input"
+                />
+                {newImageFile && (
+                  <span className="cat-file-selected-pill">
+                    🖼️ Seleccionada: {newImageFile.name} ({(newImageFile.size / 1024).toFixed(0)} KB)
+                  </span>
+                )}
               </div>
 
               <div className="cat-checkbox-row">

@@ -291,7 +291,7 @@ const UniversalForm = () => {
       caducidad: data.caducidad,
       has_warning: Boolean(data.plazo_seguridad && data.plazo_seguridad.toLowerCase() !== 'na' && data.plazo_seguridad.trim() !== ''),
       ...(imageUrl && { image_url: imageUrl }),
-      ...(fichaSdsUrl && { ficha_sds_url: fichaSdsUrl })
+      ...(fichaSdsUrl && { pdf_url: fichaSdsUrl })
     };
 
     const { error } = await supabase.from('productos').insert([newProduct]);
