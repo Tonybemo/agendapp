@@ -40,18 +40,30 @@ const Layout = ({ children }) => {
 
   const parseFecha = (f) => {
     if (!f) return null;
-    if (f.includes('/')) {
-      const parts = f.split('/');
-      return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    let clean = f;
+    if (clean.includes('T')) clean = clean.split('T')[0];
+    if (clean.includes('/')) {
+      const parts = clean.split('/');
+      return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
     }
-    return f;
+    return clean;
+  };
+
+  const getDiasPasados = (n) => {
+    if (!n || !n.fecha) return 0;
+    const f = parseFecha(n.fecha);
+    const treatDate = new Date(f);
+    const dueDate = new Date(treatDate);
+    dueDate.setDate(dueDate.getDate() + (n.recordatorio_dias || 15));
+    return Math.floor((new Date() - dueDate) / (1000 * 60 * 60 * 24));
   };
 
   const fetchNotifications = async () => {
     const { data } = await supabase
       .from('aquapp_tratamientos')
       .select('*')
-      .eq('recordatorio', true);
+      .eq('recordatorio', true)
+      .order('fecha', { ascending: false });
     
     if (data) {
       const today = new Date();
@@ -75,8 +87,26 @@ const Layout = ({ children }) => {
     return () => clearInterval(interval);
   }, []);
 
-  const pendingNotifications = allNotifications.filter(n => !n.muestra_recogida);
-  const resolvedNotifications = allNotifications.filter(n => n.muestra_recogida);
+  const pendingNotifications = allNotifications
+    .filter(n => !n.muestra_recogida)
+    .sort((a, b) => {
+      const fa = parseFecha(a.fecha);
+      const fb = parseFecha(b.fecha);
+      return new Date(fa) - new Date(fb);
+    });
+
+  // Solo mostrar resueltos en los últimos 60 días para no saturar
+  const resolvedNotifications = allNotifications
+    .filter(n => {
+      if (!n.muestra_recogida) return false;
+      const dias = getDiasPasados(n);
+      return dias <= 60;
+    })
+    .sort((a, b) => {
+      const fa = parseFecha(a.fecha);
+      const fb = parseFecha(b.fecha);
+      return new Date(fb) - new Date(fa);
+    });
 
   const handleMarkCollected = async (id) => {
     await supabase.from('aquapp_tratamientos').update({ muestra_recogida: true }).eq('id', id);
@@ -131,11 +161,7 @@ const Layout = ({ children }) => {
   );
 
   const renderNotifCard = (n, isPending) => {
-    const f = parseFecha(n.fecha);
-    const treatDate = new Date(f);
-    const dueDate = new Date(treatDate);
-    dueDate.setDate(dueDate.getDate() + (n.recordatorio_dias || 15));
-    const diasPasados = Math.floor((new Date() - dueDate) / (1000 * 60 * 60 * 24));
+    const diasPasados = getDiasPasados(n);
 
     return (
       <div key={n.id} style={{
@@ -150,7 +176,7 @@ const Layout = ({ children }) => {
             {n.cliente_nombre || 'Cliente'}
           </div>
           <div style={{fontSize: '0.78rem', color: 'var(--text-secondary)'}}>
-            {n.tipo_tratamiento} · Hace {diasPasados} día{diasPasados !== 1 ? 's' : ''}
+            {n.tipo_tratamiento} · {isPending ? `Hace ${diasPasados} día${diasPasados !== 1 ? 's' : ''}` : `Recogido · Hace ${diasPasados} día${diasPasados !== 1 ? 's' : ''}`}
           </div>
         </div>
         {isPending ? (
@@ -341,7 +367,7 @@ const Layout = ({ children }) => {
                     padding: '8px 0', width: '100%'
                   }}
                 >
-                  {showResueltos ? '▾' : '▸'} {showResueltos ? 'Ocultar' : 'Mostrar'} resueltos ({resolvedNotifications.length})
+                  {showResueltos ? '▾' : '▸'} {showResueltos ? 'Ocultar' : 'Mostrar'} resueltos últimos 60 días ({resolvedNotifications.length})
                 </button>
                 {showResueltos && (
                   <div style={{display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px'}}>
