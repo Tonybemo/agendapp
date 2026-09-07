@@ -502,31 +502,23 @@ const Aquapp = () => {
       return -1;
     };
 
-    const addCleaningIfNotExists = (cObj) => {
-      const exists = allCleaningsList.some(c => c.fecha && cObj.fecha && c.fecha.split('T')[0] === cObj.fecha.split('T')[0]);
-      if (!exists) {
-        allCleaningsList.push(cObj);
+    const parseCleaningDate = (f) => {
+      if (!f) return 0;
+      let s = f;
+      if (s.includes('T')) s = s.split('T')[0];
+      if (s.includes('/')) {
+        const [d, m, y] = s.split('/');
+        const fullYear = y && y.length === 2 ? ('20' + y) : y;
+        return new Date(parseInt(fullYear, 10), parseInt(m, 10) - 1, parseInt(d, 10)).getTime();
       }
+      if (s.includes('-')) {
+        const [y, m, d] = s.split('-');
+        return new Date(parseInt(y, 10), parseInt(m, 10) - 1, parseInt(d, 10)).getTime();
+      }
+      return 0;
     };
 
-    data.forEach(item => {
-      const mIdx = getMonthIdx(item.fecha);
-      if (mIdx >= 0 && mIdx < 12) {
-        monthsData[mIdx] = item;
-        if (item.limpieza && String(item.limpieza).trim() !== '' && String(item.limpieza).trim() !== '-' && String(item.limpieza).trim() !== 'null') {
-          const cObj = {
-            source: 'muestra',
-            text: String(item.limpieza).trim(),
-            fecha: item.fecha,
-            motivo: 'prevencion',
-            monthIdx: mIdx
-          };
-          cleaningsData[mIdx] = cObj;
-          addCleaningIfNotExists(cObj);
-        }
-      }
-    });
-
+    // 1. Procesar primero los tratamientos oficiales registrados en aquapp_tratamientos
     trats.forEach(t => {
       const tTipo = (t.tipo_tratamiento || '').toLowerCase();
       const tNotas = (t.notas || '').toLowerCase();
@@ -541,18 +533,47 @@ const Aquapp = () => {
           tratamiento: t,
           monthIdx: mIdx
         };
+        allCleaningsList.push(cObj);
         if (mIdx >= 0 && mIdx < 12) {
           cleaningsData[mIdx] = cObj;
         }
-        addCleaningIfNotExists(cObj);
       }
     });
 
-    allCleaningsList.sort((a, b) => {
-      const da = new Date(a.fecha || 0).getTime();
-      const db = new Date(b.fecha || 0).getTime();
-      return da - db;
+    // 2. Procesar las muestras mensuales de aquapp_muestras
+    data.forEach(item => {
+      const mIdx = getMonthIdx(item.fecha);
+      if (mIdx >= 0 && mIdx < 12) {
+        monthsData[mIdx] = item;
+        
+        const sampleLimpieza = item.limpieza && String(item.limpieza).trim() !== '' && String(item.limpieza).trim() !== '-' && String(item.limpieza).trim() !== 'null' ? String(item.limpieza).trim() : null;
+        
+        if (sampleLimpieza) {
+          // Comprobar si ya existe un tratamiento oficial registrado para este mismo mes
+          const tratInSameMonth = allCleaningsList.find(c => c.monthIdx === mIdx);
+          
+          if (!tratInSameMonth) {
+            // No hay tratamiento oficial en tratamientos; usamos la anotación de la muestra como registro
+            const cObj = {
+              source: 'muestra',
+              text: sampleLimpieza,
+              fecha: item.fecha,
+              motivo: 'prevencion',
+              monthIdx: mIdx
+            };
+            cleaningsData[mIdx] = cObj;
+            allCleaningsList.push(cObj);
+          } else {
+            // Ya existe un tratamiento oficial para este mes; la anotación de la muestra hace referencia al mismo evento
+            if (!cleaningsData[mIdx]) {
+              cleaningsData[mIdx] = tratInSameMonth;
+            }
+          }
+        }
+      }
     });
+
+    allCleaningsList.sort((a, b) => parseCleaningDate(a.fecha) - parseCleaningDate(b.fecha));
 
     setTorresData(monthsData);
     setTorresCleanings(cleaningsData);
@@ -1777,12 +1798,12 @@ const Aquapp = () => {
                     <div className="torres-notes-content">
                       {currentCleaning && (
                         <span className={`torres-limpieza-badge ${isCorrectivaCleaning(currentCleaning) ? 'correctiva' : ''}`}>
-                          {isCorrectivaCleaning(currentCleaning) ? '⚠️ Medida Correctora / Recuento' : '🧹 Limpieza de Torre'}: {currentCleaning.text}
+                          {isCorrectivaCleaning(currentCleaning) ? '⚠️ Medida Correctora / Recuento' : '🧹 Limpieza de Torre'}: {currentCleaning.text} {currentCleaning.fecha ? `(${formatCleaningDate(currentCleaning.fecha)})` : ''}
                         </span>
                       )}
-                      {currentItem.limpieza && !currentCleaning && (
-                        <span className="torres-limpieza-badge">
-                          🧹 {currentItem.limpieza}
+                      {currentItem.limpieza && (!currentCleaning || currentItem.limpieza.trim() !== currentCleaning.text.trim()) && (
+                        <span className="torres-limpieza-badge" style={{background: 'rgba(30,155,233,0.1)', color: '#0284c7'}}>
+                          📝 Anotación en muestra: {currentItem.limpieza}
                         </span>
                       )}
                       {currentItem.descripcion && (
