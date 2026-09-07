@@ -892,7 +892,7 @@ const Aquapp = () => {
                           </span>
                         </div>
 
-                        {item.notas && (
+                        {item.notas && item.notas.trim() !== '' && item.notas.trim().toLowerCase() !== 'null' && (
                           <div className="unified-card-notes">
                             <strong>Notas:</strong> {item.notas}
                           </div>
@@ -1215,7 +1215,7 @@ const Aquapp = () => {
             )}
           </div>
 
-          {item.notas && (
+          {item.notas && item.notas.trim() !== '' && item.notas.trim().toLowerCase() !== 'null' && (
             <div className="aq-trat-notes-box">
               <strong>Notas:</strong> {item.notas}
             </div>

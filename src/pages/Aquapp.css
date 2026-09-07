@@ -2459,13 +2459,9 @@
 .aq-trat-pills-scroll {
   display: flex;
   gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 6px;
+  flex-wrap: wrap;
+  align-items: center;
   margin-bottom: 12px;
-  scrollbar-width: none;
-}
-.aq-trat-pills-scroll::-webkit-scrollbar {
-  display: none;
 }
 
 .aq-trat-pill {
@@ -2481,8 +2477,6 @@
   color: var(--text-muted);
   cursor: pointer;
   transition: all 0.2s ease;
-  white-space: nowrap;
-  flex-shrink: 0;
 }
 
 .aq-trat-pill:hover {
@@ -2517,13 +2511,9 @@
 .aq-trat-years-scroll {
   display: flex;
   gap: 6px;
-  overflow-x: auto;
-  padding-bottom: 6px;
-  margin-bottom: 16px;
-  scrollbar-width: none;
-}
-.aq-trat-years-scroll::-webkit-scrollbar {
-  display: none;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 12px;
 }
 
 .aq-trat-year-pill {
@@ -2539,8 +2529,6 @@
   color: var(--text-muted);
   cursor: pointer;
   transition: all 0.15s ease;
-  white-space: nowrap;
-  flex-shrink: 0;
 }
 
 .aq-trat-year-pill:hover {
@@ -2568,13 +2556,9 @@
 .aq-trat-months-scroll {
   display: flex;
   gap: 6px;
-  overflow-x: auto;
-  padding-bottom: 6px;
+  flex-wrap: wrap;
+  align-items: center;
   margin-bottom: 16px;
-  scrollbar-width: none;
-}
-.aq-trat-months-scroll::-webkit-scrollbar {
-  display: none;
 }
 
 .aq-trat-month-pill {
@@ -2590,8 +2574,6 @@
   background: var(--bg-card);
   color: var(--text-main);
   transition: all 0.2s ease;
-  white-space: nowrap;
-  flex-shrink: 0;
 }
 
 .aq-trat-month-pill:hover {
