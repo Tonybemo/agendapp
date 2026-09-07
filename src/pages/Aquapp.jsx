@@ -322,6 +322,7 @@ const Aquapp = () => {
   const [selectedTorreYear, setSelectedTorreYear] = useState(new Date().getFullYear().toString());
   const [torresData, setTorresData] = useState(Array(12).fill(null));
   const [torresCleanings, setTorresCleanings] = useState(Array(12).fill(null));
+  const [torresAllCleanings, setTorresAllCleanings] = useState([]);
   const [loadingTorres, setLoadingTorres] = useState(false);
   const [selectedTorreMonth, setSelectedTorreMonth] = useState(new Date().getMonth());
   const [selectedTorreParam, setSelectedTorreParam] = useState('turbidez');
@@ -485,6 +486,7 @@ const Aquapp = () => {
 
     const monthsData = Array(12).fill(null);
     const cleaningsData = Array(12).fill(null);
+    const allCleaningsList = [];
 
     const getMonthIdx = (fechaStr) => {
       if (!fechaStr) return -1;
@@ -500,16 +502,27 @@ const Aquapp = () => {
       return -1;
     };
 
+    const addCleaningIfNotExists = (cObj) => {
+      const exists = allCleaningsList.some(c => c.fecha && cObj.fecha && c.fecha.split('T')[0] === cObj.fecha.split('T')[0]);
+      if (!exists) {
+        allCleaningsList.push(cObj);
+      }
+    };
+
     data.forEach(item => {
       const mIdx = getMonthIdx(item.fecha);
       if (mIdx >= 0 && mIdx < 12) {
         monthsData[mIdx] = item;
         if (item.limpieza && String(item.limpieza).trim() !== '' && String(item.limpieza).trim() !== '-' && String(item.limpieza).trim() !== 'null') {
-          cleaningsData[mIdx] = {
+          const cObj = {
             source: 'muestra',
             text: String(item.limpieza).trim(),
-            fecha: item.fecha
+            fecha: item.fecha,
+            motivo: 'prevencion',
+            monthIdx: mIdx
           };
+          cleaningsData[mIdx] = cObj;
+          addCleaningIfNotExists(cObj);
         }
       }
     });
@@ -520,19 +533,30 @@ const Aquapp = () => {
       const isTorreLimpieza = tTipo.includes('torre') || tTipo === 'limptorres' || tTipo === 'limpieza_torre' || tNotas.includes('torre');
       if (isTorreLimpieza) {
         const mIdx = getMonthIdx(t.fecha);
+        const cObj = {
+          source: 'tratamiento',
+          text: t.notas && t.notas !== 'null' && t.notas.trim() !== '' ? t.notas : (t.tipo_tratamiento || 'Limpieza de Torre'),
+          fecha: t.fecha,
+          motivo: t.motivo || 'prevencion',
+          tratamiento: t,
+          monthIdx: mIdx
+        };
         if (mIdx >= 0 && mIdx < 12) {
-          cleaningsData[mIdx] = {
-            source: 'tratamiento',
-            text: t.notas && t.notas !== 'null' && t.notas.trim() !== '' ? t.notas : (t.tipo_tratamiento || 'Limpieza de Torre'),
-            fecha: t.fecha,
-            tratamiento: t
-          };
+          cleaningsData[mIdx] = cObj;
         }
+        addCleaningIfNotExists(cObj);
       }
+    });
+
+    allCleaningsList.sort((a, b) => {
+      const da = new Date(a.fecha || 0).getTime();
+      const db = new Date(b.fecha || 0).getTime();
+      return da - db;
     });
 
     setTorresData(monthsData);
     setTorresCleanings(cleaningsData);
+    setTorresAllCleanings(allCleaningsList);
     setLoadingTorres(false);
   };
 
@@ -1436,6 +1460,23 @@ const Aquapp = () => {
     const currentItem = torresData[selectedTorreMonth];
     const currentCleaning = torresCleanings[selectedTorreMonth];
 
+    const isCorrectivaCleaning = (c) => {
+      if (!c) return false;
+      const motivo = (c.motivo || '').toLowerCase();
+      const text = (c.text || '').toLowerCase();
+      return (
+        motivo.includes('recuent') ||
+        motivo.includes('alto') ||
+        motivo.includes('correctiv') ||
+        motivo.includes('choque') ||
+        text.includes('recuent') ||
+        text.includes('aerobio') ||
+        text.includes('legionella') ||
+        text.includes('choque') ||
+        text.includes('correctiv')
+      );
+    };
+
     // Cleaning entries list for tracker
     const cleaningEntries = [];
     torresCleanings.forEach((c, idx) => {
@@ -1443,6 +1484,10 @@ const Aquapp = () => {
         cleaningEntries.push({ ...c, monthIdx: idx });
       }
     });
+
+    const cleaningList = (torresAllCleanings && torresAllCleanings.length > 0) ? torresAllCleanings : cleaningEntries;
+    const reglamentarias = cleaningList.filter(c => !isCorrectivaCleaning(c));
+    const correctivas = cleaningList.filter(c => isCorrectivaCleaning(c));
 
     const formatCleaningDate = (fechaStr) => {
       if (!fechaStr) return '';
@@ -1526,36 +1571,63 @@ const Aquapp = () => {
                   Limpiezas de Torre {selectedTorreYear} (RD 487/2022)
                 </span>
                 <span className="torres-tracker-count">
-                  <strong>{cleaningEntries.length}</strong> de 2 semestrales realizadas
+                  <strong>{reglamentarias.length}</strong> de 2 semestrales reglamentarias
+                  {correctivas.length > 0 && (
+                    <span className="torres-tracker-correctivas-note">
+                      {' '}(+{correctivas.length} {correctivas.length === 1 ? 'medida correctora por recuento' : 'medidas correctoras'})
+                    </span>
+                  )}
                 </span>
               </div>
             </div>
-            <span className={`torres-tracker-status-badge ${cleaningEntries.length >= 2 ? 'complete' : cleaningEntries.length === 1 ? 'progress' : 'pending'}`}>
-              {cleaningEntries.length >= 2 ? '2/2 Completadas ✅' : cleaningEntries.length === 1 ? '1/2 Realizada (1 pendiente)' : '0/2 Realizadas (Pendientes)'}
-            </span>
+            <div style={{display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap'}}>
+              <span className={`torres-tracker-status-badge ${reglamentarias.length >= 2 ? 'complete' : reglamentarias.length === 1 ? 'progress' : 'pending'}`}>
+                {reglamentarias.length >= 2 ? '2/2 Reglamentarias ✅' : reglamentarias.length === 1 ? '1/2 Reglamentaria (1 pendiente)' : '0/2 Reglamentarias (Pendientes)'}
+              </span>
+              {correctivas.length > 0 && (
+                <span className="torres-tracker-status-badge correctiva">
+                  ⚠️ {correctivas.length} {correctivas.length === 1 ? 'Choque / Recuento' : 'Choques / Recuentos'}
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="torres-tracker-pills-row">
-            {cleaningEntries.map((c, i) => (
+            {reglamentarias.map((c, i) => (
               <button
-                key={i}
+                key={`reg-${i}`}
                 type="button"
-                className={`torres-tracker-cleaning-pill ${selectedTorreMonth === c.monthIdx ? 'active' : ''}`}
-                onClick={() => setSelectedTorreMonth(c.monthIdx)}
-                title="Ver mes de esta limpieza"
+                className={`torres-tracker-cleaning-pill ${c.monthIdx >= 0 && selectedTorreMonth === c.monthIdx ? 'active' : ''}`}
+                onClick={() => c.monthIdx >= 0 && setSelectedTorreMonth(c.monthIdx)}
+                title="Ver mes de esta limpieza reglamentaria"
               >
-                <span className="tracker-pill-num">{i + 1}ª Limpieza:</span>
+                <span className="tracker-pill-num">{i + 1}ª Semestral:</span>
                 <span className="tracker-pill-badge">
-                  🧹 {TORRES_MONTHS[c.monthIdx]} {c.fecha ? `(${formatCleaningDate(c.fecha)})` : ''}
+                  🧹 {c.monthIdx >= 0 ? TORRES_MONTHS[c.monthIdx] : ''} {c.fecha ? `(${formatCleaningDate(c.fecha)})` : ''}
                 </span>
                 {c.text && <span className="tracker-pill-detail" title={c.text}>· {c.text}</span>}
               </button>
             ))}
-            {Array.from({ length: Math.max(0, 2 - cleaningEntries.length) }).map((_, i) => (
+            {Array.from({ length: Math.max(0, 2 - reglamentarias.length) }).map((_, i) => (
               <div key={`pend-${i}`} className="torres-tracker-cleaning-pill pending">
-                <span className="tracker-pill-num">{cleaningEntries.length + i + 1}ª Limpieza:</span>
+                <span className="tracker-pill-num">{reglamentarias.length + i + 1}ª Semestral:</span>
                 <span className="tracker-pill-pending-tag">Pendiente</span>
               </div>
+            ))}
+            {correctivas.map((c, i) => (
+              <button
+                key={`corr-${i}`}
+                type="button"
+                className={`torres-tracker-cleaning-pill correctiva ${c.monthIdx >= 0 && selectedTorreMonth === c.monthIdx ? 'active' : ''}`}
+                onClick={() => c.monthIdx >= 0 && setSelectedTorreMonth(c.monthIdx)}
+                title="Ver mes de esta medida correctora / recuento"
+              >
+                <span className="tracker-pill-num">⚠️ Correctora:</span>
+                <span className="tracker-pill-badge">
+                  🧹 {c.monthIdx >= 0 ? TORRES_MONTHS[c.monthIdx] : ''} {c.fecha ? `(${formatCleaningDate(c.fecha)})` : ''}
+                </span>
+                {c.text && <span className="tracker-pill-detail" title={c.text}>· {c.text}</span>}
+              </button>
             ))}
           </div>
         </div>
@@ -1620,8 +1692,8 @@ const Aquapp = () => {
                         <span className="torres-envase-badge">Envase {currentItem.cod_envase}</span>
                       )}
                       {currentCleaning && (
-                        <span className="torres-cleaning-header-badge">
-                          🧹 Limpieza realizada
+                        <span className={`torres-cleaning-header-badge ${isCorrectivaCleaning(currentCleaning) ? 'correctiva' : ''}`}>
+                          {isCorrectivaCleaning(currentCleaning) ? '⚠️ Medida Correctora (Recuento)' : '🧹 Limpieza Semestral'}
                         </span>
                       )}
                     </div>
@@ -1704,8 +1776,8 @@ const Aquapp = () => {
                     </h4>
                     <div className="torres-notes-content">
                       {currentCleaning && (
-                        <span className="torres-limpieza-badge">
-                          🧹 Limpieza de Torre: {currentCleaning.text}
+                        <span className={`torres-limpieza-badge ${isCorrectivaCleaning(currentCleaning) ? 'correctiva' : ''}`}>
+                          {isCorrectivaCleaning(currentCleaning) ? '⚠️ Medida Correctora / Recuento' : '🧹 Limpieza de Torre'}: {currentCleaning.text}
                         </span>
                       )}
                       {currentItem.limpieza && !currentCleaning && (
