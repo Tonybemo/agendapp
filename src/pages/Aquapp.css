@@ -2394,3 +2394,450 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* ========================================================================
+   MODERN BENTO GRID FOR TRATAMIENTOS
+   ======================================================================== */
+
+.aq-trat-section {
+  padding-bottom: 40px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.aq-trat-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.aq-trat-title {
+  margin: 0 0 4px 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+}
+
+.aq-trat-subtitle {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+.aq-trat-btn-new {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 0.88rem;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(225, 29, 72, 0.28);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.aq-trat-btn-new:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(225, 29, 72, 0.38);
+  filter: brightness(1.05);
+}
+
+.aq-trat-btn-new:active {
+  transform: translateY(0);
+}
+
+/* Category Filter Pills (Hiper, Choque, etc) */
+.aq-trat-pills-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  margin-bottom: 12px;
+  scrollbar-width: none;
+}
+.aq-trat-pills-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.aq-trat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  border: 1.5px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.aq-trat-pill:hover {
+  border-color: var(--pill-color, var(--accent-aquapp));
+  color: var(--text-main);
+  background: var(--bg-card-hover);
+}
+
+.aq-trat-pill.active {
+  background: var(--bg-card);
+  border-color: var(--pill-color, var(--accent-aquapp));
+  color: var(--pill-color, var(--accent-aquapp));
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  font-weight: 800;
+}
+
+.aq-trat-pill-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--bg-main);
+  color: var(--text-secondary);
+}
+
+.aq-trat-pill.active .aq-trat-pill-badge {
+  background: var(--pill-color, var(--accent-aquapp));
+  color: #ffffff;
+}
+
+/* Year Filter Pills */
+.aq-trat-years-scroll {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  margin-bottom: 16px;
+  scrollbar-width: none;
+}
+.aq-trat-years-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.aq-trat-year-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  border: 1px solid var(--border-light);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.aq-trat-year-pill:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-main);
+}
+
+.aq-trat-year-pill.active {
+  background: var(--primary-light, #e0f2fe);
+  border-color: var(--accent-aquapp, #0ea5e9);
+  color: var(--accent-aquapp, #0284c7);
+  font-weight: 700;
+}
+
+.aq-trat-year-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.05);
+  color: inherit;
+}
+
+/* Toolbar (Search + Counter) */
+.aq-trat-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.aq-trat-search-box {
+  display: flex;
+  align-items: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 14px;
+  gap: 10px;
+  flex: 1;
+  max-width: 480px;
+  min-width: 240px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
+}
+
+.aq-trat-search-box:focus-within {
+  border-color: var(--accent-aquapp, #0ea5e9);
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.12);
+}
+
+.aq-trat-search-icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.aq-trat-search-box input {
+  border: none;
+  background: transparent;
+  outline: none;
+  width: 100%;
+  font-size: 0.9rem;
+  color: var(--text-main);
+}
+
+.aq-trat-metrics-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* Bento Grid */
+.aq-trat-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Tratamiento Bento Card */
+.aq-trat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.aq-trat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.09);
+  border-color: rgba(30, 155, 233, 0.3);
+}
+
+/* Card Veil Header */
+.aq-trat-card-veil {
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid transparent;
+}
+
+.aq-trat-veil-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.aq-trat-client-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+.aq-trat-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.aq-trat-client-name {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.01em;
+}
+
+.aq-trat-icon-badge {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.aq-trat-badges-group {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.aq-trat-badge-tipo {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  border: 1px solid transparent;
+  letter-spacing: 0.01em;
+}
+
+.aq-trat-badge-motivo {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* Card Body */
+.aq-trat-card-body {
+  padding: 14px 16px 12px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  justify-content: space-between;
+}
+
+.aq-trat-meta-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.aq-trat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--bg-card-hover);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border-light);
+}
+
+.aq-trat-chip.muestra-tag {
+  background: #ecfdf5;
+  color: #047857;
+  border-color: #a7f3d0;
+  font-weight: 700;
+}
+
+.aq-trat-notes-box {
+  background: var(--bg-card-hover);
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 0.84rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  margin-bottom: 12px;
+  word-break: break-word;
+}
+
+.aq-trat-notes-box strong {
+  color: var(--text-main);
+  font-weight: 700;
+}
+
+/* Loading & Empty States */
+.aq-trat-loading-state,
+.aq-trat-empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: var(--bg-card);
+  border-radius: 18px;
+  border: 1px dashed var(--border);
+  margin-top: 10px;
+}
+
+.aq-trat-empty-icon {
+  color: var(--text-faint);
+  margin-bottom: 12px;
+}
+
+.aq-trat-empty-state h3 {
+  margin: 0 0 6px 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.aq-trat-empty-state p {
+  margin: 0 0 16px 0;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+.aq-trat-reset-btn {
+  background: var(--bg-card-hover);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.aq-trat-reset-btn:hover {
+  background: var(--bg-main);
+  border-color: var(--border-input);
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .aq-trat-cards-grid {
+    grid-template-columns: 1fr;
+  }
+  .aq-trat-header-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .aq-trat-btn-new {
+    justify-content: center;
+  }
+  .aq-trat-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .aq-trat-search-box {
+    max-width: 100%;
+  }
+}

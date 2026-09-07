@@ -109,7 +109,7 @@ const Catalogo = () => {
         registro: p.registro,
         plazoSeguridad: p.plazo_seguridad,
         lote: p.lote,
-        hasWarning: p.has_warning || (p.plazo_seguridad && p.plazo_seguridad.toLowerCase() !== 'no aplica' && p.plazo_seguridad !== '0'),
+        hasWarning: Boolean(p.has_warning || (p.plazo_seguridad && p.plazo_seguridad.toLowerCase() !== 'no aplica' && p.plazo_seguridad !== '0')),
         badge: p.badge || 'PRO',
         pdfUrl: p.ficha_sds_url || p.pdf_url
       }));
@@ -230,9 +230,9 @@ const Catalogo = () => {
         materia_activa: editingProduct.materiaActiva,
         plaga_diana: editingProduct.plagaDiana,
         metodo_aplicacion: editingProduct.metodoAplicacion,
-        caducidad: editingProduct.caducidad,
-        plazo_seguridad: editingProduct.plazoSeguridad,
-        has_warning: editingProduct.hasWarning,
+        caducidad: editingProduct.caducidad || null,
+        plazo_seguridad: editingProduct.plazoSeguridad || '',
+        has_warning: Boolean(editingProduct.hasWarning),
         pdf_url: updatedPdfUrl,
         image_url: updatedImageUrl
       }).eq('id', editingProduct.id);

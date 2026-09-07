@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Droplet, Lock, Bell, Settings, WifiOff, Home, 
   Wind, Thermometer, Calendar, Search, ChevronDown, ChevronUp, ChevronRight,
-  FlaskConical, Factory, SprayCan, Edit3, Trash2, Clock, Plus, BookOpen, Bug, Box, Download, BarChart2, CheckCircle2, Zap, Waves, Folder, X
+  FlaskConical, Factory, SprayCan, Edit3, Trash2, Clock, Plus, PlusCircle, BookOpen, Bug, Box, Download, BarChart2, CheckCircle2, Zap, Waves, Folder, X
 } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip as RechartsTooltip, CartesianGrid, ReferenceDot } from 'recharts';
@@ -71,6 +71,66 @@ const Aquapp = () => {
     return { label: tipo || 'Tratamiento', color: '#6366f1', bg: '#eef2ff' };
   };
 
+  const getTratamientoTheme = (tipo) => {
+    const t = (tipo || '').toLowerCase();
+    if (t.includes('hiper')) return { 
+      label: 'Hipercloración', 
+      color: '#9333ea', 
+      bgBadge: '#f3e8ff', 
+      badgeText: '#6b21a8',
+      border: '#e9d5ff', 
+      veil: 'linear-gradient(135deg, rgba(243, 232, 255, 0.95), rgba(233, 213, 255, 0.55))',
+      icon: Droplet
+    };
+    if (t.includes('choque')) return { 
+      label: 'Choque Térmico', 
+      color: '#db2777', 
+      bgBadge: '#fce7f3', 
+      badgeText: '#9d174d',
+      border: '#fbcfe8', 
+      veil: 'linear-gradient(135deg, rgba(252, 231, 243, 0.95), rgba(251, 207, 232, 0.55))',
+      icon: Thermometer
+    };
+    if (t.includes('torre') || t.includes('limptorres')) return { 
+      label: 'Limpieza de Torres', 
+      color: '#0284c7', 
+      bgBadge: '#e0f2fe', 
+      badgeText: '#0369a1',
+      border: '#bae6fd', 
+      veil: 'linear-gradient(135deg, rgba(224, 242, 254, 0.95), rgba(186, 230, 253, 0.55))',
+      icon: Wind
+    };
+    if (t.includes('dep') || t.includes('limpdep')) return { 
+      label: 'Limpieza de Depósitos', 
+      color: '#059669', 
+      bgBadge: '#d1fae5', 
+      badgeText: '#047857',
+      border: '#a7f3d0', 
+      veil: 'linear-gradient(135deg, rgba(209, 250, 229, 0.95), rgba(167, 243, 208, 0.55))',
+      icon: Waves
+    };
+    return { 
+      label: tipo ? tipo.replace(/_/g, ' ') : 'Tratamiento', 
+      color: '#4f46e5', 
+      bgBadge: '#e0e7ff', 
+      badgeText: '#3730a3',
+      border: '#c7d2fe', 
+      veil: 'linear-gradient(135deg, rgba(224, 231, 255, 0.95), rgba(199, 210, 254, 0.55))',
+      icon: FlaskConical
+    };
+  };
+
+  const getRecordYear = (fecha) => {
+    if (!fecha) return 'Desconocido';
+    if (fecha.includes('/')) {
+      return fecha.split('/')[2] || 'Desconocido';
+    }
+    if (fecha.includes('-')) {
+      return fecha.split('-')[0] || 'Desconocido';
+    }
+    return 'Desconocido';
+  };
+
   const getMotivoStyle = (motivo) => {
     const m = (motivo || '').toLowerCase();
     if (m.includes('prev')) return { label: 'Prevención', color: '#15803d', bg: '#dcfce7', isHigh: false };
@@ -118,11 +178,76 @@ const Aquapp = () => {
 
   // Nuevo tab Tratamientos
   const [selectedFiltroTrat, setSelectedFiltroTrat] = useState(null); // null = todos
-  const [tratamientosTab, setTratamientosTab] = useState([]);
+  const [selectedTratYear, setSelectedTratYear] = useState('todos');
+  const [tratamientosRaw, setTratamientosRaw] = useState([]);
   const [tratamientosTabSearch, setTratamientosTabSearch] = useState('');
   const [loadingTratTab, setLoadingTratTab] = useState(false);
-  const [expandedYearsTab, setExpandedYearsTab] = useState({});
-  const [expandedMonthsTab, setExpandedMonthsTab] = useState({});
+
+  const TRAT_FILTROS = useMemo(() => [
+    { id: 'todos', label: 'Todos', filterVal: null, icon: BookOpen, color: '#4f46e5' },
+    { id: 'hiper', label: 'Hipercloración', filterVal: 'hiper', icon: Droplet, color: '#9333ea' },
+    { id: 'choque', label: 'Choque Térmico', filterVal: 'choque', icon: Thermometer, color: '#db2777' },
+    { id: 'torre', label: 'Limp. Torres', filterVal: 'torre', icon: Wind, color: '#0284c7' },
+    { id: 'dep', label: 'Limp. Depósitos', filterVal: 'dep', icon: Waves, color: '#059669' },
+  ], []);
+
+  const tratYearsData = useMemo(() => {
+    const yearCountMap = {};
+    tratamientosRaw.forEach(t => {
+      const y = getRecordYear(t.fecha);
+      if (y !== 'Desconocido') {
+        yearCountMap[y] = (yearCountMap[y] || 0) + 1;
+      }
+    });
+    const sortedYears = Object.keys(yearCountMap).sort((a, b) => parseInt(b, 10) - parseInt(a, 10));
+    return [
+      { year: 'todos', label: 'Todos los años', count: tratamientosRaw.length },
+      ...sortedYears.map(y => ({ year: y, label: y, count: yearCountMap[y] }))
+    ];
+  }, [tratamientosRaw]);
+
+  const tratTypeCounts = useMemo(() => {
+    const counts = {
+      todos: tratamientosRaw.length,
+      hiper: 0,
+      choque: 0,
+      torre: 0,
+      dep: 0
+    };
+    tratamientosRaw.forEach(t => {
+      const tipo = (t.tipo_tratamiento || '').toLowerCase();
+      if (tipo.includes('hiper')) counts.hiper++;
+      else if (tipo.includes('choque')) counts.choque++;
+      else if (tipo.includes('torre') || tipo.includes('limptorres')) counts.torre++;
+      else if (tipo.includes('dep') || tipo.includes('limpdep')) counts.dep++;
+    });
+    return counts;
+  }, [tratamientosRaw]);
+
+  const filteredTratamientos = useMemo(() => {
+    let list = [...tratamientosRaw];
+
+    if (selectedFiltroTrat) {
+      const f = selectedFiltroTrat.toLowerCase();
+      list = list.filter(t => (t.tipo_tratamiento || '').toLowerCase().includes(f));
+    }
+
+    if (selectedTratYear !== 'todos') {
+      list = list.filter(t => getRecordYear(t.fecha) === selectedTratYear);
+    }
+
+    if (tratamientosTabSearch.trim()) {
+      const q = tratamientosTabSearch.toLowerCase();
+      list = list.filter(t => 
+        (t.cliente_nombre || '').toLowerCase().includes(q) ||
+        (t.tipo_tratamiento || '').toLowerCase().includes(q) ||
+        (t.motivo || '').toLowerCase().includes(q) ||
+        (t.notas || '').toLowerCase().includes(q)
+      );
+    }
+
+    return list;
+  }, [tratamientosRaw, selectedFiltroTrat, selectedTratYear, tratamientosTabSearch]);
 
   // Nuevo tab Torres
   const [torresClients, setTorresClients] = useState([]);
@@ -144,7 +269,7 @@ const Aquapp = () => {
   useEffect(() => {
     fetchClientes();
     if (activeTab === 'tratamientos') {
-      handleCargarTratamientos(selectedFiltroTrat);
+      handleCargarTratamientos();
     }
     if (activeTab === 'torres') {
       fetchTorresClients();
@@ -161,7 +286,7 @@ const Aquapp = () => {
     const handleRefresh = () => {
       fetchClientes();
       if (activeTab === 'tratamientos') {
-        handleCargarTratamientos(selectedFiltroTrat);
+        handleCargarTratamientos();
       }
       if (activeTab === 'torres') {
         fetchTorresClients();
@@ -410,8 +535,15 @@ const Aquapp = () => {
 
   const handleDeleteTratamiento = async (id) => {
     if(!window.confirm("¿Seguro que quieres borrar este tratamiento?")) return;
-    await supabase.from('aquapp_tratamientos').delete().eq('id', id);
-    fetchClientDetails(selectedClient);
+    const { error } = await supabase.from('aquapp_tratamientos').delete().eq('id', id);
+    if (!error) {
+      setTratamientosRaw(prev => prev.filter(t => t.id !== id));
+      setRecentTratamientos(prev => prev.filter(t => t.id !== id));
+      if (selectedClient) fetchClientDetails(selectedClient);
+      window.__toast?.success("Tratamiento eliminado");
+    } else {
+      window.__toast?.error("Error al borrar el tratamiento");
+    }
   };
 
   const handleDeletePlaga = async (id) => {
@@ -944,215 +1076,238 @@ const Aquapp = () => {
     );
   };
 
-  const handleCargarTratamientos = async (filtro) => {
+  const handleCargarTratamientos = async () => {
     setLoadingTratTab(true);
-    setExpandedYearsTab({});
-    setExpandedMonthsTab({});
-    let query = supabase.from('aquapp_tratamientos').select('*');
-    if (filtro) query = query.ilike('tipo_tratamiento', `%${filtro}%`);
-    const { data } = await query.order('created_at', { ascending: false });
+    const { data, error } = await supabase
+      .from('aquapp_tratamientos')
+      .select('*')
+      .order('fecha', { ascending: false });
 
-    const grouped = [];
-    (data || []).forEach(item => {
-      let year = 'Desconocido', month = 'Desconocido';
-      if (item.fecha && item.fecha.includes('/')) {
-        const parts = item.fecha.split('/');
-        year = parts[2];
-        const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-        month = monthNames[parseInt(parts[1], 10) - 1] || 'Desconocido';
-      } else if (item.fecha && item.fecha.includes('-')) {
-        const parts = item.fecha.split('-');
-        year = parts[0];
-        const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-        month = monthNames[parseInt(parts[1], 10) - 1] || 'Desconocido';
-      }
-      let yObj = grouped.find(y => y.year === year);
-      if (!yObj) { yObj = { year, total: 0, months: [] }; grouped.push(yObj); }
-      let mObj = yObj.months.find(m => m.month === month);
-      if (!mObj) { mObj = { month, items: [] }; yObj.months.push(mObj); }
-      mObj.items.push(item);
-      yObj.total++;
-    });
-    
-    grouped.sort((a, b) => {
-      if (a.year === 'Desconocido') return 1;
-      if (b.year === 'Desconocido') return -1;
-      return parseInt(b.year) - parseInt(a.year);
-    });
-
-    const monthOrder = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-    grouped.forEach(yGroup => {
-      yGroup.months.sort((a, b) => monthOrder.indexOf(b.month) - monthOrder.indexOf(a.month));
-    });
-
-    setTratamientosTab(grouped);
+    if (!error && data) {
+      setTratamientosRaw(data);
+    }
     setLoadingTratTab(false);
   };
 
-  const renderTratamientosTab = () => {
-    const filtros = [
-      { label: 'Todos', value: null, color: '#6366f1', bg: '#eef2ff' },
-      { label: 'Hipercloración', value: 'hiper', color: '#a855f7', bg: '#f3e8ff' },
-      { label: 'Choque Térmico', value: 'choque', color: '#ec4899', bg: '#fce7f3' },
-      { label: 'Limp. Torres', value: 'torre', color: '#3b82f6', bg: '#eff6ff' },
-      { label: 'Limp. Depósitos', value: 'dep', color: '#10b981', bg: '#d1fae5' },
-    ];
+  const renderTratamientoCard = (item) => {
+    const theme = getTratamientoTheme(item.tipo_tratamiento);
+    const IconComponent = theme.icon;
+    const motStyle = getMotivoStyle(item.motivo);
+    const displayDate = formatDisplayDate(item.fecha);
+    const displayTime = item.hora ? item.hora.substring(0, 5) : '-';
 
     return (
-      <div className="animate-fade-in" style={{paddingBottom: '40px'}}>
-        <div className="view-header"><h2>Historial de Tratamientos</h2></div>
+      <div key={item.id} className="aq-trat-card">
+        {/* Top Veil / Header with subtle color gradient */}
+        <div className="aq-trat-card-veil" style={{ background: theme.veil, borderBottomColor: theme.border }}>
+          <div className="aq-trat-veil-top">
+            <div className="aq-trat-client-row">
+              <div className="aq-trat-dot" style={{ backgroundColor: theme.color }} />
+              <h4 className="aq-trat-client-name" title={item.cliente_nombre || 'Cliente Desconocido'}>
+                {item.cliente_nombre || 'Cliente Desconocido'}
+              </h4>
+            </div>
+            <div className="aq-trat-icon-badge" style={{ color: theme.color, borderColor: theme.border }}>
+              <IconComponent size={15} />
+            </div>
+          </div>
 
-        {/* Botones filtro */}
-        <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '20px'}}>
-          {filtros.map(f => (
-            <button
-              key={f.label}
-              onClick={() => { setSelectedFiltroTrat(f.value); handleCargarTratamientos(f.value); }}
-              style={{
-                padding: '8px 16px', borderRadius: '24px', fontWeight: '700', fontSize: '0.85rem',
-                border: `2px solid ${selectedFiltroTrat === f.value ? f.color : '#e2e8f0'}`,
-                background: selectedFiltroTrat === f.value ? f.bg : 'white',
-                color: selectedFiltroTrat === f.value ? f.color : '#64748b',
-                cursor: 'pointer', transition: 'all 0.2s'
+          <div className="aq-trat-badges-group">
+            <span 
+              className="aq-trat-badge-tipo"
+              style={{ 
+                backgroundColor: theme.bgBadge, 
+                color: theme.badgeText, 
+                borderColor: theme.border 
               }}
             >
-              {f.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Buscador */}
-        <div className="search-box" style={{marginBottom: '16px'}}>
-          <Search size={20} color="#64748b" />
-          <input type="text" placeholder="Buscar cliente..." value={tratamientosTabSearch} onChange={(e) => setTratamientosTabSearch(e.target.value)} />
-          {tratamientosTabSearch && (
-            <button 
-              type="button"
-              className="search-clear-btn"
-              onClick={() => setTratamientosTabSearch('')}
-              title="Limpiar búsqueda"
+              <IconComponent size={12} style={{ marginRight: '4px' }} />
+              {theme.label}
+            </span>
+            <span 
+              className="aq-trat-badge-motivo"
+              style={{ 
+                backgroundColor: motStyle.bg, 
+                color: motStyle.color 
+              }}
             >
-              <X size={18} />
-            </button>
-          )}
+              {motStyle.label}
+            </span>
+          </div>
         </div>
 
-        {/* Listado */}
+        {/* Body */}
+        <div className="aq-trat-card-body">
+          <div className="aq-trat-meta-chips">
+            <span className="aq-trat-chip">
+              <Calendar size={13} />
+              <span>{displayDate}</span>
+            </span>
+            {displayTime !== '-' && (
+              <span className="aq-trat-chip">
+                <Clock size={13} />
+                <span>{displayTime}</span>
+              </span>
+            )}
+            {item.muestra_recogida && (
+              <span className="aq-trat-chip muestra-tag">
+                <FlaskConical size={13} />
+                <span>Muestra tomada</span>
+              </span>
+            )}
+          </div>
+
+          {item.notas && (
+            <div className="aq-trat-notes-box">
+              <strong>Notas:</strong> {item.notas}
+            </div>
+          )}
+
+          {/* Footer actions */}
+          <div className="unified-card-footer admin-only">
+            <button 
+              className="card-action-icon-btn edit" 
+              title="Editar Tratamiento"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.dispatchEvent(new CustomEvent('edit-record', { detail: { ...item, editType: 'tratamiento' } }));
+              }}
+            >
+              <Edit3 size={15} />
+            </button>
+            <button 
+              className="card-action-icon-btn delete" 
+              title="Borrar Tratamiento"
+              onClick={(e) => { 
+                e.stopPropagation(); 
+                handleDeleteTratamiento(item.id); 
+              }}
+            >
+              <Trash2 size={15} />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderTratamientosTab = () => {
+    return (
+      <div className="aq-trat-section animate-fade-in">
+        {/* Header Row */}
+        <div className="aq-trat-header-row">
+          <div>
+            <h2 className="aq-trat-title">Historial de Tratamientos</h2>
+            <p className="aq-trat-subtitle">Gestión y registro normativo de hipercloraciones, choques y limpiezas</p>
+          </div>
+          <button 
+            className="aq-trat-btn-new"
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent('open-universal-form', { 
+                detail: { type: 'muestra', mode: 'tratamiento' } 
+              }));
+            }}
+          >
+            <PlusCircle size={18} />
+            <span>NUEVO TRATAMIENTO</span>
+          </button>
+        </div>
+
+        {/* Tipo Filters (Pills) */}
+        <div className="aq-trat-pills-scroll">
+          {TRAT_FILTROS.map(f => {
+            const Icon = f.icon;
+            const count = tratTypeCounts[f.id] ?? 0;
+            const isActive = selectedFiltroTrat === f.filterVal;
+            return (
+              <button
+                key={f.id}
+                onClick={() => setSelectedFiltroTrat(f.filterVal)}
+                className={`aq-trat-pill ${isActive ? 'active' : ''}`}
+                style={{
+                  '--pill-color': f.color
+                }}
+              >
+                <Icon size={15} />
+                <span>{f.label}</span>
+                <span className="aq-trat-pill-badge">{count}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Year Filters (Pills) */}
+        <div className="aq-trat-years-scroll">
+          {tratYearsData.map(y => {
+            const isActive = selectedTratYear === y.year;
+            return (
+              <button
+                key={y.year}
+                onClick={() => setSelectedTratYear(y.year)}
+                className={`aq-trat-year-pill ${isActive ? 'active' : ''}`}
+              >
+                <span>{y.label}</span>
+                <span className="aq-trat-year-badge">{y.count}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Toolbar: Search + Counter */}
+        <div className="aq-trat-toolbar">
+          <div className="aq-trat-search-box">
+            <Search size={18} className="aq-trat-search-icon" />
+            <input 
+              type="text" 
+              placeholder="Buscar por cliente, tipo, notas..." 
+              value={tratamientosTabSearch} 
+              onChange={(e) => setTratamientosTabSearch(e.target.value)} 
+            />
+            {tratamientosTabSearch && (
+              <button 
+                type="button"
+                className="search-clear-btn"
+                onClick={() => setTratamientosTabSearch('')}
+                title="Limpiar búsqueda"
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
+          <div className="aq-trat-metrics-text">
+            {filteredTratamientos.length === 1 
+              ? 'Mostrando 1 tratamiento' 
+              : `Mostrando ${filteredTratamientos.length} tratamientos`}
+          </div>
+        </div>
+
+        {/* Grid or Empty / Loading State */}
         {loadingTratTab ? (
-          <div style={{textAlign: 'center', padding: '40px', color: 'var(--text-muted)'}}>Cargando...</div>
-        ) : tratamientosTab.length === 0 ? (
-          <div style={{textAlign: 'center', padding: '40px', color: 'var(--text-muted)'}}>No hay tratamientos registrados.</div>
+          <div className="aq-trat-loading-state">
+            <div className="aq-spinner" />
+            <p>Cargando tratamientos...</p>
+          </div>
+        ) : filteredTratamientos.length === 0 ? (
+          <div className="aq-trat-empty-state">
+            <Wind size={40} className="aq-trat-empty-icon" />
+            <h3>No se encontraron tratamientos</h3>
+            <p>No hay registros que coincidan con los filtros o la búsqueda seleccionada.</p>
+            {(selectedFiltroTrat || selectedTratYear !== 'todos' || tratamientosTabSearch) && (
+              <button 
+                className="aq-trat-reset-btn"
+                onClick={() => {
+                  setSelectedFiltroTrat(null);
+                  setSelectedTratYear('todos');
+                  setTratamientosTabSearch('');
+                }}
+              >
+                Restablecer filtros
+              </button>
+            )}
+          </div>
         ) : (
-          <div className="accordion-list">
-            {tratamientosTab.map(yGroup => {
-              const yId = `tab-year-${yGroup.year}`;
-              const isYearExpanded = expandedYearsTab[yId];
-              return (
-                <div key={yGroup.year} className="accordion-item" style={{background: 'var(--bg-card)', borderRadius: '16px', overflow: 'hidden', boxShadow: 'var(--shadow-sm)', marginBottom: '12px'}}>
-                  <div className="accordion-header" onClick={() => setExpandedYearsTab(prev => ({...prev, [yId]: !prev[yId]}))} style={{background: 'var(--bg-card-hover)', padding: '16px'}}>
-                    <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
-                      <Calendar size={20} color="#6366f1" />
-                      <h3 style={{margin: 0, fontSize: '1.1rem'}}>{yGroup.year}</h3>
-                      <span style={{background: '#fee2e2', color: '#e11d48', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold'}}>{yGroup.total} tratamientos</span>
-                    </div>
-                    {isYearExpanded ? <ChevronUp size={20} color="#94a3b8" /> : <ChevronDown size={20} color="#94a3b8" />}
-                  </div>
-
-                  {isYearExpanded && (
-                    <div style={{padding: '0 16px 16px'}}>
-                      {yGroup.months.map(mGroup => {
-                          const mId = `tab-month-${yGroup.year}-${mGroup.month}`;
-                          const isMonthExpanded = expandedMonthsTab[mId];
-                          const itemsFiltrados = mGroup.items.filter(i => {
-                            const q = tratamientosTabSearch.toLowerCase();
-                            return (i.cliente_nombre||'').toLowerCase().includes(q) ||
-                                   (i.tipo_tratamiento||'').toLowerCase().includes(q) ||
-                                   (i.motivo||'').toLowerCase().includes(q);
-                          });
-                          return (
-                          <div key={mGroup.month} style={{marginTop: '16px'}}>
-                            <div onClick={() => setExpandedMonthsTab(prev => ({...prev, [mId]: !prev[mId]}))} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', paddingBottom: '8px', borderBottom: '1px solid var(--border-light)'}}>
-                              <div style={{display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold'}}>
-                                <Folder fill={getMonthColor(mGroup.month)} color={getMonthColor(mGroup.month)} size={18} /> <span style={{color: 'var(--text-main)'}}>{mGroup.month}</span> <span style={{background: 'var(--bg-main)', color: 'var(--text-muted)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.7rem'}}>{itemsFiltrados.length}</span>
-                              </div>
-                              {isMonthExpanded ? <ChevronUp size={16} color="#94a3b8" /> : <ChevronDown size={16} color="#94a3b8" />}
-                            </div>
-
-                            {isMonthExpanded && (
-                              <div className="unified-cards-grid">
-                                {itemsFiltrados.map(item => {
-                                  const tratStyle = getTratamientoStyle(item.tipo_tratamiento);
-                                  const motStyle = getMotivoStyle(item.motivo);
-                                  const dotColor = motStyle.isHigh ? '#ef4444' : '#10b981';
-                                  const displayDate = formatDisplayDate(item.fecha);
-                                  const displayTime = item.hora ? item.hora.substring(0, 5) : '-';
-
-                                  return (
-                                    <div key={item.id} className="unified-card">
-                                      <div className="unified-card-top">
-                                        <div className="unified-card-top-left">
-                                          <div className="unified-card-dot" style={{ backgroundColor: dotColor }} />
-                                          <span style={{ fontWeight: 800, color: 'var(--text-main)', fontSize: '1.05rem' }}>
-                                            {item.cliente_nombre || 'Cliente Desconocido'}
-                                          </span>
-                                        </div>
-                                        <div className="unified-card-meta" style={{ margin: 0 }}>
-                                          <span>{displayDate}</span>
-                                          {displayTime !== '-' && <span>{displayTime}</span>}
-                                        </div>
-                                      </div>
-
-                                      <div className="trat-badges-row" style={{ marginTop: '8px' }}>
-                                        <span className="trat-badge-tipo" style={{ background: tratStyle.bg, color: tratStyle.color }}>
-                                          {tratStyle.label}
-                                        </span>
-                                        <span className={`trat-badge-motivo ${motStyle.isHigh ? 'recuento-alto' : 'prevencion'}`}>
-                                          {motStyle.label}
-                                        </span>
-                                      </div>
-
-                                      {item.notas && (
-                                        <div className="unified-card-notes">
-                                          <strong>Notas:</strong> {item.notas}
-                                        </div>
-                                      )}
-
-                                      <div className="unified-card-footer admin-only">
-                                        <button 
-                                          className="card-action-icon-btn edit" 
-                                          title="Editar"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            window.dispatchEvent(new CustomEvent('edit-record', { detail: { ...item, editType: 'tratamiento' } }));
-                                          }}
-                                        >
-                                          <Edit3 size={15}/>
-                                        </button>
-                                        <button 
-                                          className="card-action-icon-btn delete" 
-                                          title="Borrar"
-                                          onClick={(e) => { 
-                                            e.stopPropagation(); 
-                                            handleDeleteTratamiento(item.id); 
-                                            handleCargarTratamientos(selectedFiltroTrat);
-                                          }}
-                                        >
-                                          <Trash2 size={15}/>
-                                        </button>
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+          <div className="aq-trat-cards-grid">
+            {filteredTratamientos.map(item => renderTratamientoCard(item))}
           </div>
         )}
       </div>
@@ -1792,50 +1947,8 @@ const Aquapp = () => {
         ) : recentTratamientos.length === 0 ? (
           <div style={{textAlign: 'center', padding: '20px', color: 'var(--text-muted)'}}>Aún no hay tratamientos registrados.</div>
         ) : (
-          <div className="accordion-list">
-            {recentTratamientos.map(item => (
-              <div key={item.id} className="tratamiento-record-card" style={{border: '1px solid var(--border)', borderRadius: '16px', padding: '16px', position: 'relative', overflow: 'hidden', marginBottom: '16px', boxShadow: 'var(--shadow-sm)', background: 'var(--bg-card)'}}>
-                {/* Borde izquierdo decorativo */}
-                <div style={{position: 'absolute', left: 0, top: 0, bottom: 0, width: '6px', background: '#8b5cf6'}}></div>
-                
-                <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px'}}>
-                  <div style={{width: '20px', height: '20px', borderRadius: '50%', background: '#8b5cf6'}}></div>
-                  <h4 style={{margin: 0, fontSize: '1.2rem', color: 'var(--text-main)', fontWeight: '800'}}>{item.cliente_nombre || 'Cliente Desconocido'}</h4>
-                </div>
-                
-                <div style={{display: 'flex', gap: '16px', color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '12px', fontWeight: '600'}}>
-                  <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><Clock size={14}/> {item.hora}</span>
-                  <span>•</span>
-                  <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><Calendar size={14}/> {item.fecha ? item.fecha.split('T')[0] : '-'}</span>
-                </div>
-                
-                <div style={{display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap'}}>
-                  <span style={{background: getTratamientoStyle(item.tipo_tratamiento).bg, color: getTratamientoStyle(item.tipo_tratamiento).color, padding: '6px 12px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: '700'}}>{getTratamientoStyle(item.tipo_tratamiento).label}</span>
-                  <span style={{background: getMotivoStyle(item.motivo).bg, color: getMotivoStyle(item.motivo).color, padding: '6px 12px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: '700'}}>{getMotivoStyle(item.motivo).label}</span>
-                </div>
-                
-                {item.notas && (
-                  <div style={{ background: 'var(--bg-card-hover)', padding: '8px 10px', borderRadius: '8px', fontWeight: '500', color: 'var(--text-secondary)', marginBottom: '16px', fontSize: '0.85rem', border: '1px solid var(--border-light)' }}>
-                    <strong style={{color: 'var(--text-main)'}}>Notas:</strong> {item.notas}
-                  </div>
-                )}
-
-                <div className="admin-only" style={{display: 'flex', gap: '12px'}}>
-                  <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => {
-                    e.stopPropagation();
-                    window.dispatchEvent(new CustomEvent('edit-record', { detail: { ...item, editType: 'tratamiento' } }));
-                  }}>
-                    <Edit3 size={16}/> Editar
-                  </button>
-                  <button style={{flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: 'var(--color-error-light)', color: 'var(--color-error)', border: '1px solid #fecaca', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer'}} onClick={(e) => { 
-                    e.stopPropagation(); 
-                    handleDeleteTratamiento(item.id); 
-                  }}>
-                    <Trash2 size={16}/> Borrar
-                  </button>
-                </div>
-              </div>
-            ))}
+          <div className="aq-trat-cards-grid" style={{marginBottom: '24px'}}>
+            {recentTratamientos.map(item => renderTratamientoCard(item))}
           </div>
         )}
       </div>
@@ -1852,7 +1965,7 @@ const Aquapp = () => {
           <button className={`tab-btn ${activeTab === 'torres' ? 'active' : ''}`} onClick={() => setActiveTab('torres')}>
             <Factory size={20} /> <span>Torres</span>
           </button>
-          <button className={`tab-btn ${activeTab === 'tratamientos' ? 'active' : ''}`} onClick={() => { setActiveTab('tratamientos'); handleCargarTratamientos(selectedFiltroTrat); }}>
+          <button className={`tab-btn ${activeTab === 'tratamientos' ? 'active' : ''}`} onClick={() => { setActiveTab('tratamientos'); handleCargarTratamientos(); }}>
             <Wind size={20} /> <span>Tratamientos</span>
           </button>
         </div>
