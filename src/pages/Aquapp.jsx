@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   Droplet, Lock, Bell, Settings, WifiOff, Home, 
   Wind, Thermometer, Calendar, Search, ChevronDown, ChevronUp, ChevronRight,
@@ -182,6 +182,104 @@ const Aquapp = () => {
   const [clientes, setClientes] = useState([]);
   const [clientData, setClientData] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  // Historial scroll indicator & alphabet navigation state
+  const [currentScrollLetter, setCurrentScrollLetter] = useState('A');
+  const [isScrolling, setIsScrolling] = useState(false);
+  const scrollTimeoutRef = useRef(null);
+
+  const filteredClients = useMemo(() => {
+    return clientes.filter(c => 
+      (c.name || '').toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [clientes, searchQuery]);
+
+  const groupedClients = useMemo(() => {
+    const groups = {};
+    filteredClients.forEach(client => {
+      const raw = (client.name || '').trim();
+      const cleanChar = raw.normalize('NFD').replace(/[\u0300-\u036f]/g, '')[0]?.toUpperCase() || '#';
+      const letter = /[A-Z]/.test(cleanChar) ? cleanChar : '#';
+      if (!groups[letter]) groups[letter] = [];
+      groups[letter].push(client);
+    });
+    return Object.keys(groups).sort((a, b) => {
+      if (a === '#') return 1;
+      if (b === '#') return -1;
+      return a.localeCompare(b);
+    }).map(letter => ({
+      letter,
+      clients: groups[letter]
+    }));
+  }, [filteredClients]);
+
+  const availableLetters = useMemo(() => {
+    return groupedClients.map(g => g.letter);
+  }, [groupedClients]);
+
+  const scrollToLetter = (letter) => {
+    const el = document.getElementById(`letter-sec-${letter}`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setCurrentScrollLetter(letter);
+      setIsScrolling(true);
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+      scrollTimeoutRef.current = setTimeout(() => {
+        setIsScrolling(false);
+      }, 1200);
+    }
+  };
+
+  useEffect(() => {
+    if (currentView !== 'historial' || activeTab !== 'historial') return;
+
+    const updateActiveLetter = () => {
+      const sections = document.querySelectorAll('.aq-letter-section');
+      if (sections.length === 0) return;
+
+      const triggerY = 170;
+      let foundLetter = null;
+
+      sections.forEach(sec => {
+        const rect = sec.getBoundingClientRect();
+        if (rect.top <= triggerY) {
+          foundLetter = sec.getAttribute('data-letter');
+        }
+      });
+
+      if (!foundLetter && sections.length > 0) {
+        foundLetter = sections[0].getAttribute('data-letter');
+      }
+
+      if (foundLetter) {
+        setCurrentScrollLetter(foundLetter);
+      }
+
+      setIsScrolling(true);
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+      scrollTimeoutRef.current = setTimeout(() => {
+        setIsScrolling(false);
+      }, 900);
+    };
+
+    const mainContainer = document.querySelector('.main-content');
+    window.addEventListener('scroll', updateActiveLetter, { passive: true });
+    if (mainContainer) {
+      mainContainer.addEventListener('scroll', updateActiveLetter, { passive: true });
+    }
+
+    return () => {
+      window.removeEventListener('scroll', updateActiveLetter);
+      if (mainContainer) {
+        mainContainer.removeEventListener('scroll', updateActiveLetter);
+      }
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, [currentView, activeTab, clientes, searchQuery]);
 
   // Detail navigation state (pill-based)
   const [detailStep, setDetailStep] = useState('categories'); // 'categories' | 'years' | 'months' | 'records'
@@ -665,14 +763,19 @@ const Aquapp = () => {
   };
 
   const renderHistorial = () => {
-    const filteredClients = clientes.filter(c => 
-      c.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
     return (
-      <div className="animate-fade-in">
+      <div className="animate-fade-in" style={{ position: 'relative' }}>
+        {/* Indicador flotante durante el scroll */}
+        <div 
+          className={`aq-scroll-letter-bubble ${isScrolling ? 'visible' : ''}`}
+          aria-hidden="true"
+        >
+          <span className="aq-scroll-bubble-letter">{currentScrollLetter}</span>
+          <span className="aq-scroll-bubble-label">Letra</span>
+        </div>
+
         <div className="view-header">
-          <h2>Clientes</h2>
+          <h2>Clientes ({filteredClients.length})</h2>
         </div>
 
         <div className="search-box">
@@ -695,20 +798,57 @@ const Aquapp = () => {
           )}
         </div>
 
-        <div className="aq-clients-grid">
-          {filteredClients.map(client => (
-            <div 
-              key={client.id} 
-              className="aq-client-tile"
-              onClick={() => fetchClientDetails(client)}
-            >
-              <div 
-                className="aq-client-avatar-circle" 
-                style={{ backgroundColor: getAvatarColor(client.name) }}
+        {/* Tira de salto rápido alfabético (A-Z) */}
+        {availableLetters.length > 1 && (
+          <div className="aq-alphabet-strip">
+            {availableLetters.map(letter => (
+              <button
+                key={letter}
+                type="button"
+                className={`aq-alphabet-pill ${currentScrollLetter === letter ? 'active' : ''}`}
+                onClick={() => scrollToLetter(letter)}
+                title={`Saltar a letra ${letter}`}
               >
-                {client.name.substring(0,2).toUpperCase()}
+                {letter}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Secciones agrupadas por letra con encabezados */}
+        <div className="aq-letter-sections-wrapper">
+          {groupedClients.map(({ letter, clients }) => (
+            <div 
+              key={letter} 
+              id={`letter-sec-${letter}`} 
+              className="aq-letter-section" 
+              data-letter={letter}
+            >
+              <div className="aq-letter-section-header">
+                <span className="aq-letter-badge">{letter}</span>
+                <span className="aq-letter-count">
+                  {clients.length} {clients.length === 1 ? 'cliente' : 'clientes'}
+                </span>
+                <div className="aq-letter-divider-line" />
               </div>
-              <h4 className="aq-client-tile-name">{client.name}</h4>
+
+              <div className="aq-clients-grid">
+                {clients.map(client => (
+                  <div 
+                    key={client.id} 
+                    className="aq-client-tile"
+                    onClick={() => fetchClientDetails(client)}
+                  >
+                    <div 
+                      className="aq-client-avatar-circle" 
+                      style={{ backgroundColor: getAvatarColor(client.name) }}
+                    >
+                      {client.name.substring(0, 2).toUpperCase()}
+                    </div>
+                    <h4 className="aq-client-tile-name">{client.name}</h4>
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
         </div>
