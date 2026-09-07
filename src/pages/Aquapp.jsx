@@ -131,6 +131,31 @@ const Aquapp = () => {
     return 'Desconocido';
   };
 
+  const getRecordMonth = (fecha) => {
+    if (!fecha) return 'Desconocido';
+    const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    if (fecha.includes('/')) {
+      const parts = fecha.split('/');
+      const mIdx = parseInt(parts[1], 10) - 1;
+      return monthNames[mIdx] || 'Desconocido';
+    }
+    if (fecha.includes('-')) {
+      const parts = fecha.split('-');
+      const mIdx = parseInt(parts[1], 10) - 1;
+      return monthNames[mIdx] || 'Desconocido';
+    }
+    return 'Desconocido';
+  };
+
+  const getMonthAbbr = (monthName) => {
+    const map = {
+      'Enero': 'Ene', 'Febrero': 'Feb', 'Marzo': 'Mar', 'Abril': 'Abr',
+      'Mayo': 'May', 'Junio': 'Jun', 'Julio': 'Jul', 'Agosto': 'Ago',
+      'Septiembre': 'Sep', 'Octubre': 'Oct', 'Noviembre': 'Nov', 'Diciembre': 'Dic'
+    };
+    return map[monthName] || (monthName ? monthName.substring(0, 3) : '');
+  };
+
   const getMotivoStyle = (motivo) => {
     const m = (motivo || '').toLowerCase();
     if (m.includes('prev')) return { label: 'Prevención', color: '#15803d', bg: '#dcfce7', isHigh: false };
@@ -179,6 +204,7 @@ const Aquapp = () => {
   // Nuevo tab Tratamientos
   const [selectedFiltroTrat, setSelectedFiltroTrat] = useState(null); // null = todos
   const [selectedTratYear, setSelectedTratYear] = useState('todos');
+  const [selectedTratMonth, setSelectedTratMonth] = useState('todos');
   const [tratamientosRaw, setTratamientosRaw] = useState([]);
   const [tratamientosTabSearch, setTratamientosTabSearch] = useState('');
   const [loadingTratTab, setLoadingTratTab] = useState(false);
@@ -205,6 +231,43 @@ const Aquapp = () => {
       ...sortedYears.map(y => ({ year: y, label: y, count: yearCountMap[y] }))
     ];
   }, [tratamientosRaw]);
+
+  const tratMonthsData = useMemo(() => {
+    let base = tratamientosRaw;
+    if (selectedFiltroTrat) {
+      const f = selectedFiltroTrat.toLowerCase();
+      base = base.filter(t => (t.tipo_tratamiento || '').toLowerCase().includes(f));
+    }
+    if (selectedTratYear !== 'todos') {
+      base = base.filter(t => getRecordYear(t.fecha) === selectedTratYear);
+    }
+
+    const monthOrder = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    const monthCounts = {};
+    base.forEach(t => {
+      const m = getRecordMonth(t.fecha);
+      if (m !== 'Desconocido') {
+        monthCounts[m] = (monthCounts[m] || 0) + 1;
+      }
+    });
+
+    const activeMonths = monthOrder
+      .filter(m => monthCounts[m] > 0)
+      .map(m => ({
+        month: m,
+        label: m,
+        abbr: getMonthAbbr(m),
+        color: getMonthColor(m),
+        count: monthCounts[m]
+      }));
+
+    if (activeMonths.length === 0) return [];
+
+    return [
+      { month: 'todos', label: 'Todos los meses', abbr: 'Todos', color: '#6366f1', count: base.length },
+      ...activeMonths
+    ];
+  }, [tratamientosRaw, selectedFiltroTrat, selectedTratYear]);
 
   const tratTypeCounts = useMemo(() => {
     const counts = {
@@ -236,6 +299,10 @@ const Aquapp = () => {
       list = list.filter(t => getRecordYear(t.fecha) === selectedTratYear);
     }
 
+    if (selectedTratMonth !== 'todos') {
+      list = list.filter(t => getRecordMonth(t.fecha) === selectedTratMonth);
+    }
+
     if (tratamientosTabSearch.trim()) {
       const q = tratamientosTabSearch.toLowerCase();
       list = list.filter(t => 
@@ -247,7 +314,7 @@ const Aquapp = () => {
     }
 
     return list;
-  }, [tratamientosRaw, selectedFiltroTrat, selectedTratYear, tratamientosTabSearch]);
+  }, [tratamientosRaw, selectedFiltroTrat, selectedTratYear, selectedTratMonth, tratamientosTabSearch]);
 
   // Nuevo tab Torres
   const [torresClients, setTorresClients] = useState([]);
@@ -609,15 +676,6 @@ const Aquapp = () => {
         )}
       </div>
     );
-  };
-
-  const getMonthAbbr = (monthName) => {
-    const map = {
-      'Enero': 'Ene', 'Febrero': 'Feb', 'Marzo': 'Mar', 'Abril': 'Abr',
-      'Mayo': 'May', 'Junio': 'Jun', 'Julio': 'Jul', 'Agosto': 'Ago',
-      'Septiembre': 'Sep', 'Octubre': 'Oct', 'Noviembre': 'Nov', 'Diciembre': 'Dic'
-    };
-    return map[monthName] || (monthName ? monthName.substring(0, 3) : '');
   };
 
   const groupCategoryItems = (items) => {
@@ -1222,7 +1280,10 @@ const Aquapp = () => {
             return (
               <button
                 key={f.id}
-                onClick={() => setSelectedFiltroTrat(f.filterVal)}
+                onClick={() => {
+                  setSelectedFiltroTrat(f.filterVal);
+                  setSelectedTratMonth('todos');
+                }}
                 className={`aq-trat-pill ${isActive ? 'active' : ''}`}
                 style={{
                   '--pill-color': f.color
@@ -1243,7 +1304,10 @@ const Aquapp = () => {
             return (
               <button
                 key={y.year}
-                onClick={() => setSelectedTratYear(y.year)}
+                onClick={() => {
+                  setSelectedTratYear(y.year);
+                  setSelectedTratMonth('todos');
+                }}
                 className={`aq-trat-year-pill ${isActive ? 'active' : ''}`}
               >
                 <span>{y.label}</span>
@@ -1252,6 +1316,29 @@ const Aquapp = () => {
             );
           })}
         </div>
+
+        {/* Month Filters (Pills) */}
+        {tratMonthsData.length > 1 && (
+          <div className="aq-trat-months-scroll animate-fade-in">
+            {tratMonthsData.map(m => {
+              const isActive = selectedTratMonth === m.month;
+              return (
+                <button
+                  key={m.month}
+                  onClick={() => setSelectedTratMonth(m.month)}
+                  className={`aq-trat-month-pill ${isActive ? 'active' : ''}`}
+                  style={{
+                    '--month-color': m.color
+                  }}
+                  title={m.label}
+                >
+                  <span className="aq-trat-month-abbr">{m.abbr}</span>
+                  <span className="aq-trat-month-badge">{m.count}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {/* Toolbar: Search + Counter */}
         <div className="aq-trat-toolbar">
@@ -1292,12 +1379,13 @@ const Aquapp = () => {
             <Wind size={40} className="aq-trat-empty-icon" />
             <h3>No se encontraron tratamientos</h3>
             <p>No hay registros que coincidan con los filtros o la búsqueda seleccionada.</p>
-            {(selectedFiltroTrat || selectedTratYear !== 'todos' || tratamientosTabSearch) && (
+            {(selectedFiltroTrat || selectedTratYear !== 'todos' || selectedTratMonth !== 'todos' || tratamientosTabSearch) && (
               <button 
                 className="aq-trat-reset-btn"
                 onClick={() => {
                   setSelectedFiltroTrat(null);
                   setSelectedTratYear('todos');
+                  setSelectedTratMonth('todos');
                   setTratamientosTabSearch('');
                 }}
               >

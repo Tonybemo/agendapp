@@ -2564,6 +2564,66 @@
   color: inherit;
 }
 
+/* Month Filter Pills */
+.aq-trat-months-scroll {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  margin-bottom: 16px;
+  scrollbar-width: none;
+}
+.aq-trat-months-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.aq-trat-month-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1.5px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-main);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.aq-trat-month-pill:hover {
+  border-color: var(--month-color, var(--primary));
+  transform: translateY(-1px);
+}
+
+.aq-trat-month-pill.active {
+  background: var(--month-color, var(--primary));
+  color: #ffffff;
+  border-color: var(--month-color, var(--primary));
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.aq-trat-month-abbr {
+  font-weight: 700;
+}
+
+.aq-trat-month-badge {
+  background: rgba(0, 0, 0, 0.07);
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: inherit;
+}
+
+.aq-trat-month-pill.active .aq-trat-month-badge {
+  background: rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+}
+
 /* Toolbar (Search + Counter) */
 .aq-trat-toolbar {
   display: flex;
