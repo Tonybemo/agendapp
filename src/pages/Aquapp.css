@@ -2717,19 +2717,16 @@
 }
 
 .aq-trat-year-pill.active {
-  background: var(--primary-light, #e0f2fe);
-  border-color: var(--accent-aquapp, #0ea5e9);
-  color: var(--accent-aquapp, #0284c7);
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #ffffff;
   font-weight: 700;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.2);
 }
 
-.aq-trat-year-badge {
-  font-size: 0.7rem;
-  font-weight: 700;
-  padding: 1px 5px;
-  border-radius: 6px;
-  background: rgba(0, 0, 0, 0.05);
-  color: inherit;
+.aq-trat-year-pill.active .aq-trat-year-badge {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
 }
 
 /* Month Filter Pills */

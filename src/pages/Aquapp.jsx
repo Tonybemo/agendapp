@@ -301,8 +301,11 @@ const Aquapp = () => {
 
   // Nuevo tab Tratamientos
   const [selectedFiltroTrat, setSelectedFiltroTrat] = useState(null); // null = todos
-  const [selectedTratYear, setSelectedTratYear] = useState('todos');
-  const [selectedTratMonth, setSelectedTratMonth] = useState('todos');
+  const [selectedTratYear, setSelectedTratYear] = useState(() => new Date().getFullYear().toString());
+  const [selectedTratMonth, setSelectedTratMonth] = useState(() => {
+    const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    return monthNames[new Date().getMonth()];
+  });
   const [tratamientosRaw, setTratamientosRaw] = useState([]);
   const [tratamientosTabSearch, setTratamientosTabSearch] = useState('');
   const [loadingTratTab, setLoadingTratTab] = useState(false);
@@ -323,6 +326,10 @@ const Aquapp = () => {
         yearCountMap[y] = (yearCountMap[y] || 0) + 1;
       }
     });
+    const currentYear = new Date().getFullYear().toString();
+    if (yearCountMap[currentYear] === undefined) {
+      yearCountMap[currentYear] = 0;
+    }
     const sortedYears = Object.keys(yearCountMap).sort((a, b) => parseInt(b, 10) - parseInt(a, 10));
     return [
       { year: 'todos', label: 'Todos los años', count: tratamientosRaw.length },
@@ -341,6 +348,9 @@ const Aquapp = () => {
     }
 
     const monthOrder = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    const currentYear = new Date().getFullYear().toString();
+    const currentMonth = monthOrder[new Date().getMonth()];
+
     const monthCounts = {};
     base.forEach(t => {
       const m = getRecordMonth(t.fecha);
@@ -350,13 +360,13 @@ const Aquapp = () => {
     });
 
     const activeMonths = monthOrder
-      .filter(m => monthCounts[m] > 0)
+      .filter(m => (monthCounts[m] > 0) || (selectedTratYear === currentYear && m === currentMonth))
       .map(m => ({
         month: m,
         label: m,
         abbr: getMonthAbbr(m),
         color: getMonthColor(m),
-        count: monthCounts[m]
+        count: monthCounts[m] || 0
       }));
 
     if (activeMonths.length === 0) return [];
@@ -1491,7 +1501,13 @@ const Aquapp = () => {
                 key={y.year}
                 onClick={() => {
                   setSelectedTratYear(y.year);
-                  setSelectedTratMonth('todos');
+                  const currentYear = new Date().getFullYear().toString();
+                  if (y.year === currentYear) {
+                    const monthOrder = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+                    setSelectedTratMonth(monthOrder[new Date().getMonth()]);
+                  } else {
+                    setSelectedTratMonth('todos');
+                  }
                 }}
                 className={`aq-trat-year-pill ${isActive ? 'active' : ''}`}
               >
@@ -1563,10 +1579,24 @@ const Aquapp = () => {
           <div className="aq-trat-empty-state">
             <Wind size={40} className="aq-trat-empty-icon" />
             <h3>No se encontraron tratamientos</h3>
-            <p>No hay registros que coincidan con los filtros o la búsqueda seleccionada.</p>
-            {(selectedFiltroTrat || selectedTratYear !== 'todos' || selectedTratMonth !== 'todos' || tratamientosTabSearch) && (
+            <p>
+              {selectedTratMonth !== 'todos'
+                ? `No hay tratamientos registrados en ${selectedTratMonth}${selectedTratYear !== 'todos' ? ` de ${selectedTratYear}` : ''}.`
+                : 'No hay registros que coincidan con los filtros o la búsqueda seleccionada.'}
+            </p>
+            {selectedTratMonth !== 'todos' && (
               <button 
                 className="aq-trat-reset-btn"
+                style={{ marginBottom: '8px' }}
+                onClick={() => setSelectedTratMonth('todos')}
+              >
+                Ver todos los meses {selectedTratYear !== 'todos' ? `de ${selectedTratYear}` : ''}
+              </button>
+            )}
+            {(selectedFiltroTrat || (selectedTratYear !== 'todos' && selectedTratMonth === 'todos') || tratamientosTabSearch) && (
+              <button 
+                className="aq-trat-reset-btn"
+                style={{ opacity: 0.8 }}
                 onClick={() => {
                   setSelectedFiltroTrat(null);
                   setSelectedTratYear('todos');
@@ -1574,7 +1604,7 @@ const Aquapp = () => {
                   setTratamientosTabSearch('');
                 }}
               >
-                Restablecer filtros
+                Restablecer todos los filtros
               </button>
             )}
           </div>

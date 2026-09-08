@@ -244,10 +244,10 @@
 }
 
 .wa-pill-year.active {
-  background: #7c3aed;
-  border-color: #7c3aed;
+  background: #0f172a;
+  border-color: #0f172a;
   color: #ffffff;
-  box-shadow: 0 3px 10px rgba(124, 58, 237, 0.25);
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.2);
 }
 
 .wa-pill-badge {

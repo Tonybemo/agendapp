@@ -131,7 +131,7 @@ const Workapp = () => {
 
   // Jornadas pill filter state
   const [selectedYear, setSelectedYear] = useState(() => new Date().getFullYear().toString());
-  const [selectedMonth, setSelectedMonth] = useState('Todos');
+  const [selectedMonth, setSelectedMonth] = useState(() => monthNames[new Date().getMonth()]);
 
   // Nóminas year filter
   const [nominaYearFilter, setNominaYearFilter] = useState(new Date().getFullYear().toString());
@@ -214,6 +214,9 @@ const Workapp = () => {
   // ---- Computed Data for Pill Navigation & Bento Grid ----
   const yearsData = useMemo(() => {
     const yearsMap = {};
+    const currentYear = new Date().getFullYear().toString();
+    const currentMonth = monthNames[new Date().getMonth()];
+
     jornadas.forEach(j => {
       const { year, monthName } = parseJornadaDate(j.fecha);
       if (year === '1970' || year === 'Desconocido') return;
@@ -226,6 +229,13 @@ const Workapp = () => {
       }
       yearsMap[year].monthsMap[monthName].count++;
     });
+
+    if (!yearsMap[currentYear]) {
+      yearsMap[currentYear] = { year: currentYear, count: 0, monthsMap: {} };
+    }
+    if (!yearsMap[currentYear].monthsMap[currentMonth]) {
+      yearsMap[currentYear].monthsMap[currentMonth] = { month: currentMonth, count: 0 };
+    }
 
     const sortedYears = Object.keys(yearsMap)
       .sort((a, b) => parseInt(b) - parseInt(a))
@@ -680,7 +690,14 @@ const Workapp = () => {
               key={yData.year}
               type="button" 
               className={`wa-pill-year ${selectedYear === yData.year ? 'active' : ''}`}
-              onClick={() => { setSelectedYear(yData.year); setSelectedMonth('Todos'); }}
+              onClick={() => {
+                setSelectedYear(yData.year);
+                if (yData.year === new Date().getFullYear().toString()) {
+                  setSelectedMonth(monthNames[new Date().getMonth()]);
+                } else {
+                  setSelectedMonth('Todos');
+                }
+              }}
             >
               <span>{yData.year}</span>
               <span className="wa-pill-badge">{yData.count}</span>
@@ -768,7 +785,21 @@ const Workapp = () => {
           <div className="wa-empty-state animate-fade-in">
             <Briefcase size={44} color="var(--text-faint)" />
             <h3>No se encontraron jornadas</h3>
-            <p>{searchQuery ? 'Prueba a cambiar el término de búsqueda.' : 'No hay jornadas registradas para este periodo seleccionado.'}</p>
+            <p>
+              {searchQuery 
+                ? 'Prueba a cambiar el término de búsqueda.' 
+                : `No hay jornadas registradas en ${selectedMonth !== 'Todos' ? selectedMonth : 'este periodo'}${selectedYear !== 'Todos' ? ` de ${selectedYear}` : ''}.`}
+            </p>
+            {selectedMonth !== 'Todos' && (
+              <button
+                type="button"
+                className="wa-btn-clear-search"
+                style={{ marginTop: '12px', padding: '8px 18px', fontSize: '0.88rem', border: '1px solid var(--border)', borderRadius: 'var(--radius-pill)', background: 'var(--bg-card-hover)', color: 'var(--text-main)', cursor: 'pointer' }}
+                onClick={() => setSelectedMonth('Todos')}
+              >
+                Ver todos los meses {selectedYear !== 'Todos' ? `de ${selectedYear}` : ''}
+              </button>
+            )}
           </div>
         ) : (
           <div className="wa-cards-grid animate-fade-in">
