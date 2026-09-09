@@ -475,7 +475,11 @@ const Aquapp = () => {
       }
     };
     window.addEventListener('aquapp-refresh-data', handleRefresh);
-    return () => window.removeEventListener('aquapp-refresh-data', handleRefresh);
+    window.addEventListener('offline-queue-updated', handleRefresh);
+    return () => {
+      window.removeEventListener('aquapp-refresh-data', handleRefresh);
+      window.removeEventListener('offline-queue-updated', handleRefresh);
+    };
   }, [activeTab, currentView, selectedClient, selectedTorreClient, selectedTorreYear]);
 
   const fetchDashboardData = async () => {
@@ -490,26 +494,34 @@ const Aquapp = () => {
   };
 
   const fetchClientes = async () => {
-    const { data, error } = await supabase.from('clientes').select('*').order('name');
+    let data = null;
+    try {
+      const res = await supabase.from('clientes').select('*').order('name');
+      data = res.data;
+    } catch (e) {
+      console.warn("fetchClientes error de red / offline:", e);
+    }
     
     const fetchAll = async (table) => {
       let allData = [];
       let start = 0;
       const limit = 1000;
-      while (true) {
-        const { data } = await supabase.from(table).select('cliente_id, fecha').order('fecha', { ascending: false }).range(start, start + limit - 1);
-        if (!data || data.length === 0) break;
-        allData = allData.concat(data);
-        if (data.length < limit) break;
-        start += limit;
-      }
+      try {
+        while (true) {
+          const { data: chunk } = await supabase.from(table).select('cliente_id, fecha').order('fecha', { ascending: false }).range(start, start + limit - 1);
+          if (!chunk || chunk.length === 0) break;
+          allData = allData.concat(chunk);
+          if (chunk.length < limit) break;
+          start += limit;
+        }
+      } catch (e) {}
       return allData;
     };
 
-    const muestras = await fetchAll('aquapp_muestras');
-    const tratamientos = await fetchAll('aquapp_tratamientos');
-    
-    if (data) {
+    if (data && data.length > 0) {
+      const muestras = await fetchAll('aquapp_muestras');
+      const tratamientos = await fetchAll('aquapp_tratamientos');
+      
       const latestDates = {};
       const parseFecha = (fecha) => {
         if (!fecha) return null;
@@ -546,6 +558,21 @@ const Aquapp = () => {
         ultima_muestra: latestDates[c.id] ? latestDates[c.id].display : 'Sin datos'
       }));
       setClientes(enhancedData);
+      try {
+        localStorage.setItem('offline_cache_clientes_full', JSON.stringify(enhancedData));
+        localStorage.setItem('offline_cache_clientes', JSON.stringify(data.map(c => ({ id: c.id, name: c.name }))));
+      } catch (e) {}
+    } else {
+      // Fallback si no hay cobertura
+      try {
+        const cachedFull = localStorage.getItem('offline_cache_clientes_full');
+        if (cachedFull) {
+          setClientes(JSON.parse(cachedFull));
+        } else {
+          const cachedSimple = localStorage.getItem('offline_cache_clientes');
+          if (cachedSimple) setClientes(JSON.parse(cachedSimple));
+        }
+      } catch (e) {}
     }
   };
 
@@ -742,6 +769,30 @@ const Aquapp = () => {
     (plagas || []).forEach(p => {
       grouped.find(x => x.id === 'Plagas').items.push(p);
     });
+
+    // Cargar también las muestras y tratamientos offline pendientes en el móvil para este cliente
+    try {
+      const offlineMuestrasQueue = JSON.parse(localStorage.getItem('offline_muestras_queue') || '[]');
+      const offlineForClient = offlineMuestrasQueue.filter(m => 
+        (client.id && m.cliente_id === client.id) || 
+        (m.cliente_nombre && client.name && m.cliente_nombre.toLowerCase() === client.name.toLowerCase())
+      );
+      offlineForClient.forEach(m => {
+        const tipoId = m.tipo_muestra || 'Estandar';
+        const g = grouped.find(x => x.id.toLowerCase() === tipoId.toLowerCase()) || grouped[0];
+        g.items.unshift({ ...m, _offline: true });
+      });
+
+      const offlineTratQueue = JSON.parse(localStorage.getItem('offline_tratamientos_queue') || '[]');
+      const offlineTratForClient = offlineTratQueue.filter(t => 
+        (client.id && t.cliente_id === client.id) || 
+        (t.cliente_nombre && client.name && t.cliente_nombre.toLowerCase() === client.name.toLowerCase())
+      );
+      offlineTratForClient.forEach(t => {
+        const g = grouped.find(x => x.id === 'Tratamiento');
+        if (g) g.items.unshift({ ...t, _offline: true });
+      });
+    } catch (e) {}
 
     setClientData(grouped.filter(g => g.items.length > 0));
     setLoading(false);
@@ -1186,6 +1237,11 @@ const Aquapp = () => {
                           <span>{item.numero_muestra || 'Muestra'}</span>
                         </div>
                         <div className="unified-card-top-right">
+                          {item._offline && (
+                            <span style={{ background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a', padding: '2px 8px', borderRadius: '999px', fontSize: '0.72rem', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                              📱 Guardada en móvil
+                            </span>
+                          )}
                           <span className={`badge-tipo-pill ${tipoBadgeClass}`}>
                             <Droplet size={12}/> {tipo}
                           </span>
@@ -1331,14 +1387,30 @@ const Aquapp = () => {
 
   const handleCargarTratamientos = async () => {
     setLoadingTratTab(true);
-    const { data, error } = await supabase
-      .from('aquapp_tratamientos')
-      .select('*')
-      .order('fecha', { ascending: false });
+    let tratamientos = [];
+    try {
+      const { data, error } = await supabase
+        .from('aquapp_tratamientos')
+        .select('*')
+        .order('fecha', { ascending: false });
 
-    if (!error && data) {
-      setTratamientosRaw(data);
+      if (!error && data) {
+        tratamientos = data;
+      }
+    } catch (e) {
+      console.warn("handleCargarTratamientos offline / error de red:", e);
     }
+
+    // Unir tratamientos guardados localmente pendientes de sincronizar
+    try {
+      const offlineQueue = JSON.parse(localStorage.getItem('offline_tratamientos_queue') || '[]');
+      if (offlineQueue.length > 0) {
+        const offlineMapped = offlineQueue.map(t => ({ ...t, _offline: true }));
+        tratamientos = [...offlineMapped, ...tratamientos];
+      }
+    } catch (e) {}
+
+    setTratamientosRaw(tratamientos);
     setLoadingTratTab(false);
   };
 
@@ -1366,6 +1438,11 @@ const Aquapp = () => {
           </div>
 
           <div className="aq-trat-badges-group">
+            {item._offline && (
+              <span style={{ background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a', padding: '2px 8px', borderRadius: '999px', fontSize: '0.72rem', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                📱 Guardado en móvil
+              </span>
+            )}
             <span 
               className="aq-trat-badge-tipo"
               style={{ 

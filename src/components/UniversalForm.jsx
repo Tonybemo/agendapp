@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, X, Droplet, Wind, MapPin, Briefcase, ChevronRight, Check, Calendar, Clock, Car, FileText, UploadCloud, PlusCircle, Search, Bug, Hexagon, BookOpen, Camera } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { 
+  withTimeout, 
+  isNetworkFailure, 
+  saveOfflineRecord, 
+  getOfflineQueue, 
+  QUEUE_MUESTRAS_KEY, 
+  QUEUE_TRATAMIENTOS_KEY, 
+  QUEUE_AVISOS_KEY, 
+  CACHE_CLIENTES_KEY, 
+  CACHE_TAREAS_KEY 
+} from '../lib/offlineManager';
 import './UniversalForm.css';
 
 const UniversalForm = () => {
@@ -120,9 +131,23 @@ const UniversalForm = () => {
     return today.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
   };
 
-  // Datos de Supabase
-  const [clientesGlobales, setClientesGlobales] = useState([]);
-  const [tareasGlobales, setTareasGlobales] = useState([]);
+  // Datos de Supabase (inicializados desde caché local offline para disponibilidad instantánea)
+  const [clientesGlobales, setClientesGlobales] = useState(() => {
+    try {
+      const cached = localStorage.getItem(CACHE_CLIENTES_KEY);
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [tareasGlobales, setTareasGlobales] = useState(() => {
+    try {
+      const cached = localStorage.getItem(CACHE_TAREAS_KEY);
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
 
   const handleClienteChange = (e) => {
     if (e.target.value === '_custom_') {
@@ -353,7 +378,7 @@ const UniversalForm = () => {
       }
     }
 
-    const { error } = await supabase.from('avisomap_avisos').insert([{
+    const avisoRecord = {
       direccion: addressQuery || data.direccion,
       portal: data.portal,
       localidad: localidadQuery || data.localidad,
@@ -363,20 +388,65 @@ const UniversalForm = () => {
       comentarios: data.comentarios,
       contacto: data.contacto || '',
       adjunto: adjuntoUrl
-    }]);
+    };
 
     setIsUploading(false);
 
-    if (!error) {
+    if (!navigator.onLine) {
+      saveOfflineRecord(QUEUE_AVISOS_KEY, avisoRecord);
+      window.__toast?.success("📱 Aviso guardado en el móvil (Sin cobertura).\nSe subirá automáticamente cuando recuperes la señal.");
       window.dispatchEvent(new Event('refresh-avisomap'));
       handleClose();
+      setIsSaving(false);
+      return;
+    }
+
+    let error = null;
+    let savedOnline = false;
+
+    try {
+      const res = await withTimeout(supabase.from('avisomap_avisos').insert([avisoRecord]), 4000);
+      if (res?.error) {
+        error = res.error;
+      } else {
+        savedOnline = true;
+      }
+    } catch (netErr) {
+      error = netErr;
+    }
+
+    if (savedOnline) {
+      window.dispatchEvent(new Event('refresh-avisomap'));
+      window.__toast?.success("Aviso guardado correctamente ✓");
+      handleClose();
     } else {
-      console.error(error);
-      window.__toast?.error("Error guardando aviso: " + error.message);
+      if (isNetworkFailure(error)) {
+        saveOfflineRecord(QUEUE_AVISOS_KEY, avisoRecord);
+        window.__toast?.success("📱 Aviso guardado en el móvil (Sin cobertura).\nSe subirá automáticamente al recuperar la señal.");
+        window.dispatchEvent(new Event('refresh-avisomap'));
+        handleClose();
+      } else {
+        console.error(error);
+        window.__toast?.error("Error guardando aviso: " + (error?.message || "Revisa los campos"));
+      }
     }
     } catch (err) {
       console.error(err);
-      window.__toast?.error("Error inesperado al guardar.");
+      if (isNetworkFailure(err)) {
+        saveOfflineRecord(QUEUE_AVISOS_KEY, {
+          direccion: addressQuery || '',
+          portal: '',
+          localidad: localidadQuery || '',
+          fecha: getHoyInput(),
+          hora: getHoraActual(),
+          plagas: [],
+          comentarios: ''
+        });
+        window.__toast?.success("📱 Aviso guardado en el móvil (Sin cobertura).");
+        handleClose();
+      } else {
+        window.__toast?.error("Error inesperado al guardar.");
+      }
     } finally {
       setIsSaving(false);
     }
@@ -478,40 +548,63 @@ const UniversalForm = () => {
       mat_a_4170: data.mat_a_4170
     };
 
-    // CHECK COD_ENVASE DUPLICATE
-    if (data.cod_envase && navigator.onLine) {
-      let query = supabase.from('aquapp_muestras').select('id, cliente_nombre').eq('cod_envase', data.cod_envase);
-      if (editingItem && editingItem.editType === 'muestra') {
-        query = query.neq('id', editingItem.id);
-      }
-      const { data: existing } = await query;
-      if (existing && existing.length > 0) {
-        window.__toast?.error(`El código de envase ${data.cod_envase} ya existe (Cliente: ${existing[0].cliente_nombre || 'Desconocido'}). Por favor revisa.`);
-        setIsSaving(false);
-        return;
-      }
-    }
-
-    // OFFLINE CHECK HERE
+    // 1. Si no hay conexión o se está en modo offline directo
     if (!navigator.onLine && !editingItem) {
-      const queue = JSON.parse(localStorage.getItem('offline_muestras_queue') || '[]');
-      queue.push(record);
-      localStorage.setItem('offline_muestras_queue', JSON.stringify(queue));
-      window.__toast?.success("⚠️ Sin conexión a Internet.\nLa muestra se ha guardado en el móvil y se subirá automáticamente cuando recuperes la cobertura.");
+      saveOfflineRecord(QUEUE_MUESTRAS_KEY, record);
+      window.__toast?.success("📱 Muestra guardada en el móvil (Sin cobertura).\nSe subirá automáticamente cuando recuperes la señal.");
+      window.dispatchEvent(new CustomEvent('aquapp-refresh-data'));
       handleClose();
       setIsSaving(false);
       return;
     }
 
-    let error;
-    if (editingItem && editingItem.editType === 'muestra') {
-      ({ error } = await supabase.from('aquapp_muestras').update(record).eq('id', editingItem.id));
-    } else {
-      ({ error } = await supabase.from('aquapp_muestras').insert([record]));
+    // 2. Comprobación de código de envase duplicado con timeout corto
+    if (data.cod_envase && navigator.onLine) {
+      try {
+        let query = supabase.from('aquapp_muestras').select('id, cliente_nombre').eq('cod_envase', data.cod_envase);
+        if (editingItem && editingItem.editType === 'muestra') {
+          query = query.neq('id', editingItem.id);
+        }
+        const { data: existing } = await withTimeout(query, 2500);
+        if (existing && existing.length > 0) {
+          window.__toast?.error(`El código de envase ${data.cod_envase} ya existe (Cliente: ${existing[0].cliente_nombre || 'Desconocido'}). Por favor revisa.`);
+          setIsSaving(false);
+          return;
+        }
+      } catch (checkErr) {
+        // En sótano / red intermitente: comprobar en cola offline local
+        const offlineQueue = getOfflineQueue(QUEUE_MUESTRAS_KEY);
+        if (offlineQueue.some(q => q.cod_envase === data.cod_envase)) {
+          window.__toast?.error(`El código de envase ${data.cod_envase} ya existe en las muestras pendientes de tu móvil.`);
+          setIsSaving(false);
+          return;
+        }
+        console.warn("Verificación online de cod_envase omitida por red lenta/offline");
+      }
     }
 
-    if (!error) {
-      // === AUTO-COMPLETAR TAREAS DE MUESTRAS ===
+    // 3. Intento de guardado remoto con fallback seguro a offline
+    let error = null;
+    let savedOnline = false;
+
+    try {
+      let res;
+      if (editingItem && editingItem.editType === 'muestra') {
+        res = await withTimeout(supabase.from('aquapp_muestras').update(record).eq('id', editingItem.id), 3500);
+      } else {
+        res = await withTimeout(supabase.from('aquapp_muestras').insert([record]), 3500);
+      }
+      if (res?.error) {
+        error = res.error;
+      } else {
+        savedOnline = true;
+      }
+    } catch (netErr) {
+      error = netErr;
+    }
+
+    if (savedOnline) {
+      // === AUTO-COMPLETAR TAREAS DE MUESTRAS (Online) ===
       if (!(editingItem && editingItem.editType === 'muestra')) {
         try {
           const now = new Date();
@@ -564,18 +657,33 @@ const UniversalForm = () => {
           console.error('Error en auto-completar tareas de muestras:', autoErr);
         }
       }
-      // === FIN AUTO-COMPLETAR ===
 
-      window.__toast?.success(editingItem ? "Muestra actualizada" : "Muestra guardada y tareas actualizadas ✓");
+      window.__toast?.success(editingItem ? "Muestra actualizada ✓" : "Muestra guardada y tareas actualizadas ✓");
       window.dispatchEvent(new CustomEvent('aquapp-refresh-data'));
       handleClose();
     } else {
-      console.error(error);
-      window.__toast?.error("Error al guardar muestra");
+      // Fallback a modo offline si fue un fallo de red o timeout
+      if (isNetworkFailure(error) && !editingItem) {
+        console.warn("Fallo de red en sótano/sin cobertura. Guardando muestra en almacenamiento local:", error);
+        saveOfflineRecord(QUEUE_MUESTRAS_KEY, record);
+        window.__toast?.success("📱 Guardada en el móvil (Sin cobertura).\nSe subirá automáticamente cuando recuperes la señal.");
+        window.dispatchEvent(new CustomEvent('aquapp-refresh-data'));
+        handleClose();
+      } else {
+        console.error(error);
+        window.__toast?.error("Error al guardar muestra: " + (error?.message || "Revisa los campos"));
+      }
     }
     } catch (err) {
       console.error(err);
-      window.__toast?.error("Error inesperado al guardar.");
+      if (isNetworkFailure(err) && !editingItem) {
+        saveOfflineRecord(QUEUE_MUESTRAS_KEY, record);
+        window.__toast?.success("📱 Guardada en el móvil (Sin cobertura).\nSe subirá automáticamente cuando recuperes la señal.");
+        window.dispatchEvent(new CustomEvent('aquapp-refresh-data'));
+        handleClose();
+      } else {
+        window.__toast?.error("Error inesperado al guardar.");
+      }
     } finally {
       setIsSaving(false);
     }
@@ -623,14 +731,36 @@ const UniversalForm = () => {
       recordatorio_dias: parseInt(data.recordatorio_dias) || 15
     };
 
-    let error;
-    if (editingItem && editingItem.editType === 'tratamiento') {
-      ({ error } = await supabase.from('aquapp_tratamientos').update(record).eq('id', editingItem.id));
-    } else {
-      ({ error } = await supabase.from('aquapp_tratamientos').insert([record]));
+    // 1. Si no hay conexión o modo offline directo
+    if (!navigator.onLine && !editingItem) {
+      saveOfflineRecord(QUEUE_TRATAMIENTOS_KEY, record);
+      window.__toast?.success("📱 Tratamiento guardado en el móvil (Sin cobertura).\nSe subirá automáticamente cuando recuperes la señal.");
+      window.dispatchEvent(new CustomEvent('aquapp-refresh-data'));
+      handleClose();
+      setIsSaving(false);
+      return;
     }
 
-    if (!error) {
+    let error = null;
+    let savedOnline = false;
+
+    try {
+      let res;
+      if (editingItem && editingItem.editType === 'tratamiento') {
+        res = await withTimeout(supabase.from('aquapp_tratamientos').update(record).eq('id', editingItem.id), 3500);
+      } else {
+        res = await withTimeout(supabase.from('aquapp_tratamientos').insert([record]), 3500);
+      }
+      if (res?.error) {
+        error = res.error;
+      } else {
+        savedOnline = true;
+      }
+    } catch (netErr) {
+      error = netErr;
+    }
+
+    if (savedOnline) {
       // === AUTO-COMPLETAR TAREAS RELACIONADAS ===
       if (!(editingItem && editingItem.editType === 'tratamiento')) {
         try {
@@ -693,21 +823,35 @@ const UniversalForm = () => {
           }
         } catch (autoErr) {
           console.error('Error en auto-completar tareas:', autoErr);
-          // No bloqueamos el flujo principal
         }
       }
       // === FIN AUTO-COMPLETAR ===
 
-      window.__toast?.success(editingItem ? "Tratamiento actualizado" : "Tratamiento guardado y tareas actualizadas ✓");
+      window.__toast?.success(editingItem ? "Tratamiento actualizado ✓" : "Tratamiento guardado y tareas actualizadas ✓");
       window.dispatchEvent(new CustomEvent('aquapp-refresh-data'));
       handleClose();
     } else {
-      console.error(error);
-      window.__toast?.error("Error al guardar tratamiento");
+      if (isNetworkFailure(error) && !editingItem) {
+        console.warn("Fallo de red al guardar tratamiento. Guardando en cola local:", error);
+        saveOfflineRecord(QUEUE_TRATAMIENTOS_KEY, record);
+        window.__toast?.success("📱 Tratamiento guardado en el móvil (Sin cobertura).\nSe subirá automáticamente cuando recuperes la señal.");
+        window.dispatchEvent(new CustomEvent('aquapp-refresh-data'));
+        handleClose();
+      } else {
+        console.error(error);
+        window.__toast?.error("Error al guardar tratamiento: " + (error?.message || "Revisa los campos"));
+      }
     }
     } catch (err) {
       console.error(err);
-      window.__toast?.error("Error inesperado al guardar.");
+      if (isNetworkFailure(err) && !editingItem) {
+        saveOfflineRecord(QUEUE_TRATAMIENTOS_KEY, record);
+        window.__toast?.success("📱 Tratamiento guardado en el móvil (Sin cobertura).");
+        window.dispatchEvent(new CustomEvent('aquapp-refresh-data'));
+        handleClose();
+      } else {
+        window.__toast?.error("Error inesperado al guardar.");
+      }
     } finally {
       setIsSaving(false);
     }
@@ -767,26 +911,35 @@ const UniversalForm = () => {
 
   useEffect(() => {
     const fetchGlobalData = async () => {
-      if (!navigator.onLine) {
-        // Modo offline: cargar desde caché
-        const cachedClientes = localStorage.getItem('offline_cache_clientes');
-        const cachedTareas = localStorage.getItem('offline_cache_tareas');
-        if (cachedClientes) setClientesGlobales(JSON.parse(cachedClientes));
-        if (cachedTareas) setTareasGlobales(JSON.parse(cachedTareas));
-        return;
-      }
+      // Garantizar que el estado use la caché local inmediatamente
+      try {
+        const cachedClientes = localStorage.getItem(CACHE_CLIENTES_KEY);
+        const cachedTareas = localStorage.getItem(CACHE_TAREAS_KEY);
+        if (cachedClientes && clientesGlobales.length === 0) setClientesGlobales(JSON.parse(cachedClientes));
+        if (cachedTareas && tareasGlobales.length === 0) setTareasGlobales(JSON.parse(cachedTareas));
+      } catch (e) {}
 
-      // Modo online: fetch y guardar en caché
-      const { data: clientesData } = await supabase.from('clientes').select('id, name').order('name');
-      const { data: tareasData } = await supabase.from('tareas_estandar').select('id, name').order('name');
-      
-      if (clientesData) {
-        setClientesGlobales(clientesData);
-        localStorage.setItem('offline_cache_clientes', JSON.stringify(clientesData));
-      }
-      if (tareasData) {
-        setTareasGlobales(tareasData);
-        localStorage.setItem('offline_cache_tareas', JSON.stringify(tareasData));
+      // Si hay conexión, refrescar en segundo plano con timeout
+      if (navigator.onLine) {
+        try {
+          const [clientesRes, tareasRes] = await withTimeout(
+            Promise.all([
+              supabase.from('clientes').select('id, name').order('name'),
+              supabase.from('tareas_estandar').select('id, name').order('name')
+            ]),
+            3500
+          );
+          if (clientesRes?.data && clientesRes.data.length > 0) {
+            setClientesGlobales(clientesRes.data);
+            localStorage.setItem(CACHE_CLIENTES_KEY, JSON.stringify(clientesRes.data));
+          }
+          if (tareasRes?.data && tareasRes.data.length > 0) {
+            setTareasGlobales(tareasRes.data);
+            localStorage.setItem(CACHE_TAREAS_KEY, JSON.stringify(tareasRes.data));
+          }
+        } catch (e) {
+          console.warn("fetchGlobalData offline o timeout en sótano, usando caché local");
+        }
       }
     };
     
@@ -816,15 +969,32 @@ const UniversalForm = () => {
         fechaBusqueda = `${parts[2]}/${parts[1]}/${parts[0]}`;
       }
 
-      const { data } = await supabase
-        .from('aquapp_muestras')
-        .select('id')
-        .eq('cliente_id', selectedClienteId)
-        .eq('fecha', fechaBusqueda)
-        .eq('tipo_muestra', tipoMuestra);
-      
-      if (data) {
-        setSugerenciaMuestra(`${prefijo} ${data.length + 1}`);
+      // Contar muestras offline pendientes en el móvil para este cliente y fecha
+      const offlineQueue = getOfflineQueue(QUEUE_MUESTRAS_KEY);
+      const offlineCount = offlineQueue.filter(m => 
+        m.cliente_id === selectedClienteId && 
+        m.fecha === fechaBusqueda && 
+        m.tipo_muestra === tipoMuestra
+      ).length;
+
+      try {
+        const { data } = await withTimeout(
+          supabase
+            .from('aquapp_muestras')
+            .select('id')
+            .eq('cliente_id', selectedClienteId)
+            .eq('fecha', fechaBusqueda)
+            .eq('tipo_muestra', tipoMuestra),
+          2500
+        );
+        
+        if (data) {
+          setSugerenciaMuestra(`${prefijo} ${data.length + offlineCount + 1}`);
+        } else {
+          setSugerenciaMuestra(`${prefijo} ${offlineCount + 1}`);
+        }
+      } catch (err) {
+        setSugerenciaMuestra(`${prefijo} ${offlineCount + 1}`);
       }
     };
     if (isOpen) {

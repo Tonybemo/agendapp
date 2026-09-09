@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, CalendarCheck, Droplet, MapPin, BookOpen, Clock, Menu, X, BarChart2, Calendar as CalendarIcon, Database, ArrowLeft, LogOut, LogIn, Bell, CheckCircle2, Moon, Sun, Calculator } from 'lucide-react';
 import UniversalForm from './UniversalForm';
+import OfflineBanner from './OfflineBanner';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import './Layout.css';
@@ -325,6 +326,9 @@ const Layout = ({ children }) => {
       {/* Formulario Universal Flotante (Solo Admin) */}
       {isAdmin && <UniversalForm />}
       {!isAdmin && <style>{`.admin-only { display: none !important; }`}</style>}
+
+      {/* Banner flotante de Modo Offline y Sincronización */}
+      <OfflineBanner />
 
       {/* Panel de Notificaciones */}
       {showNotifPanel && (

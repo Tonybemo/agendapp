@@ -1,0 +1,162 @@
+﻿/* Floating Offline Banner */
+.offline-floating-banner {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 99999;
+  width: 92%;
+  max-width: 580px;
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+  padding: 8px 16px;
+  font-family: inherit;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.offline-floating-banner.is-offline {
+  background: linear-gradient(135deg, #451a03, #78350f);
+  border-color: #f59e0b;
+  box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.3);
+}
+
+.offline-floating-banner.is-success {
+  background: linear-gradient(135deg, #064e3b, #047857);
+  border-color: #10b981;
+  box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.3);
+}
+
+.offline-banner-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.offline-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.offline-pulse-dot {
+  width: 9px;
+  height: 9px;
+  background-color: #f59e0b;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
+  animation: offline-pulse 1.8s infinite;
+  flex-shrink: 0;
+}
+
+@keyframes offline-pulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 8px rgba(245, 158, 11, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+  }
+}
+
+.offline-icon {
+  color: #f59e0b;
+  flex-shrink: 0;
+}
+
+.offline-icon-upload {
+  color: #38bdf8;
+  flex-shrink: 0;
+}
+
+.offline-banner-texts {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.offline-banner-texts strong {
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #ffffff;
+}
+
+.offline-banner-texts span {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.78);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.offline-badge-count {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.offline-sync-btn {
+  background: #38bdf8;
+  color: #0f172a;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(56, 189, 248, 0.35);
+}
+
+.offline-sync-btn:hover {
+  background: #7dd3fc;
+  transform: scale(1.03);
+}
+
+.spin-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 640px) {
+  .offline-floating-banner {
+    top: 8px;
+    width: 95%;
+    padding: 7px 12px;
+  }
+  .offline-banner-texts span {
+    display: none;
+  }
+}

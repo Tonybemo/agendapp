@@ -17,6 +17,8 @@ import GestorGlobal from './pages/GestorGlobal';
 import Calculadora from './pages/Calculadora';
 import Login from './pages/Login';
 
+import { preloadOfflineCache, syncAllOfflineData } from './lib/offlineManager';
+
 const ProtectedRoute = ({ children }) => {
   const { session } = useAuth();
   if (!session) {
@@ -34,24 +36,39 @@ function AppContent() {
   }, [toast]);
 
   useEffect(() => {
-    const syncOfflineMuestras = async () => {
-      const queue = JSON.parse(localStorage.getItem('offline_muestras_queue') || '[]');
-      if (queue.length > 0 && navigator.onLine) {
-        console.log(`Intentando sincronizar ${queue.length} muestras offline...`);
-        const { error } = await supabase.from('aquapp_muestras').insert(queue);
-        if (!error) {
-          localStorage.removeItem('offline_muestras_queue');
-          toast.success(`Sincronización completada: ${queue.length} muestras subidas`);
-          window.dispatchEvent(new CustomEvent('aquapp-refresh-data'));
-        } else {
-          console.error("Error sincronizando muestras offline:", error);
-        }
+    // 1. Precargar caché de clientes y tareas en localStorage
+    preloadOfflineCache();
+
+    // 2. Intentar sincronizar datos pendientes
+    const triggerSync = () => syncAllOfflineData(toast);
+    triggerSync();
+
+    // 3. Escuchar reconexión a Internet
+    window.addEventListener('online', triggerSync);
+    window.addEventListener('focus', triggerSync);
+    window.addEventListener('trigger-offline-sync', triggerSync);
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        triggerSync();
       }
     };
+    document.addEventListener('visibilitychange', handleVisibility);
 
-    syncOfflineMuestras();
-    window.addEventListener('online', syncOfflineMuestras);
-    return () => window.removeEventListener('online', syncOfflineMuestras);
+    // 4. Chequeo periódico cada 30 segundos
+    const syncInterval = setInterval(() => {
+      if (navigator.onLine) {
+        triggerSync();
+      }
+    }, 30000);
+
+    return () => {
+      window.removeEventListener('online', triggerSync);
+      window.removeEventListener('focus', triggerSync);
+      window.removeEventListener('trigger-offline-sync', triggerSync);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      clearInterval(syncInterval);
+    };
   }, [toast]);
 
   return (
