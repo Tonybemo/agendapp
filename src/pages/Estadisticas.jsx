@@ -214,7 +214,8 @@ const Estadisticas = () => {
   const [tareasYearFilter, setTareasYearFilter] = useState(() => localStorage.getItem('est_tareas_year') || new Date().getFullYear().toString());
   const [tareasClientSearch, setTareasClientSearch] = useState('');
   const [tareasExpandedClients, setTareasExpandedClients] = useState({});
-  const [tareasClientSectionOpen, setTareasClientSectionOpen] = useState(false);
+  const [tareasClientSectionOpen, setTareasClientSectionOpen] = useState(true);
+  const [tareasDropdownClient, setTareasDropdownClient] = useState('all');
   const [tareasTypeMonthFilter, setTareasTypeMonthFilter] = useState('all');
   const [tareasStats, setTareasStats] = useState({
     availableYears: [],
@@ -467,10 +468,13 @@ const Estadisticas = () => {
 
   const filteredTareasClients = useMemo(() => {
     return (tareasStats.clientData || []).filter(c => {
+      if (tareasDropdownClient && tareasDropdownClient !== 'all' && c.name !== tareasDropdownClient) {
+        return false;
+      }
       if (tareasClientSearch && !c.name?.toLowerCase().includes(tareasClientSearch.toLowerCase())) return false;
       return true;
     });
-  }, [tareasStats.clientData, tareasClientSearch]);
+  }, [tareasStats.clientData, tareasClientSearch, tareasDropdownClient]);
 
   const currentTareasByType = useMemo(() => {
     const list = tareasStats.yearTasks || [];
@@ -1824,13 +1828,49 @@ const Estadisticas = () => {
 
         {tareasClientSectionOpen && (
           <div className="animate-fade-in">
-            {/* Search Box */}
-            <div style={{ marginBottom: '16px' }}>
-              <div className="client-search-box" style={{ maxWidth: '420px' }}>
+            {/* Filter controls: Desplegable de clientes + Buscador */}
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '18px' }}>
+              <div style={{ flex: '1 1 280px', minWidth: '240px' }}>
+                <select
+                  value={tareasDropdownClient}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setTareasDropdownClient(val);
+                    if (val && val !== 'all') {
+                      setTareasExpandedClients(prev => ({ ...prev, [val]: true }));
+                    }
+                  }}
+                  className="stats-year-select"
+                  style={{
+                    width: '100%',
+                    padding: '9px 16px',
+                    background: 'var(--bg-card-hover)',
+                    border: '1px solid var(--border)',
+                    borderRadius: '999px',
+                    fontSize: '0.85rem',
+                    fontWeight: 700,
+                    color: 'var(--text-main)',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <option value="all">👥 Ver todos los clientes ({tareasStats.clientData?.length || 0})</option>
+                  {(tareasStats.clientData || []).map(c => {
+                    const r = c.completed + c.skipped;
+                    const p = c.total > 0 ? Math.round((r / c.total) * 100) : 0;
+                    return (
+                      <option key={c.name} value={c.name}>
+                        {c.name} ({r}/{c.total} · {p}%)
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+
+              <div className="client-search-box" style={{ flex: '1 1 200px', minWidth: '180px' }}>
                 <Search size={16} color="var(--text-muted)" />
                 <input 
                   type="text" 
-                  placeholder="Buscar entre los clientes..." 
+                  placeholder="Filtrar por nombre..." 
                   value={tareasClientSearch}
                   onChange={(e) => setTareasClientSearch(e.target.value)}
                   onClick={(e) => e.stopPropagation()}
@@ -1841,31 +1881,42 @@ const Estadisticas = () => {
                   </button>
                 )}
               </div>
+
+              {tareasDropdownClient !== 'all' && (
+                <button
+                  type="button"
+                  onClick={() => setTareasDropdownClient('all')}
+                  className="btn-clear-treatment-filters"
+                  style={{ whiteSpace: 'nowrap' }}
+                >
+                  ✕ Mostrar todos
+                </button>
+              )}
             </div>
 
-            {/* Scrollable list for 80+ clients */}
+            {/* Scrollable list for clients */}
             <div className="client-accordion-list tareas-client-scrollable-list">
               {filteredTareasClients.length === 0 ? (
                 <div className="client-empty-state">
                   <p style={{ fontWeight: 700, color: 'var(--text-muted)', margin: 0 }}>No se encontraron clientes</p>
                   <p style={{ fontSize: '0.82rem', color: 'var(--text-faint)', marginTop: '4px' }}>
-                    Prueba a cambiar el texto de búsqueda.
+                    Prueba a cambiar el filtro o el texto de búsqueda.
                   </p>
                 </div>
               ) : (
                 filteredTareasClients.map(client => {
-                  const isExpanded = !!tareasExpandedClients[client.name];
+                  const isExpanded = tareasDropdownClient !== 'all' ? true : !!tareasExpandedClients[client.name];
                   const realizadas = client.completed + client.skipped;
                   const pct = client.total > 0 ? Math.round((realizadas / client.total) * 100) : 0;
 
                   return (
-                    <div key={client.name} className={`client-accordion-item ${isExpanded ? 'expanded' : ''}`}>
+                    <div key={client.name} className={`client-accordion-item ${isExpanded ? 'expanded' : ''}`} style={{ flexShrink: 0, minHeight: '52px' }}>
                       <div 
                         className="client-accordion-header"
-                        onClick={() => setTareasExpandedClients(prev => ({ ...prev, [client.name]: !prev[client.name] }))}
+                        onClick={() => setTareasExpandedClients(prev => ({ ...prev, [client.name]: !isExpanded }))}
                         role="button"
                         tabIndex={0}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setTareasExpandedClients(prev => ({ ...prev, [client.name]: !prev[client.name] })); }}}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setTareasExpandedClients(prev => ({ ...prev, [client.name]: !isExpanded })); }}}
                       >
                         <span className="client-name-text">{client.name}</span>
                         <div className="client-header-right">
