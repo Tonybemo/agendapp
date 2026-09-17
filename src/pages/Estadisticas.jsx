@@ -186,7 +186,6 @@ const Estadisticas = () => {
   React.useEffect(() => { localStorage.setItem('est_aquapp_year', aquappYearFilter); }, [aquappYearFilter]);
   React.useEffect(() => { localStorage.setItem('est_avisomap_year', avisomapYearFilter); }, [avisomapYearFilter]);
   React.useEffect(() => { localStorage.setItem('est_workapp_filtro', JSON.stringify(workappFiltro)); }, [workappFiltro]);
-  React.useEffect(() => { localStorage.setItem('est_tareas_year', tareasYearFilter); }, [tareasYearFilter]);
   const [workappResultados, setWorkappResultados] = useState({
     totalHoras: '0',
     totalExtras: '0',
@@ -212,6 +211,8 @@ const Estadisticas = () => {
     cumplimiento: 0,
     mesPico: '-'
   });
+
+  React.useEffect(() => { localStorage.setItem('est_tareas_year', tareasYearFilter); }, [tareasYearFilter]);
 
   const setDatePreset = (preset) => {
     const now = new Date();
@@ -447,6 +448,13 @@ const Estadisticas = () => {
     });
   }, [aquappStats.clientTableData, clientSearchQuery, selectedTreatmentFilters]);
 
+  const filteredTareasClients = useMemo(() => {
+    return (tareasStats.clientData || []).filter(c => {
+      if (tareasClientSearch && !c.name?.toLowerCase().includes(tareasClientSearch.toLowerCase())) return false;
+      return true;
+    });
+  }, [tareasStats.clientData, tareasClientSearch]);
+
   React.useEffect(() => {
     if (avisomapAvisosRaw.length > 0) {
       const yearsSet = new Set();
@@ -545,24 +553,29 @@ const Estadisticas = () => {
 
       const rowYear = row.año ? String(row.año) : null;
 
-      if (row.tareas_json && Array.isArray(row.tareas_json)) {
-        row.tareas_json.forEach(task => {
-          const parsed = task.date ? parseTaskDate(task.date) : null;
-          const taskYear = parsed ? String(parsed.y) : rowYear;
-          const taskMonth = parsed ? parsed.m : null;
-
-          if (taskYear) yearsSet.add(taskYear);
-
-          allTasks.push({
-            name: task.name || 'Tarea',
-            status: task.status || 'pending',
-            year: taskYear,
-            month: taskMonth,
-            client: clientName,
-            auto: !!task.auto
-          });
-        });
+      let tasksArr = [];
+      if (typeof row.tareas_json === 'string') {
+        try { tasksArr = JSON.parse(row.tareas_json); } catch(e) {}
+      } else if (Array.isArray(row.tareas_json)) {
+        tasksArr = row.tareas_json;
       }
+
+      tasksArr.forEach(task => {
+        const parsed = task.date ? parseTaskDate(task.date) : null;
+        const taskYear = parsed ? String(parsed.y) : rowYear;
+        const taskMonth = parsed ? parsed.m : null;
+
+        if (taskYear) yearsSet.add(taskYear);
+
+        allTasks.push({
+          name: task.name || 'Tarea',
+          status: task.status || 'pending',
+          year: taskYear,
+          month: taskMonth,
+          client: clientName,
+          auto: !!task.auto
+        });
+      });
     });
 
     const yearsArr = Array.from(yearsSet).sort((a, b) => b.localeCompare(a));
@@ -1512,13 +1525,6 @@ const Estadisticas = () => {
       </div>
     </div>
   );
-
-  const filteredTareasClients = useMemo(() => {
-    return (tareasStats.clientData || []).filter(c => {
-      if (tareasClientSearch && !c.name.toLowerCase().includes(tareasClientSearch.toLowerCase())) return false;
-      return true;
-    });
-  }, [tareasStats.clientData, tareasClientSearch]);
 
   const renderTareasStats = () => (
     <div className="stats-section animate-fade-in">
