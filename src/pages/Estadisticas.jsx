@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { 
   BarChart2, Droplet, MapPin, Briefcase, Bug, Wind, FlaskConical,
   Calendar, TrendingUp, Filter, Search, Download, Users, Trophy,
-  ChevronDown, ChevronUp, X, Clock, Zap, Euro, Car, CalendarCheck
+  ChevronDown, ChevronUp, X, Clock, Zap, Euro, Car, CalendarCheck, Layers
 } from 'lucide-react';
 import { mockLocalidadStats } from '../data/mockAvisomap';
 import { supabase } from '../lib/supabase';
@@ -43,6 +43,19 @@ const TREATMENT_LABEL_MAP = {
   'Estandar': 'M. Estándar',
   'Torre': 'M. Torre',
   'Piscina/Jacuzzi': 'M. Piscina/Jac.'
+};
+
+const TASK_TYPE_COLORS = {
+  'Visitas Semanales': '#6366f1',
+  'Muestras': '#0ea5e9',
+  'Mediciones': '#10b981',
+  'Control de Plagas': '#f59e0b',
+  'Hipercloración': '#a855f7',
+  'Choque Térmico': '#f43f5e',
+  'Limp. Torres': '#0284c7',
+  'Limp. Depósitos': '#14b8a6',
+  'Desinfección': '#8b5cf6',
+  'Otros': '#64748b'
 };
 
 const parseJornadaDate = (fecha) => {
@@ -201,10 +214,14 @@ const Estadisticas = () => {
   const [tareasYearFilter, setTareasYearFilter] = useState(() => localStorage.getItem('est_tareas_year') || new Date().getFullYear().toString());
   const [tareasClientSearch, setTareasClientSearch] = useState('');
   const [tareasExpandedClients, setTareasExpandedClients] = useState({});
+  const [tareasClientSectionOpen, setTareasClientSectionOpen] = useState(false);
+  const [tareasTypeMonthFilter, setTareasTypeMonthFilter] = useState('all');
   const [tareasStats, setTareasStats] = useState({
     availableYears: [],
     completedChartData: [],
     statusChartData: [],
+    tasksByType: [],
+    yearTasks: [],
     clientData: [],
     totalCompleted: 0,
     totalTasks: 0,
@@ -455,6 +472,28 @@ const Estadisticas = () => {
     });
   }, [tareasStats.clientData, tareasClientSearch]);
 
+  const currentTareasByType = useMemo(() => {
+    const list = tareasStats.yearTasks || [];
+    const filteredList = tareasTypeMonthFilter === 'all'
+      ? list
+      : list.filter(t => t.month === parseInt(tareasTypeMonthFilter, 10));
+
+    const typeMap = {};
+    filteredList.forEach(t => {
+      if (!typeMap[t.type]) typeMap[t.type] = { total: 0, realizadas: 0 };
+      typeMap[t.type].total++;
+      if (t.status === 'completed' || t.status === 'skipped') typeMap[t.type].realizadas++;
+    });
+
+    return Object.keys(typeMap)
+      .map(type => {
+        const { total, realizadas } = typeMap[type];
+        const pct = total > 0 ? Math.round((realizadas / total) * 100) : 0;
+        return { tipo: type, realizadas, total, pct };
+      })
+      .sort((a, b) => b.total - a.total);
+  }, [tareasStats.yearTasks, tareasTypeMonthFilter]);
+
   React.useEffect(() => {
     if (avisomapAvisosRaw.length > 0) {
       const yearsSet = new Set();
@@ -525,6 +564,8 @@ const Estadisticas = () => {
   React.useEffect(() => {
     if (tareasRaw.length === 0) return;
 
+    const MONTH_NAMES_ES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+
     const parseTaskDate = (dateStr) => {
       if (!dateStr) return null;
       let str = String(dateStr).trim();
@@ -537,6 +578,21 @@ const Estadisticas = () => {
       else { d = parseInt(parts[0]); m = parseInt(parts[1]) - 1; y = parseInt(parts[2]); }
       if (isNaN(d) || isNaN(m) || isNaN(y)) return null;
       return { d, m, y };
+    };
+
+    const getTaskType = (taskName) => {
+      if (!taskName) return 'Otros';
+      const lower = taskName.toLowerCase().trim();
+      if (lower.startsWith('semana')) return 'Visitas Semanales';
+      if (lower.includes('muestra')) return 'Muestras';
+      if (lower.includes('medicion') || lower.includes('medición')) return 'Mediciones';
+      if (lower.includes('plaga') || lower.includes('desratiz') || lower.includes('desinsect')) return 'Control de Plagas';
+      if (lower.includes('hiperclor')) return 'Hipercloración';
+      if (lower.includes('choque')) return 'Choque Térmico';
+      if (lower.includes('torre')) return 'Limp. Torres';
+      if (lower.includes('deposito') || lower.includes('depósito')) return 'Limp. Depósitos';
+      if (lower.includes('desinfec')) return 'Desinfección';
+      return taskName;
     };
 
     // Flatten all tasks with client name and year info
@@ -552,6 +608,7 @@ const Estadisticas = () => {
       if (!clientName) clientName = 'Sin cliente';
 
       const rowYear = row.año ? String(row.año) : null;
+      const rowMonthIdx = row.mes ? MONTH_NAMES_ES.indexOf(row.mes.trim().toLowerCase()) : -1;
 
       let tasksArr = [];
       if (typeof row.tareas_json === 'string') {
@@ -563,7 +620,8 @@ const Estadisticas = () => {
       tasksArr.forEach(task => {
         const parsed = task.date ? parseTaskDate(task.date) : null;
         const taskYear = parsed ? String(parsed.y) : rowYear;
-        const taskMonth = parsed ? parsed.m : null;
+        // FIX: use row.mes as fallback when task.date is null
+        const taskMonth = (parsed && parsed.m >= 0 && parsed.m < 12) ? parsed.m : (rowMonthIdx !== -1 ? rowMonthIdx : null);
 
         if (taskYear) yearsSet.add(taskYear);
 
@@ -573,7 +631,8 @@ const Estadisticas = () => {
           year: taskYear,
           month: taskMonth,
           client: clientName,
-          auto: !!task.auto
+          auto: !!task.auto,
+          type: getTaskType(task.name)
         });
       });
     });
@@ -586,10 +645,10 @@ const Estadisticas = () => {
 
     const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
-    // Chart 1: Completed per month
+    // Chart 1: Completed per month (completed + skipped = realizadas, matching Tareasapp)
     const completedByMonth = months.map((m, idx) => ({
       mes: m,
-      Completadas: yearTasks.filter(t => t.status === 'completed' && t.month === idx).length
+      Completadas: yearTasks.filter(t => (t.status === 'completed' || t.status === 'skipped') && t.month === idx).length
     }));
 
     // Chart 2: Status breakdown per month
@@ -600,18 +659,29 @@ const Estadisticas = () => {
       Pendientes: yearTasks.filter(t => t.status === 'pending' && t.month === idx).length
     }));
 
-    // KPIs
+    // KPIs - cumplimiento = (completed + skipped) / total, matching Tareasapp
     const totalCompleted = yearTasks.filter(t => t.status === 'completed').length;
     const totalSkipped = yearTasks.filter(t => t.status === 'skipped').length;
-    const totalPending = yearTasks.filter(t => t.status === 'pending').length;
+    const totalRealizadas = totalCompleted + totalSkipped;
     const totalAll = yearTasks.length;
-    const cumplimiento = totalAll > 0 ? Math.round((totalCompleted / totalAll) * 100) : 0;
+    const cumplimiento = totalAll > 0 ? Math.round((totalRealizadas / totalAll) * 100) : 0;
 
     let mesPico = '-';
     let maxCompleted = 0;
     completedByMonth.forEach(d => {
       if (d.Completadas > maxCompleted) { maxCompleted = d.Completadas; mesPico = d.mes.toUpperCase(); }
     });
+
+    // Chart 3: Tasks by type
+    const typeMap = {};
+    yearTasks.forEach(t => {
+      if (!typeMap[t.type]) typeMap[t.type] = { total: 0, realizadas: 0 };
+      typeMap[t.type].total++;
+      if (t.status === 'completed' || t.status === 'skipped') typeMap[t.type].realizadas++;
+    });
+    const tasksByType = Object.keys(typeMap)
+      .map(type => ({ tipo: type, Realizadas: typeMap[type].realizadas, Total: typeMap[type].total }))
+      .sort((a, b) => b.Total - a.Total);
 
     // Client breakdown
     const clientMap = {};
@@ -635,14 +705,16 @@ const Estadisticas = () => {
         total: clientMap[name].completed + clientMap[name].skipped + clientMap[name].pending,
         tasks: clientMap[name].tasks
       }))
-      .sort((a, b) => b.completed - a.completed);
+      .sort((a, b) => (b.completed + b.skipped) - (a.completed + a.skipped));
 
     setTareasStats({
       availableYears: yearsArr,
       completedChartData: completedByMonth,
       statusChartData: statusByMonth,
+      tasksByType,
+      yearTasks,
       clientData,
-      totalCompleted,
+      totalCompleted: totalRealizadas,
       totalTasks: totalAll,
       cumplimiento,
       mesPico: maxCompleted > 0 ? mesPico : '-'
@@ -1653,106 +1725,204 @@ const Estadisticas = () => {
         </div>
       </div>
 
-      {/* Client Summary Accordion */}
-      <div className="stats-chart-card client-summary-card">
-        <div className="client-summary-header">
+      {/* Chart 3: Actuaciones por tipo (Monthly and Annual valuation) */}
+      <div className="stats-chart-card modern-chart-card" style={{ marginTop: '16px' }}>
+        <div className="modern-chart-header" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Layers size={18} color="#4f46e5" />
+            <h3 style={{ margin: 0 }}>ACTUACIONES POR TIPO</h3>
+            <span className="client-count-pill" style={{ background: 'rgba(79, 70, 229, 0.12)', color: '#4f46e5' }}>
+              {currentTareasByType.reduce((acc, t) => acc + t.realizadas, 0)} de {currentTareasByType.reduce((acc, t) => acc + t.total, 0)} realizadas
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Filter size={14} color="var(--text-muted)" />
+            <select
+              value={tareasTypeMonthFilter}
+              onChange={(e) => setTareasTypeMonthFilter(e.target.value)}
+              className="stats-year-select"
+              style={{ padding: '6px 12px', fontSize: '0.82rem', background: 'var(--bg-card-hover)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', cursor: 'pointer' }}
+            >
+              <option value="all">Todo el año {tareasYearFilter}</option>
+              {['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'].map((mesName, idx) => (
+                <option key={mesName} value={idx}>{mesName}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {currentTareasByType.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+            No hay actuaciones registradas para este periodo.
+          </div>
+        ) : (
+          <div className="stats-bar-list" style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {currentTareasByType.map(item => {
+              const color = TASK_TYPE_COLORS[item.tipo] || '#6366f1';
+              return (
+                <div key={item.tipo} className="stats-bar-item">
+                  <div className="stats-bar-info" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', fontSize: '0.88rem' }}>
+                    <span style={{ fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: color, display: 'inline-block', flexShrink: 0 }} />
+                      {item.tipo}
+                    </span>
+                    <span className="stats-bar-numbers" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                      <strong style={{ color: 'var(--text-main)' }}>{item.realizadas}</strong> de {item.total} · <strong style={{ color }}>{item.pct}%</strong>
+                    </span>
+                  </div>
+                  <div className="stats-bar-bg" style={{ height: '10px', backgroundColor: 'var(--bg-main)', borderRadius: '999px', overflow: 'hidden', display: 'flex' }}>
+                    <div
+                      className="stats-bar-fill"
+                      style={{
+                        width: `${item.pct}%`,
+                        backgroundColor: color,
+                        borderRadius: '999px',
+                        transition: 'width 0.4s ease'
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Client Summary Accordion - Collapsible */}
+      <div className={`stats-chart-card client-summary-card ${tareasClientSectionOpen ? 'open' : ''}`} style={{ marginTop: '16px' }}>
+        <div 
+          className="client-summary-header"
+          onClick={() => setTareasClientSectionOpen(prev => !prev)}
+          style={{ cursor: 'pointer', marginBottom: tareasClientSectionOpen ? '18px' : 0, userSelect: 'none' }}
+        >
           <div className="client-summary-title">
             <Users size={20} color="#4f46e5" />
             <h2>RESUMEN POR CLIENTE</h2>
-            <span className="client-count-pill">{filteredTareasClients.length}</span>
+            <span className="client-count-pill">{filteredTareasClients.length} clientes</span>
           </div>
-          <div className="client-search-box">
-            <Search size={16} color="var(--text-muted)" />
-            <input 
-              type="text" 
-              placeholder="Buscar cliente..." 
-              value={tareasClientSearch}
-              onChange={(e) => setTareasClientSearch(e.target.value)}
-            />
-            {tareasClientSearch && (
-              <button type="button" className="search-clear-btn" onClick={() => setTareasClientSearch('')} title="Borrar búsqueda">
-                <X size={16} />
-              </button>
-            )}
-          </div>
-        </div>
 
-        <div className="client-accordion-list">
-          {filteredTareasClients.length === 0 ? (
-            <div className="client-empty-state">
-              <p style={{ fontWeight: 700, color: 'var(--text-muted)', margin: 0 }}>No se encontraron clientes</p>
-              <p style={{ fontSize: '0.82rem', color: 'var(--text-faint)', marginTop: '4px' }}>
-                Prueba a cambiar el texto de búsqueda.
-              </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#4f46e5' }}>
+              {tareasClientSectionOpen ? 'Ocultar clientes' : 'Desplegar clientes'}
+            </span>
+            <div
+              style={{
+                background: 'var(--bg-card-hover)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-sm)',
+                padding: '6px 8px',
+                display: 'flex',
+                alignItems: 'center',
+                color: 'var(--text-main)'
+              }}
+            >
+              {tareasClientSectionOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
             </div>
-          ) : (
-            filteredTareasClients.map(client => {
-              const isExpanded = !!tareasExpandedClients[client.name];
-              const pct = client.total > 0 ? Math.round((client.completed / client.total) * 100) : 0;
-
-              return (
-                <div key={client.name} className={`client-accordion-item ${isExpanded ? 'expanded' : ''}`}>
-                  <div 
-                    className="client-accordion-header"
-                    onClick={() => setTareasExpandedClients(prev => ({ ...prev, [client.name]: !prev[client.name] }))}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setTareasExpandedClients(prev => ({ ...prev, [client.name]: !prev[client.name] })); }}}
-                  >
-                    <span className="client-name-text">{client.name}</span>
-                    <div className="client-header-right">
-                      <div className="client-treatment-dots">
-                        <span className="client-type-dot" style={{ backgroundColor: '#22c55e' }} title="Completadas" />
-                        {client.skipped > 0 && <span className="client-type-dot" style={{ backgroundColor: '#f59e0b' }} title="Omitidas" />}
-                        {client.pending > 0 && <span className="client-type-dot" style={{ backgroundColor: '#94a3b8' }} title="Pendientes" />}
-                      </div>
-                      <span className="client-treatment-badge">
-                        {client.completed}/{client.total} ({pct}%)
-                      </span>
-                      <span className="client-chevron-icon">
-                        {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                      </span>
-                    </div>
-                  </div>
-
-                  {isExpanded && (
-                    <div className="client-accordion-body animate-fade-in">
-                      <div className="client-timeline-container">
-                        <div className="client-timeline-months-header">
-                          {['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'].map(m => (
-                            <span key={m} className="timeline-month-label">{m}</span>
-                          ))}
-                        </div>
-                        <div className="client-timeline-grid">
-                          {['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'].map((mStr, idx) => {
-                            const mTasks = client.tasks[idx] || [];
-                            return (
-                              <div key={mStr} className={`timeline-grid-cell ${mTasks.length > 0 ? 'has-events' : ''}`}>
-                                {mTasks.map((t, tIdx) => {
-                                  const bg = t.status === 'completed' ? '#22c55e' : t.status === 'skipped' ? '#f59e0b' : '#94a3b8';
-                                  return (
-                                    <span 
-                                      key={tIdx}
-                                      className="timeline-badge-pill"
-                                      style={{ backgroundColor: bg }}
-                                      title={`${mStr} · ${t.name} · ${t.status === 'completed' ? 'Completada' : t.status === 'skipped' ? 'Omitida' : 'Pendiente'}`}
-                                    >
-                                      {t.name.length > 12 ? t.name.substring(0, 10) + '…' : t.name}
-                                    </span>
-                                  );
-                                })}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })
-          )}
+          </div>
         </div>
+
+        {tareasClientSectionOpen && (
+          <div className="animate-fade-in">
+            {/* Search Box */}
+            <div style={{ marginBottom: '16px' }}>
+              <div className="client-search-box" style={{ maxWidth: '420px' }}>
+                <Search size={16} color="var(--text-muted)" />
+                <input 
+                  type="text" 
+                  placeholder="Buscar entre los clientes..." 
+                  value={tareasClientSearch}
+                  onChange={(e) => setTareasClientSearch(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                />
+                {tareasClientSearch && (
+                  <button type="button" className="btn-clear-search" onClick={(e) => { e.stopPropagation(); setTareasClientSearch(''); }} title="Borrar búsqueda">
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Scrollable list for 80+ clients */}
+            <div className="client-accordion-list tareas-client-scrollable-list">
+              {filteredTareasClients.length === 0 ? (
+                <div className="client-empty-state">
+                  <p style={{ fontWeight: 700, color: 'var(--text-muted)', margin: 0 }}>No se encontraron clientes</p>
+                  <p style={{ fontSize: '0.82rem', color: 'var(--text-faint)', marginTop: '4px' }}>
+                    Prueba a cambiar el texto de búsqueda.
+                  </p>
+                </div>
+              ) : (
+                filteredTareasClients.map(client => {
+                  const isExpanded = !!tareasExpandedClients[client.name];
+                  const realizadas = client.completed + client.skipped;
+                  const pct = client.total > 0 ? Math.round((realizadas / client.total) * 100) : 0;
+
+                  return (
+                    <div key={client.name} className={`client-accordion-item ${isExpanded ? 'expanded' : ''}`}>
+                      <div 
+                        className="client-accordion-header"
+                        onClick={() => setTareasExpandedClients(prev => ({ ...prev, [client.name]: !prev[client.name] }))}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setTareasExpandedClients(prev => ({ ...prev, [client.name]: !prev[client.name] })); }}}
+                      >
+                        <span className="client-name-text">{client.name}</span>
+                        <div className="client-header-right">
+                          <div className="client-treatment-dots">
+                            <span className="client-type-dot" style={{ backgroundColor: '#22c55e' }} title={`Completadas: ${client.completed}`} />
+                            {client.skipped > 0 && <span className="client-type-dot" style={{ backgroundColor: '#f59e0b' }} title={`Omitidas: ${client.skipped}`} />}
+                            {client.pending > 0 && <span className="client-type-dot" style={{ backgroundColor: '#94a3b8' }} title={`Pendientes: ${client.pending}`} />}
+                          </div>
+                          <span className="client-treatment-badge" title="Actuaciones realizadas / total del año">
+                            {realizadas}/{client.total} ({pct}%)
+                          </span>
+                          <span className="client-chevron-icon">
+                            {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                          </span>
+                        </div>
+                      </div>
+
+                      {isExpanded && (
+                        <div className="client-accordion-body animate-fade-in">
+                          <div className="client-timeline-container">
+                            <div className="client-timeline-months-header">
+                              {['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'].map(m => (
+                                <span key={m} className="timeline-month-label">{m}</span>
+                              ))}
+                            </div>
+                            <div className="client-timeline-grid">
+                              {['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'].map((mStr, idx) => {
+                                const mTasks = client.tasks[idx] || [];
+                                return (
+                                  <div key={mStr} className={`timeline-grid-cell ${mTasks.length > 0 ? 'has-events' : ''}`}>
+                                    {mTasks.map((t, tIdx) => {
+                                      const bg = t.status === 'completed' ? '#22c55e' : t.status === 'skipped' ? '#f59e0b' : '#94a3b8';
+                                      return (
+                                        <span 
+                                          key={tIdx}
+                                          className="timeline-badge-pill"
+                                          style={{ backgroundColor: bg }}
+                                          title={`${mStr} · ${t.name} · ${t.status === 'completed' ? 'Completada' : t.status === 'skipped' ? 'Omitida' : 'Pendiente'}`}
+                                        >
+                                          {t.name.length > 12 ? t.name.substring(0, 10) + '…' : t.name}
+                                        </span>
+                                      );
+                                    })}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

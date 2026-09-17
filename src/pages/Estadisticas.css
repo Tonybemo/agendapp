@@ -1037,3 +1037,29 @@
     justify-content: flex-end;
   }
 }
+
+/* Tareas stats client scrollable list */
+.tareas-client-scrollable-list {
+  max-height: 520px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.tareas-client-scrollable-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tareas-client-scrollable-list::-webkit-scrollbar-track {
+  background: var(--bg-main);
+  border-radius: var(--radius-sm);
+}
+
+.tareas-client-scrollable-list::-webkit-scrollbar-thumb {
+  background: var(--border-input);
+  border-radius: var(--radius-sm);
+}
+
+.tareas-client-scrollable-list::-webkit-scrollbar-thumb:hover {
+  background: #4f46e5;
+}
+
