@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { 
   BarChart2, Droplet, MapPin, Briefcase, Bug, Wind, FlaskConical,
   Calendar, TrendingUp, Filter, Search, Download, Users, Trophy,
-  ChevronDown, ChevronUp, X, Clock, Zap, Euro, Car
+  ChevronDown, ChevronUp, X, Clock, Zap, Euro, Car, CalendarCheck
 } from 'lucide-react';
 import { mockLocalidadStats } from '../data/mockAvisomap';
 import { supabase } from '../lib/supabase';
@@ -133,6 +133,7 @@ const Estadisticas = () => {
     { id: 'aquapp', label: 'Muestras y Trat.', icon: Droplet, color: '#0ea5e9' },
     { id: 'avisomap', label: 'Avisos Mapfre', icon: MapPin, color: '#10b981' },
     { id: 'workapp', label: 'Jornada', icon: Briefcase, color: '#8b5cf6' },
+    { id: 'tareas', label: 'Tareas', icon: CalendarCheck, color: '#4f46e5' },
   ];
 
   // Aquapp State
@@ -185,6 +186,7 @@ const Estadisticas = () => {
   React.useEffect(() => { localStorage.setItem('est_aquapp_year', aquappYearFilter); }, [aquappYearFilter]);
   React.useEffect(() => { localStorage.setItem('est_avisomap_year', avisomapYearFilter); }, [avisomapYearFilter]);
   React.useEffect(() => { localStorage.setItem('est_workapp_filtro', JSON.stringify(workappFiltro)); }, [workappFiltro]);
+  React.useEffect(() => { localStorage.setItem('est_tareas_year', tareasYearFilter); }, [tareasYearFilter]);
   const [workappResultados, setWorkappResultados] = useState({
     totalHoras: '0',
     totalExtras: '0',
@@ -194,6 +196,22 @@ const Estadisticas = () => {
   });
 
   const [jornadaSearchQuery, setJornadaSearchQuery] = useState('');
+
+  // Tareas State
+  const [tareasRaw, setTareasRaw] = useState([]);
+  const [tareasYearFilter, setTareasYearFilter] = useState(() => localStorage.getItem('est_tareas_year') || new Date().getFullYear().toString());
+  const [tareasClientSearch, setTareasClientSearch] = useState('');
+  const [tareasExpandedClients, setTareasExpandedClients] = useState({});
+  const [tareasStats, setTareasStats] = useState({
+    availableYears: [],
+    completedChartData: [],
+    statusChartData: [],
+    clientData: [],
+    totalCompleted: 0,
+    totalTasks: 0,
+    cumplimiento: 0,
+    mesPico: '-'
+  });
 
   const setDatePreset = (preset) => {
     const now = new Date();
@@ -282,9 +300,15 @@ const Estadisticas = () => {
       if (trat) setAquappTratamientosRaw(trat);
     };
 
+    const fetchTareas = async () => {
+      const { data } = await supabase.from('tareas_programadas').select('*, clientes(name)');
+      if (data) setTareasRaw(data);
+    };
+
     fetchJornadas();
     fetchAvisos();
     fetchAquapp();
+    fetchTareas();
   }, []);
 
   React.useEffect(() => {
@@ -488,6 +512,129 @@ const Estadisticas = () => {
       calculateWorkappStats();
     }
   }, [jornadas, workappFiltro]);
+
+  // Tareas data processing
+  React.useEffect(() => {
+    if (tareasRaw.length === 0) return;
+
+    const parseTaskDate = (dateStr) => {
+      if (!dateStr) return null;
+      let str = String(dateStr).trim();
+      if (str.includes('T')) str = str.split('T')[0];
+      str = str.replace(/-/g, '/');
+      const parts = str.split('/');
+      if (parts.length !== 3) return null;
+      let d, m, y;
+      if (parts[0].length === 4) { y = parseInt(parts[0]); m = parseInt(parts[1]) - 1; d = parseInt(parts[2]); }
+      else { d = parseInt(parts[0]); m = parseInt(parts[1]) - 1; y = parseInt(parts[2]); }
+      if (isNaN(d) || isNaN(m) || isNaN(y)) return null;
+      return { d, m, y };
+    };
+
+    // Flatten all tasks with client name and year info
+    const allTasks = [];
+    const yearsSet = new Set();
+
+    tareasRaw.forEach(row => {
+      let clientName = row.clientes?.name;
+      if (!clientName && row.frecuencia) {
+        const frec = row.frecuencia;
+        if (frec.includes(':')) clientName = frec.split(':').slice(1).join(':').trim();
+      }
+      if (!clientName) clientName = 'Sin cliente';
+
+      const rowYear = row.año ? String(row.año) : null;
+
+      if (row.tareas_json && Array.isArray(row.tareas_json)) {
+        row.tareas_json.forEach(task => {
+          const parsed = task.date ? parseTaskDate(task.date) : null;
+          const taskYear = parsed ? String(parsed.y) : rowYear;
+          const taskMonth = parsed ? parsed.m : null;
+
+          if (taskYear) yearsSet.add(taskYear);
+
+          allTasks.push({
+            name: task.name || 'Tarea',
+            status: task.status || 'pending',
+            year: taskYear,
+            month: taskMonth,
+            client: clientName,
+            auto: !!task.auto
+          });
+        });
+      }
+    });
+
+    const yearsArr = Array.from(yearsSet).sort((a, b) => b.localeCompare(a));
+    const filterYear = tareasYearFilter || (yearsArr.length > 0 ? yearsArr[0] : new Date().getFullYear().toString());
+
+    // Filter by selected year
+    const yearTasks = allTasks.filter(t => t.year === filterYear);
+
+    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+    // Chart 1: Completed per month
+    const completedByMonth = months.map((m, idx) => ({
+      mes: m,
+      Completadas: yearTasks.filter(t => t.status === 'completed' && t.month === idx).length
+    }));
+
+    // Chart 2: Status breakdown per month
+    const statusByMonth = months.map((m, idx) => ({
+      mes: m,
+      Completadas: yearTasks.filter(t => t.status === 'completed' && t.month === idx).length,
+      Omitidas: yearTasks.filter(t => t.status === 'skipped' && t.month === idx).length,
+      Pendientes: yearTasks.filter(t => t.status === 'pending' && t.month === idx).length
+    }));
+
+    // KPIs
+    const totalCompleted = yearTasks.filter(t => t.status === 'completed').length;
+    const totalSkipped = yearTasks.filter(t => t.status === 'skipped').length;
+    const totalPending = yearTasks.filter(t => t.status === 'pending').length;
+    const totalAll = yearTasks.length;
+    const cumplimiento = totalAll > 0 ? Math.round((totalCompleted / totalAll) * 100) : 0;
+
+    let mesPico = '-';
+    let maxCompleted = 0;
+    completedByMonth.forEach(d => {
+      if (d.Completadas > maxCompleted) { maxCompleted = d.Completadas; mesPico = d.mes.toUpperCase(); }
+    });
+
+    // Client breakdown
+    const clientMap = {};
+    yearTasks.forEach(t => {
+      if (!clientMap[t.client]) clientMap[t.client] = { completed: 0, skipped: 0, pending: 0, tasks: Array.from({ length: 12 }, () => []) };
+      const c = clientMap[t.client];
+      if (t.status === 'completed') c.completed++;
+      else if (t.status === 'skipped') c.skipped++;
+      else c.pending++;
+      if (t.month !== null && t.month >= 0 && t.month < 12) {
+        c.tasks[t.month].push({ name: t.name, status: t.status });
+      }
+    });
+
+    const clientData = Object.keys(clientMap)
+      .map(name => ({
+        name,
+        completed: clientMap[name].completed,
+        skipped: clientMap[name].skipped,
+        pending: clientMap[name].pending,
+        total: clientMap[name].completed + clientMap[name].skipped + clientMap[name].pending,
+        tasks: clientMap[name].tasks
+      }))
+      .sort((a, b) => b.completed - a.completed);
+
+    setTareasStats({
+      availableYears: yearsArr,
+      completedChartData: completedByMonth,
+      statusChartData: statusByMonth,
+      clientData,
+      totalCompleted,
+      totalTasks: totalAll,
+      cumplimiento,
+      mesPico: maxCompleted > 0 ? mesPico : '-'
+    });
+  }, [tareasRaw, tareasYearFilter]);
 
   const calculateWorkappStats = () => {
     if (!workappFiltro.desde || !workappFiltro.hasta) return;
@@ -1366,6 +1513,244 @@ const Estadisticas = () => {
     </div>
   );
 
+  const filteredTareasClients = useMemo(() => {
+    return (tareasStats.clientData || []).filter(c => {
+      if (tareasClientSearch && !c.name.toLowerCase().includes(tareasClientSearch.toLowerCase())) return false;
+      return true;
+    });
+  }, [tareasStats.clientData, tareasClientSearch]);
+
+  const renderTareasStats = () => (
+    <div className="stats-section animate-fade-in">
+      {/* Year Filter */}
+      <div className="stats-chart-card stats-year-selector-card">
+        <div className="stats-year-selector-inner">
+          <div className="stats-year-title">
+            <Filter size={18} color="#4f46e5" />
+            <h3>AÑO DE ANÁLISIS</h3>
+          </div>
+          <div className="stats-year-dropdown-wrap">
+            <Calendar size={16} color="var(--text-muted)" style={{marginRight: '8px'}} />
+            <select 
+              value={tareasYearFilter} 
+              onChange={(e) => setTareasYearFilter(e.target.value)}
+              className="stats-year-select"
+            >
+              {tareasStats.availableYears?.length === 0 ? (
+                <option value={new Date().getFullYear().toString()}>{new Date().getFullYear()}</option>
+              ) : (
+                tareasStats.availableYears?.map(y => (
+                  <option key={y} value={y}>{y}</option>
+                ))
+              )}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="stats-kpi-grid">
+        <div className="stats-kpi-card">
+          <div className="stats-kpi-icon-wrap" style={{ background: 'rgba(34, 197, 94, 0.12)', color: '#22c55e' }}>
+            <CalendarCheck size={24} />
+          </div>
+          <div className="stats-kpi-info">
+            <span className="stats-kpi-label">COMPLETADAS</span>
+            <span className="stats-kpi-val">{tareasStats.totalCompleted}</span>
+          </div>
+        </div>
+
+        <div className="stats-kpi-card">
+          <div className="stats-kpi-icon-wrap" style={{ background: 'rgba(79, 70, 229, 0.12)', color: '#4f46e5' }}>
+            <TrendingUp size={24} />
+          </div>
+          <div className="stats-kpi-info">
+            <span className="stats-kpi-label">CUMPLIMIENTO</span>
+            <span className="stats-kpi-val">{tareasStats.cumplimiento}%</span>
+          </div>
+        </div>
+
+        <div className="stats-kpi-card">
+          <div className="stats-kpi-icon-wrap" style={{ background: 'rgba(245, 158, 11, 0.12)', color: '#f59e0b' }}>
+            <Trophy size={24} />
+          </div>
+          <div className="stats-kpi-info">
+            <span className="stats-kpi-label">MES MÁS ACTIVO</span>
+            <span className="stats-kpi-val">{tareasStats.mesPico}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Charts Row */}
+      <div className="stats-charts-row">
+        {/* Chart 1: Completed per month */}
+        <div className="stats-chart-card modern-chart-card">
+          <div className="modern-chart-header">
+            <CalendarCheck size={18} color="#4f46e5" />
+            <h3>TAREAS COMPLETADAS</h3>
+          </div>
+          <div style={{ width: '100%', height: '240px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={tareasStats.completedChartData}
+                margin={{ top: 25, right: 10, left: 10, bottom: 5 }}
+              >
+                <XAxis 
+                  dataKey="mes" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fill: 'var(--text-muted)', fontSize: 11, fontWeight: 600 }} 
+                />
+                <YAxis hide={true} domain={[0, 'dataMax + 4']} />
+                <RechartsTooltip 
+                  cursor={{ fill: 'rgba(79, 70, 229, 0.08)', radius: 6 }} 
+                  contentStyle={{ backgroundColor: 'var(--bg-card)', color: 'var(--text-main)', borderRadius: '12px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-md)', fontSize: '0.85rem' }}
+                />
+                <Bar dataKey="Completadas" fill="#4f46e5" radius={[6, 6, 0, 0]} barSize={22}>
+                  <LabelList dataKey="Completadas" position="top" fill="var(--text-secondary)" fontSize={11} fontWeight={700} formatter={(val) => val > 0 ? val : ''} />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Chart 2: Status breakdown */}
+        <div className="stats-chart-card modern-chart-card">
+          <div className="modern-chart-header">
+            <TrendingUp size={18} color="#22c55e" />
+            <h3>CUMPLIMIENTO POR MES</h3>
+          </div>
+          <div style={{ width: '100%', height: '240px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={tareasStats.statusChartData}
+                margin={{ top: 20, right: 10, left: 10, bottom: 5 }}
+              >
+                <XAxis 
+                  dataKey="mes" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fill: 'var(--text-muted)', fontSize: 11, fontWeight: 600 }} 
+                />
+                <YAxis hide={true} />
+                <RechartsTooltip 
+                  cursor={{ fill: 'rgba(34, 197, 94, 0.08)', radius: 6 }} 
+                  contentStyle={{ backgroundColor: 'var(--bg-card)', color: 'var(--text-main)', borderRadius: '12px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-md)', fontSize: '0.85rem' }}
+                />
+                <Legend verticalAlign="top" wrapperStyle={{ paddingBottom: '12px', fontSize: '0.75rem', fontWeight: 600 }} />
+                <Bar dataKey="Completadas" name="✅ Completadas" stackId="a" fill="#22c55e" />
+                <Bar dataKey="Omitidas" name="⏭️ Omitidas" stackId="a" fill="#f59e0b" />
+                <Bar dataKey="Pendientes" name="⏳ Pendientes" stackId="a" fill="#94a3b8" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      {/* Client Summary Accordion */}
+      <div className="stats-chart-card client-summary-card">
+        <div className="client-summary-header">
+          <div className="client-summary-title">
+            <Users size={20} color="#4f46e5" />
+            <h2>RESUMEN POR CLIENTE</h2>
+            <span className="client-count-pill">{filteredTareasClients.length}</span>
+          </div>
+          <div className="client-search-box">
+            <Search size={16} color="var(--text-muted)" />
+            <input 
+              type="text" 
+              placeholder="Buscar cliente..." 
+              value={tareasClientSearch}
+              onChange={(e) => setTareasClientSearch(e.target.value)}
+            />
+            {tareasClientSearch && (
+              <button type="button" className="search-clear-btn" onClick={() => setTareasClientSearch('')} title="Borrar búsqueda">
+                <X size={16} />
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="client-accordion-list">
+          {filteredTareasClients.length === 0 ? (
+            <div className="client-empty-state">
+              <p style={{ fontWeight: 700, color: 'var(--text-muted)', margin: 0 }}>No se encontraron clientes</p>
+              <p style={{ fontSize: '0.82rem', color: 'var(--text-faint)', marginTop: '4px' }}>
+                Prueba a cambiar el texto de búsqueda.
+              </p>
+            </div>
+          ) : (
+            filteredTareasClients.map(client => {
+              const isExpanded = !!tareasExpandedClients[client.name];
+              const pct = client.total > 0 ? Math.round((client.completed / client.total) * 100) : 0;
+
+              return (
+                <div key={client.name} className={`client-accordion-item ${isExpanded ? 'expanded' : ''}`}>
+                  <div 
+                    className="client-accordion-header"
+                    onClick={() => setTareasExpandedClients(prev => ({ ...prev, [client.name]: !prev[client.name] }))}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setTareasExpandedClients(prev => ({ ...prev, [client.name]: !prev[client.name] })); }}}
+                  >
+                    <span className="client-name-text">{client.name}</span>
+                    <div className="client-header-right">
+                      <div className="client-treatment-dots">
+                        <span className="client-type-dot" style={{ backgroundColor: '#22c55e' }} title="Completadas" />
+                        {client.skipped > 0 && <span className="client-type-dot" style={{ backgroundColor: '#f59e0b' }} title="Omitidas" />}
+                        {client.pending > 0 && <span className="client-type-dot" style={{ backgroundColor: '#94a3b8' }} title="Pendientes" />}
+                      </div>
+                      <span className="client-treatment-badge">
+                        {client.completed}/{client.total} ({pct}%)
+                      </span>
+                      <span className="client-chevron-icon">
+                        {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                      </span>
+                    </div>
+                  </div>
+
+                  {isExpanded && (
+                    <div className="client-accordion-body animate-fade-in">
+                      <div className="client-timeline-container">
+                        <div className="client-timeline-months-header">
+                          {['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'].map(m => (
+                            <span key={m} className="timeline-month-label">{m}</span>
+                          ))}
+                        </div>
+                        <div className="client-timeline-grid">
+                          {['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'].map((mStr, idx) => {
+                            const mTasks = client.tasks[idx] || [];
+                            return (
+                              <div key={mStr} className={`timeline-grid-cell ${mTasks.length > 0 ? 'has-events' : ''}`}>
+                                {mTasks.map((t, tIdx) => {
+                                  const bg = t.status === 'completed' ? '#22c55e' : t.status === 'skipped' ? '#f59e0b' : '#94a3b8';
+                                  return (
+                                    <span 
+                                      key={tIdx}
+                                      className="timeline-badge-pill"
+                                      style={{ backgroundColor: bg }}
+                                      title={`${mStr} · ${t.name} · ${t.status === 'completed' ? 'Completada' : t.status === 'skipped' ? 'Omitida' : 'Pendiente'}`}
+                                    >
+                                      {t.name.length > 12 ? t.name.substring(0, 10) + '…' : t.name}
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="estadisticas-container animate-fade-in">
       <div className="estadisticas-header">
@@ -1396,6 +1781,7 @@ const Estadisticas = () => {
         {activeSection === 'aquapp' && renderAquappStats()}
         {activeSection === 'avisomap' && renderAvisomapStats()}
         {activeSection === 'workapp' && renderWorkappStats()}
+        {activeSection === 'tareas' && renderTareasStats()}
       </div>
 
       {tableTooltip.visible && createPortal(
