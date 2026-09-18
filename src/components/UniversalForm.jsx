@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, X, Droplet, Wind, MapPin, Briefcase, ChevronRight, Check, Calendar, Clock, Car, FileText, UploadCloud, PlusCircle, Search, Bug, Hexagon, BookOpen, Camera } from 'lucide-react';
+import { Plus, X, Droplet, Wind, MapPin, Briefcase, ChevronRight, Check, Calendar, Clock, Car, FileText, UploadCloud, PlusCircle, Search, Bug, Hexagon, BookOpen, Camera, ScanLine, Trash2, Image as ImageIcon, Sparkles } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import BarcodeScannerModal from './BarcodeScannerModal';
+import { compressImage } from '../utils/imageCompressor';
 import { 
   withTimeout, 
   isNetworkFailure, 
@@ -63,6 +65,16 @@ const UniversalForm = () => {
   const [editMatA4170, setEditMatA4170] = useState('');
   const [editNotas, setEditNotas] = useState('');
   const [editTipoActuacion, setEditTipoActuacion] = useState('');
+
+  // Escáner de código de barras
+  const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
+
+  // Fotos Antes / Después para limpiezas de Torres y Depósitos
+  const [fotoAntesFile, setFotoAntesFile] = useState(null);
+  const [fotoAntesPreview, setFotoAntesPreview] = useState(null);
+  const [fotoDespuesFile, setFotoDespuesFile] = useState(null);
+  const [fotoDespuesPreview, setFotoDespuesPreview] = useState(null);
+  const [isCompressingFotos, setIsCompressingFotos] = useState(false);
   
   // Estado para Avisos
   const [avisoPlagas, setAvisoPlagas] = useState([]);
@@ -492,6 +504,12 @@ const UniversalForm = () => {
     setFichaFileName('');
     setJornadaParadas([]);
     setJornadaFecha(new Date().toISOString().split('T')[0]);
+    setShowBarcodeScanner(false);
+    setFotoAntesFile(null);
+    setFotoAntesPreview(null);
+    setFotoDespuesFile(null);
+    setFotoDespuesPreview(null);
+    setIsCompressingFotos(false);
   };
 
   const handleGuardarMuestra = async (e) => {
@@ -719,6 +737,55 @@ const UniversalForm = () => {
       fechaGuardar = `${parts[2]}/${parts[1]}/${parts[0]}`;
     }
 
+    // Compresión y subida de Fotos Antes / Después para Limpiezas
+    let fotoAntesUrl = (fotoAntesPreview && fotoAntesPreview.startsWith('http')) ? fotoAntesPreview : null;
+    let fotoDespuesUrl = (fotoDespuesPreview && fotoDespuesPreview.startsWith('http')) ? fotoDespuesPreview : null;
+
+    if (navigator.onLine) {
+      if (fotoAntesFile) {
+        setIsCompressingFotos(true);
+        try {
+          const compAntes = await compressImage(fotoAntesFile, { maxWidth: 1280, quality: 0.75 });
+          const fileName = `${Date.now()}_antes_${Math.random().toString(36).substring(2, 7)}.jpg`;
+          const filePath = `limpiezas/${fileName}`;
+          const { error: upErr } = await supabase.storage.from('adjuntos').upload(filePath, compAntes);
+          if (!upErr) {
+            const { data: pubData } = supabase.storage.from('adjuntos').getPublicUrl(filePath);
+            fotoAntesUrl = pubData.publicUrl;
+          } else {
+            console.warn("Error subiendo foto antes:", upErr);
+          }
+        } catch (e) {
+          console.warn("Error comprimiendo foto antes:", e);
+        }
+      }
+
+      if (fotoDespuesFile) {
+        setIsCompressingFotos(true);
+        try {
+          const compDesp = await compressImage(fotoDespuesFile, { maxWidth: 1280, quality: 0.75 });
+          const fileName = `${Date.now()}_despues_${Math.random().toString(36).substring(2, 7)}.jpg`;
+          const filePath = `limpiezas/${fileName}`;
+          const { error: upErr } = await supabase.storage.from('adjuntos').upload(filePath, compDesp);
+          if (!upErr) {
+            const { data: pubData } = supabase.storage.from('adjuntos').getPublicUrl(filePath);
+            fotoDespuesUrl = pubData.publicUrl;
+          } else {
+            console.warn("Error subiendo foto después:", upErr);
+          }
+        } catch (e) {
+          console.warn("Error comprimiendo foto después:", e);
+        }
+      }
+      setIsCompressingFotos(false);
+    }
+
+    let finalNotas = data.notas || '';
+    if (fotoAntesUrl || fotoDespuesUrl) {
+      const meta = JSON.stringify({ antes: fotoAntesUrl, despues: fotoDespuesUrl });
+      finalNotas = finalNotas.trim() ? `${finalNotas.trim()}\n<!-- FOTOS: ${meta} -->` : `<!-- FOTOS: ${meta} -->`;
+    }
+
     const record = {
       cliente_id: clienteId || null,
       cliente_nombre: clienteNombre,
@@ -726,7 +793,7 @@ const UniversalForm = () => {
       motivo: motivoTrat,
       fecha: fechaGuardar,
       hora: data.hora,
-      notas: data.notas,
+      notas: finalNotas,
       recordatorio: data.recordatorio === 'on',
       recordatorio_dias: parseInt(data.recordatorio_dias) || 15
     };
@@ -1052,7 +1119,23 @@ const UniversalForm = () => {
         setAquappMode('tratamiento');
         setTipoTratamiento(item.tipo_tratamiento || 'Hipercloracion');
         setMotivoTrat(item.motivo || 'Prevencion');
-        setEditNotas(item.notas || '');
+        let cleanNotas = item.notas || '';
+        let fAntes = item.foto_antes || null;
+        let fDesp = item.foto_despues || null;
+        if (cleanNotas && cleanNotas.includes('<!-- FOTOS:')) {
+          try {
+            const match = cleanNotas.match(/<!-- FOTOS:\s*(\{.*?\})\s*-->/);
+            if (match) {
+              const meta = JSON.parse(match[1]);
+              if (meta.antes) fAntes = meta.antes;
+              if (meta.despues) fDesp = meta.despues;
+              cleanNotas = cleanNotas.replace(/<!-- FOTOS:\s*\{.*?\}\s*-->/, '').trim();
+            }
+          } catch (err) {}
+        }
+        setEditNotas(cleanNotas);
+        if (fAntes) setFotoAntesPreview(fAntes);
+        if (fDesp) setFotoDespuesPreview(fDesp);
       } else if (item.editType === 'plaga') {
         setAquappMode('plagas');
         setEditTipoActuacion(item.tipo_actuacion || '');
@@ -1481,8 +1564,61 @@ const UniversalForm = () => {
                 <input name="numero_muestra" className="uf-input-basic" type="text" value={sugerenciaMuestra} onChange={(e) => setSugerenciaMuestra(e.target.value)} />
               </div>
               <div className="uf-form-group">
-                <label>CÓD. ENVASE LAB</label>
-                <input name="cod_envase" className="uf-input-basic" type="text" placeholder="Ej: 2603885" value={editCodEnvase} onChange={(e) => setEditCodEnvase(e.target.value)} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                  <label style={{ margin: 0 }}>CÓD. ENVASE LAB</label>
+                  <button
+                    type="button"
+                    onClick={() => setShowBarcodeScanner(true)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--accent-aquapp, #0284c7)',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      fontSize: '0.72rem',
+                      fontWeight: 700,
+                      padding: '2px 4px',
+                      borderRadius: '4px'
+                    }}
+                    title="Escanear código del frasco con la cámara"
+                  >
+                    <ScanLine size={13} /> Escanear
+                  </button>
+                </div>
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                  <input
+                    name="cod_envase"
+                    className="uf-input-basic"
+                    type="text"
+                    placeholder="Ej: 2603885"
+                    value={editCodEnvase}
+                    onChange={(e) => setEditCodEnvase(e.target.value)}
+                    style={{ paddingRight: '38px' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowBarcodeScanner(true)}
+                    title="Escanear código de barras"
+                    style={{
+                      position: 'absolute',
+                      right: '6px',
+                      background: 'rgba(2, 132, 199, 0.1)',
+                      color: 'var(--accent-aquapp, #0284c7)',
+                      border: 'none',
+                      borderRadius: '6px',
+                      width: '28px',
+                      height: '28px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <ScanLine size={15} />
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -1631,6 +1767,102 @@ const UniversalForm = () => {
               <label>OBSERVACIONES</label>
               <textarea name="notas" className="uf-textarea" rows="2" placeholder="Notas opcionales..." value={editNotas} onChange={(e) => setEditNotas(e.target.value)}></textarea>
             </div>
+
+            {/* Registro fotográfico Antes / Después para Limpiezas */}
+            {(tipoTratamiento === 'LimpTorres' || tipoTratamiento === 'LimpDep') && (
+              <div className="uf-photos-cleaning-section" style={{ background: 'var(--bg-main, #f8fafc)', border: '1px solid var(--border, #e2e8f0)', borderRadius: 'var(--radius-md, 12px)', padding: '14px', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, fontSize: '0.85rem', color: 'var(--text-main, #0f172a)', marginBottom: '12px' }}>
+                  <Camera size={18} color="var(--accent-aquapp, #0284c7)" />
+                  <span>REGISTRO FOTOGRÁFICO (ANTES / DESPUÉS)</span>
+                </div>
+
+                <div className="uf-grid-2" style={{ gap: '10px' }}>
+                  {/* Foto ANTES */}
+                  <div style={{ background: 'var(--bg-card, #ffffff)', border: '1px dashed var(--border, #cbd5e1)', borderRadius: '10px', padding: '10px', display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '130px', justifyContent: 'center', position: 'relative' }}>
+                    <span style={{ position: 'absolute', top: '6px', left: '8px', fontSize: '0.68rem', fontWeight: 800, background: '#fee2e2', color: '#b91c1c', padding: '2px 6px', borderRadius: '4px' }}>
+                      ANTES
+                    </span>
+                    {fotoAntesPreview ? (
+                      <div style={{ position: 'relative', width: '100%', height: '110px', marginTop: '16px' }}>
+                        <img src={fotoAntesPreview} alt="Foto Antes" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '6px' }} />
+                        <button
+                          type="button"
+                          onClick={() => { setFotoAntesFile(null); setFotoAntesPreview(null); }}
+                          style={{ position: 'absolute', top: '4px', right: '4px', background: 'rgba(239,68,68,0.9)', color: '#ffffff', border: 'none', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                          title="Eliminar foto antes"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    ) : (
+                      <label style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', textAlign: 'center', padding: '16px 4px 4px 4px', width: '100%' }}>
+                        <Camera size={24} color="var(--text-muted, #64748b)" />
+                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--accent-aquapp, #0284c7)' }}>Foto Antes</span>
+                        <span style={{ fontSize: '0.68rem', color: 'var(--text-faint, #94a3b8)' }}>Cámara / Galería</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          capture="environment"
+                          style={{ display: 'none' }}
+                          onChange={(e) => {
+                            const file = e.target.files && e.target.files[0];
+                            if (file) {
+                              setFotoAntesFile(file);
+                              setFotoAntesPreview(URL.createObjectURL(file));
+                            }
+                          }}
+                        />
+                      </label>
+                    )}
+                  </div>
+
+                  {/* Foto DESPUÉS */}
+                  <div style={{ background: 'var(--bg-card, #ffffff)', border: '1px dashed var(--border, #cbd5e1)', borderRadius: '10px', padding: '10px', display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '130px', justifyContent: 'center', position: 'relative' }}>
+                    <span style={{ position: 'absolute', top: '6px', left: '8px', fontSize: '0.68rem', fontWeight: 800, background: '#dcfce7', color: '#15803d', padding: '2px 6px', borderRadius: '4px' }}>
+                      DESPUÉS
+                    </span>
+                    {fotoDespuesPreview ? (
+                      <div style={{ position: 'relative', width: '100%', height: '110px', marginTop: '16px' }}>
+                        <img src={fotoDespuesPreview} alt="Foto Después" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '6px' }} />
+                        <button
+                          type="button"
+                          onClick={() => { setFotoDespuesFile(null); setFotoDespuesPreview(null); }}
+                          style={{ position: 'absolute', top: '4px', right: '4px', background: 'rgba(239,68,68,0.9)', color: '#ffffff', border: 'none', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                          title="Eliminar foto después"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    ) : (
+                      <label style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', textAlign: 'center', padding: '16px 4px 4px 4px', width: '100%' }}>
+                        <Camera size={24} color="var(--text-muted, #64748b)" />
+                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-success, #16a34a)' }}>Foto Después</span>
+                        <span style={{ fontSize: '0.68rem', color: 'var(--text-faint, #94a3b8)' }}>Cámara / Galería</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          capture="environment"
+                          style={{ display: 'none' }}
+                          onChange={(e) => {
+                            const file = e.target.files && e.target.files[0];
+                            if (file) {
+                              setFotoDespuesFile(file);
+                              setFotoDespuesPreview(URL.createObjectURL(file));
+                            }
+                          }}
+                        />
+                      </label>
+                    )}
+                  </div>
+                </div>
+
+                {isCompressingFotos && (
+                  <p style={{ fontSize: '0.74rem', color: 'var(--accent-aquapp, #0284c7)', marginTop: '8px', textAlign: 'center', fontWeight: 600 }}>
+                    ⚡ Optimizando y comprimiendo fotos...
+                  </p>
+                )}
+              </div>
+            )}
 
             <div className="uf-recordatorio-box">
               <label className="uf-checkbox-label">
@@ -1847,6 +2079,18 @@ const UniversalForm = () => {
           </div>
         </div>
       )}
+
+      {/* Modal Lector de Código de Barras / QR para frascos de laboratorio */}
+      <BarcodeScannerModal
+        isOpen={showBarcodeScanner}
+        onClose={() => setShowBarcodeScanner(false)}
+        mode="bottle"
+        title="Escanear Frasco de Muestra"
+        onScan={(code) => {
+          setEditCodEnvase(code);
+          window.__toast?.success(`Código de frasco escaneado: ${code}`);
+        }}
+      />
     </>
   );
 };

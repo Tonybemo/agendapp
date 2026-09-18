@@ -3060,3 +3060,141 @@
     max-width: 100%;
   }
 }
+
+/* === Registro Fotográfico Antes / Después en Tratamientos === */
+.aq-trat-photos-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+  margin-bottom: 8px;
+}
+
+.aq-trat-photo-item {
+  position: relative;
+  height: 110px;
+  border-radius: var(--radius-sm, 8px);
+  overflow: hidden;
+  border: 1px solid var(--border, #e2e8f0);
+  background: var(--bg-main, #0f172a);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.aq-trat-photo-item:hover {
+  transform: scale(1.02);
+  box-shadow: var(--shadow-md);
+}
+
+.aq-trat-photo-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.aq-photo-badge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.3px;
+  z-index: 2;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+}
+
+.aq-photo-badge.before {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+.aq-photo-badge.after {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+/* Modal Visor de Fotos Ampliadas */
+.aq-zoom-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(15, 23, 42, 0.9);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.aq-zoom-modal-content {
+  background: var(--bg-card, #ffffff);
+  border-radius: var(--radius-lg, 16px);
+  max-width: 650px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--border, #334155);
+}
+
+.aq-zoom-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  background: var(--bg-card, #ffffff);
+  border-bottom: 1px solid var(--border, #e2e8f0);
+}
+
+.aq-zoom-header h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-main, #0f172a);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.aq-zoom-close-btn {
+  background: var(--bg-main, #f1f5f9);
+  border: none;
+  border-radius: var(--radius-pill, 999px);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary, #475569);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.aq-zoom-close-btn:hover {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+.aq-zoom-body {
+  padding: 8px;
+  background: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  max-height: calc(90vh - 60px);
+}
+
+.aq-zoom-body img {
+  max-width: 100%;
+  max-height: 75vh;
+  object-fit: contain;
+  border-radius: 4px;
+}
+

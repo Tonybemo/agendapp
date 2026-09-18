@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, CalendarCheck, Droplet, MapPin, BookOpen, Clock, Menu, X, BarChart2, Calendar as CalendarIcon, Database, ArrowLeft, LogOut, LogIn, Bell, CheckCircle2, Moon, Sun, Calculator } from 'lucide-react';
+import { LayoutDashboard, CalendarCheck, Droplet, MapPin, BookOpen, Clock, Menu, X, BarChart2, Calendar as CalendarIcon, Database, ArrowLeft, LogOut, LogIn, Bell, CheckCircle2, Moon, Sun, Calculator, QrCode } from 'lucide-react';
 import UniversalForm from './UniversalForm';
 import OfflineBanner from './OfflineBanner';
+import BarcodeScannerModal from './BarcodeScannerModal';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import './Layout.css';
@@ -13,9 +14,16 @@ const Layout = ({ children }) => {
   const [allNotifications, setAllNotifications] = useState([]);
   const [showNotifPanel, setShowNotifPanel] = useState(false);
   const [showResueltos, setShowResueltos] = useState(false);
+  const [showGlobalScanner, setShowGlobalScanner] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { isAdmin, signOut } = useAuth();
+
+  useEffect(() => {
+    const handleOpenQr = () => setShowGlobalScanner(true);
+    window.addEventListener('open-qr-scanner', handleOpenQr);
+    return () => window.removeEventListener('open-qr-scanner', handleOpenQr);
+  }, []);
 
   // Dark mode state with localStorage persistence
   const [isDark, setIsDark] = useState(() => {
@@ -143,6 +151,26 @@ const Layout = ({ children }) => {
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
+  const ScannerButton = ({ size = 22 }) => (
+    <button 
+      type="button"
+      onClick={() => setShowGlobalScanner(true)}
+      style={{
+        background: 'none', 
+        border: 'none', 
+        cursor: 'pointer', 
+        padding: '8px', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        color: 'var(--text-secondary)'
+      }}
+      title="Lector QR y Código de Barras (Google Sheets, Forms, etc.)"
+    >
+      <QrCode size={size} />
+    </button>
+  );
+
   const BellButton = ({ size = 22 }) => (
     <button 
       onClick={() => setShowNotifPanel(!showNotifPanel)}
@@ -225,7 +253,8 @@ const Layout = ({ children }) => {
             </div>
           )}
           
-          <div style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
+          <div style={{display: 'flex', alignItems: 'center', gap: '2px'}}>
+            <ScannerButton size={22} />
             <BellButton size={22} />
             <button className="menu-btn" onClick={toggleSidebar}>
               {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
@@ -240,7 +269,8 @@ const Layout = ({ children }) => {
           <div className="sidebar-header">
             <div className="logo-icon">A</div>
             <h2>Agendapp</h2>
-            <div style={{marginLeft: 'auto'}}>
+            <div style={{marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '2px'}}>
+              <ScannerButton size={20} />
               <BellButton size={20} />
             </div>
           </div>
@@ -383,6 +413,14 @@ const Layout = ({ children }) => {
           </div>
         </div>
       )}
+
+      {/* Modal Lector QR / Código de Barras Global */}
+      <BarcodeScannerModal
+        isOpen={showGlobalScanner}
+        onClose={() => setShowGlobalScanner(false)}
+        mode="general"
+        title="Lector QR y Código de Barras"
+      />
     </div>
   );
 };

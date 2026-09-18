@@ -121,6 +121,26 @@ const Aquapp = () => {
     };
   };
 
+  const parseTratamientoFotos = (item) => {
+    if (!item) return { antes: null, despues: null, cleanNotas: '' };
+    let cleanNotas = item.notas || '';
+    let antes = item.foto_antes || null;
+    let despues = item.foto_despues || null;
+
+    if (cleanNotas && cleanNotas.includes('<!-- FOTOS:')) {
+      try {
+        const match = cleanNotas.match(/<!-- FOTOS:\s*(\{.*?\})\s*-->/);
+        if (match) {
+          const meta = JSON.parse(match[1]);
+          if (meta.antes) antes = meta.antes;
+          if (meta.despues) despues = meta.despues;
+          cleanNotas = cleanNotas.replace(/<!-- FOTOS:\s*\{.*?\}\s*-->/, '').trim();
+        }
+      } catch (e) {}
+    }
+    return { antes, despues, cleanNotas };
+  };
+
   const getRecordYear = (fecha) => {
     if (!fecha) return 'Desconocido';
     if (fecha.includes('/')) {
@@ -287,6 +307,7 @@ const Aquapp = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedYear, setSelectedYear] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState(null);
+  const [zoomedImage, setZoomedImage] = useState(null); // { url, title }
 
   // Accordion state
   const [expandedCategories, setExpandedCategories] = useState({});
@@ -1162,11 +1183,48 @@ const Aquapp = () => {
                           </span>
                         </div>
 
-                        {item.notas && item.notas.trim() !== '' && item.notas.trim().toLowerCase() !== 'null' && (
-                          <div className="unified-card-notes">
-                            <strong>Notas:</strong> {item.notas}
-                          </div>
-                        )}
+                        {(() => {
+                          const { antes, despues, cleanNotas } = parseTratamientoFotos(item);
+                          return (
+                            <>
+                              {cleanNotas && cleanNotas.trim() !== '' && cleanNotas.toLowerCase() !== 'null' && (
+                                <div className="unified-card-notes">
+                                  <strong>Notas:</strong> {cleanNotas}
+                                </div>
+                              )}
+                              {(antes || despues) && (
+                                <div className="aq-trat-photos-grid">
+                                  {antes && (
+                                    <div 
+                                      className="aq-trat-photo-item"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setZoomedImage({ url: antes, title: `Foto ANTES · ${item.cliente_nombre || selectedClient?.name || 'Limpieza'}` });
+                                      }}
+                                      title="Pulsar para ampliar foto Antes"
+                                    >
+                                      <span className="aq-photo-badge before">ANTES</span>
+                                      <img src={antes} alt="Foto Antes" loading="lazy" />
+                                    </div>
+                                  )}
+                                  {despues && (
+                                    <div 
+                                      className="aq-trat-photo-item"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setZoomedImage({ url: despues, title: `Foto DESPUÉS · ${item.cliente_nombre || selectedClient?.name || 'Limpieza'}` });
+                                      }}
+                                      title="Pulsar para ampliar foto Después"
+                                    >
+                                      <span className="aq-photo-badge after">DESPUÉS</span>
+                                      <img src={despues} alt="Foto Después" loading="lazy" />
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </>
+                          );
+                        })()}
 
                         <div className="unified-card-footer admin-only">
                           <button 
@@ -1511,11 +1569,48 @@ const Aquapp = () => {
             )}
           </div>
 
-          {item.notas && item.notas.trim() !== '' && item.notas.trim().toLowerCase() !== 'null' && (
-            <div className="aq-trat-notes-box">
-              <strong>Notas:</strong> {item.notas}
-            </div>
-          )}
+          {(() => {
+            const { antes, despues, cleanNotas } = parseTratamientoFotos(item);
+            return (
+              <>
+                {cleanNotas && cleanNotas.trim() !== '' && cleanNotas.toLowerCase() !== 'null' && (
+                  <div className="aq-trat-notes-box">
+                    <strong>Notas:</strong> {cleanNotas}
+                  </div>
+                )}
+                {(antes || despues) && (
+                  <div className="aq-trat-photos-grid">
+                    {antes && (
+                      <div 
+                        className="aq-trat-photo-item"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setZoomedImage({ url: antes, title: `Foto ANTES · ${item.cliente_nombre || 'Limpieza'}` });
+                        }}
+                        title="Pulsar para ampliar foto Antes"
+                      >
+                        <span className="aq-photo-badge before">ANTES</span>
+                        <img src={antes} alt="Foto Antes" loading="lazy" />
+                      </div>
+                    )}
+                    {despues && (
+                      <div 
+                        className="aq-trat-photo-item"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setZoomedImage({ url: despues, title: `Foto DESPUÉS · ${item.cliente_nombre || 'Limpieza'}` });
+                        }}
+                        title="Pulsar para ampliar foto Después"
+                      >
+                        <span className="aq-photo-badge after">DESPUÉS</span>
+                        <img src={despues} alt="Foto Después" loading="lazy" />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            );
+          })()}
 
           {/* Footer actions */}
           <div className="unified-card-footer admin-only">
@@ -2430,6 +2525,31 @@ const Aquapp = () => {
         {currentView === 'client_detail' && renderClientDetail()}
         {currentView === 'tratamiento_list' && renderTratamientoList()}
       </div>
+
+      {/* Modal Visor de Fotos Ampliadas (Antes / Después) */}
+      {zoomedImage && (
+        <div 
+          className="aq-zoom-modal-overlay animate-fade-in"
+          onClick={() => setZoomedImage(null)}
+        >
+          <div className="aq-zoom-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="aq-zoom-header">
+              <h4>{zoomedImage.title || 'Foto Ampliada'}</h4>
+              <button 
+                type="button" 
+                className="aq-zoom-close-btn"
+                onClick={() => setZoomedImage(null)}
+                title="Cerrar foto"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="aq-zoom-body">
+              <img src={zoomedImage.url} alt="Foto Ampliada" />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
