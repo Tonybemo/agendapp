@@ -120,8 +120,14 @@ const Tareasapp = () => {
   const [filter, setFilter] = useState('Todos'); // 'Todos' | 'Pendientes' | 'Completos'
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newClientData, setNewClientData] = useState({ id: '', name: '', frecuencia: 'mensual', month: 'Julio' });
+  const [newClientData, setNewClientData] = useState({ id: '', name: '', frecuencia: 'mensual', month: 'Agosto' });
+  const [planRange, setPlanRange] = useState('from_current'); // 'from_current' | 'all_year'
   const [selectedTasks, setSelectedTasks] = useState([]);
+  const [isClearMonthsModalOpen, setIsClearMonthsModalOpen] = useState(false);
+  const [selectedMonthsToClear, setSelectedMonthsToClear] = useState([
+    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio'
+  ]);
+  const [isClearing, setIsClearing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [tasksOpen, setTasksOpen] = useState(false);
   const [selectedDayFilter, setSelectedDayFilter] = useState(null);
@@ -234,7 +240,15 @@ const Tareasapp = () => {
         tareas_json: generateTasksForMonth('puntual', newClientData.month)
       });
     } else {
-      toInsert = months.map(m => ({
+      let targetMonths = months;
+      if (planRange === 'from_current') {
+        const startMonth = newClientData.month || currentMonth;
+        const curIdx = months.findIndex(m => m.id === startMonth);
+        if (curIdx >= 0) {
+          targetMonths = months.slice(curIdx);
+        }
+      }
+      toInsert = targetMonths.map(m => ({
         cliente_id: cid,
         mes: m.id,
         año: currentYear,
@@ -432,6 +446,46 @@ const Tareasapp = () => {
     if (window.confirm('¿Seguro que quieres eliminar toda la ficha de este cliente para este mes?')) {
       const { error } = await supabase.from('tareas_programadas').delete().eq('id', tareaId);
       if (!error) fetchData();
+    }
+  };
+
+  const handleConfirmClearMonths = async () => {
+    if (selectedMonthsToClear.length === 0) {
+      window.__toast?.error('Selecciona al menos un mes para vaciar.');
+      return;
+    }
+
+    const countCards = tareas.filter(t => selectedMonthsToClear.includes(t.month)).length;
+    const countTasks = tareas
+      .filter(t => selectedMonthsToClear.includes(t.month))
+      .reduce((sum, t) => sum + (t.tasks || []).length, 0);
+
+    const confirmed = window.confirm(
+      `¿Confirmas la eliminación permanente de todas las tareas de ${selectedMonthsToClear.length} meses seleccionados (${countCards} clientes y ${countTasks} tareas en total para el año ${currentYear})?\n\nEsta acción no se puede deshacer.`
+    );
+    if (!confirmed) return;
+
+    setIsClearing(true);
+    try {
+      const { error } = await supabase
+        .from('tareas_programadas')
+        .delete()
+        .eq('año', currentYear)
+        .in('mes', selectedMonthsToClear);
+
+      if (!error) {
+        window.__toast?.success(`¡Limpieza completada! Se han eliminado ${countCards} fichas de clientes.`);
+        setIsClearMonthsModalOpen(false);
+        await fetchData();
+      } else {
+        console.error('Error al vaciar meses:', error);
+        window.__toast?.error('Error al eliminar: ' + (error.message || 'Error de conexión'));
+      }
+    } catch (err) {
+      console.error(err);
+      window.__toast?.error('Error de conexión al eliminar las tareas.');
+    } finally {
+      setIsClearing(false);
     }
   };
 
@@ -974,6 +1028,30 @@ const Tareasapp = () => {
           <Plus size={20} /> Añadir Planificación
         </button>
 
+        <button 
+          type="button"
+          onClick={() => setIsClearMonthsModalOpen(true)}
+          style={{
+            background: 'rgba(239, 68, 68, 0.08)',
+            color: 'var(--color-danger, #ef4444)',
+            border: '1px dashed var(--color-danger, #ef4444)',
+            padding: '10px 16px',
+            borderRadius: '12px',
+            fontWeight: '700',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            cursor: 'pointer',
+            width: 'calc(100% - 40px)',
+            margin: '10px 20px 0 20px',
+            fontSize: '0.85rem'
+          }}
+          title="Vaciar o limpiar tareas de meses anteriores"
+        >
+          <Trash2 size={16} /> Vaciar / Limpiar Meses
+        </button>
+
       </aside>
 
       {/* Main Content Area */}
@@ -1099,6 +1177,25 @@ const Tareasapp = () => {
             >
               <FileDown size={14} style={{ marginRight: '6px' }} />
               Exportar PDF
+            </button>
+
+            {/* Clear Months Button */}
+            <button 
+              type="button"
+              className="pill-btn"
+              onClick={() => setIsClearMonthsModalOpen(true)}
+              style={{
+                background: 'rgba(239, 68, 68, 0.08)',
+                color: 'var(--color-danger, #ef4444)',
+                border: '1px solid rgba(239, 68, 68, 0.25)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+              title="Vaciar o limpiar tareas de meses anteriores"
+            >
+              <Trash2 size={14} />
+              Limpiar Meses
             </button>
           </div>
         </div>
@@ -1457,11 +1554,31 @@ const Tareasapp = () => {
                   onChange={(e) => setNewClientData({...newClientData, frecuencia: e.target.value})}
                   style={{width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--border-input)', outline: 'none', background: 'var(--bg-input)'}}
                 >
-                  <option value="mensual">Mensual Fijo (Se añade a todos los meses)</option>
+                  <option value="mensual">Mensual Fijo (Se añade a los meses)</option>
                   <option value="semanal">Semanal (Se divide en 4 semanas automáticamente)</option>
                   <option value="puntual">Puntual (Añadir solo a un mes específico)</option>
                 </select>
               </div>
+
+              {/* RANGO DE MESES (si no es puntual) */}
+              {newClientData.frecuencia !== 'puntual' && (
+                <div>
+                  <label style={{display: 'block', marginBottom: '8px', fontSize: '0.85rem', fontWeight: '700', color: 'var(--text-secondary)'}}>
+                    RANGO DE MESES A GENERAR
+                  </label>
+                  <select 
+                    value={planRange}
+                    onChange={(e) => setPlanRange(e.target.value)}
+                    style={{width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--border-input)', outline: 'none', background: 'var(--bg-input)'}}
+                  >
+                    <option value="from_current">A partir de este mes ({currentMonth}) hasta fin de año (Recomendado)</option>
+                    <option value="all_year">Todo el año completo (Enero a Diciembre)</option>
+                  </select>
+                  <p style={{fontSize: '0.78rem', color: 'var(--text-muted)', margin: '6px 0 0 0'}}>
+                    Si seleccionas a partir de este mes, no creará tareas en meses anteriores que ya pasaron.
+                  </p>
+                </div>
+              )}
 
               {/* 4. MES ESPECÍFICO (solo si puntual) */}
               {newClientData.frecuencia === 'puntual' && (
@@ -1683,6 +1800,234 @@ const Tareasapp = () => {
                 <FileDown size={17} /> Descargar PDF
               </button>
             </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Modal Vaciar / Limpiar Meses */}
+      {isClearMonthsModalOpen && createPortal(
+        <div 
+          className="modal-overlay" 
+          style={{
+            position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+            backgroundColor: 'var(--bg-modal-overlay)', backdropFilter: 'blur(4px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 9999, padding: '16px'
+          }}
+          onClick={() => !isClearing && setIsClearMonthsModalOpen(false)}
+        >
+          <div 
+            className="modal-content animate-fade-in" 
+            style={{
+              background: 'var(--bg-card)', border: '1px solid var(--border)',
+              padding: '28px', borderRadius: '24px', width: '100%', maxWidth: '580px',
+              maxHeight: '90vh', overflowY: 'auto', boxShadow: 'var(--shadow-xl)'
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px'}}>
+              <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
+                <div style={{
+                  width: '42px', height: '42px', borderRadius: '12px',
+                  background: 'rgba(239, 68, 68, 0.12)', color: 'var(--color-danger, #ef4444)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>
+                  <Trash2 size={22} />
+                </div>
+                <div>
+                  <h2 style={{margin: 0, fontSize: '1.25rem', fontWeight: '800', color: 'var(--text-main)'}}>
+                    Vaciar / Limpiar Meses
+                  </h2>
+                  <p style={{margin: '2px 0 0', fontSize: '0.8rem', color: 'var(--text-muted)'}}>
+                    Año {currentYear} · Borrado masivo de tareas planificadas
+                  </p>
+                </div>
+              </div>
+              <button 
+                onClick={() => !isClearing && setIsClearMonthsModalOpen(false)}
+                style={{background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px'}}
+                disabled={isClearing}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Information Banner */}
+            <div style={{
+              background: 'var(--bg-main)', border: '1px solid var(--border)',
+              borderRadius: '12px', padding: '12px 14px', marginBottom: '18px',
+              fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: '1.45'
+            }}>
+              💡 <strong>Limpieza rápida:</strong> Si empezaste en <strong>Agosto</strong> a usar el módulo o tienes meses anteriores con tareas de prueba que inflan tus estadísticas, márcalos aquí para eliminarlos todos a la vez sin tener que ir ficha por ficha.
+            </div>
+
+            {/* Quick Presets */}
+            <div style={{marginBottom: '16px'}}>
+              <label style={{fontSize: '0.78rem', fontWeight: '700', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '8px'}}>
+                Acciones rápidas de selección
+              </label>
+              <div style={{display: 'flex', flexWrap: 'wrap', gap: '8px'}}>
+                <button
+                  type="button"
+                  onClick={() => setSelectedMonthsToClear(['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio'])}
+                  style={{
+                    padding: '6px 12px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: '700',
+                    background: 'rgba(239, 68, 68, 0.1)', color: 'var(--color-danger, #ef4444)',
+                    border: '1px solid rgba(239, 68, 68, 0.3)', cursor: 'pointer'
+                  }}
+                >
+                  🧹 Meses antes de Agosto (Ene - Jul)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedMonthsToClear([])}
+                  style={{
+                    padding: '6px 12px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: '600',
+                    background: 'var(--bg-input)', color: 'var(--text-secondary)',
+                    border: '1px solid var(--border)', cursor: 'pointer'
+                  }}
+                >
+                  Deseleccionar todo
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedMonthsToClear(months.map(m => m.id))}
+                  style={{
+                    padding: '6px 12px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: '600',
+                    background: 'var(--bg-input)', color: 'var(--text-secondary)',
+                    border: '1px solid var(--border)', cursor: 'pointer'
+                  }}
+                >
+                  Seleccionar todos
+                </button>
+              </div>
+            </div>
+
+            {/* Months List / Grid */}
+            <div style={{marginBottom: '20px'}}>
+              <label style={{fontSize: '0.78rem', fontWeight: '700', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '8px'}}>
+                Selecciona los meses a vaciar ({selectedMonthsToClear.length} seleccionados)
+              </label>
+              <div style={{
+                display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+                gap: '8px', maxHeight: '240px', overflowY: 'auto', padding: '4px'
+              }}>
+                {months.map(m => {
+                  const isChecked = selectedMonthsToClear.includes(m.id);
+                  const countInMonth = tareas.filter(t => t.month === m.id).length;
+
+                  return (
+                    <div 
+                      key={m.id}
+                      onClick={() => {
+                        setSelectedMonthsToClear(prev => 
+                          prev.includes(m.id) ? prev.filter(x => x !== m.id) : [...prev, m.id]
+                        );
+                      }}
+                      style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        padding: '10px 12px', borderRadius: '10px',
+                        border: isChecked ? '1.5px solid var(--color-danger, #ef4444)' : '1px solid var(--border)',
+                        background: isChecked ? 'rgba(239, 68, 68, 0.06)' : 'var(--bg-input)',
+                        cursor: 'pointer', transition: 'all 0.15s'
+                      }}
+                    >
+                      <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                        <input 
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => {}} 
+                          style={{accentColor: 'var(--color-danger, #ef4444)', width: '16px', height: '16px', cursor: 'pointer'}}
+                        />
+                        <span style={{
+                          fontSize: '0.88rem', fontWeight: isChecked ? '700' : '500',
+                          color: isChecked ? 'var(--color-danger, #ef4444)' : 'var(--text-main)'
+                        }}>
+                          {m.label}
+                        </span>
+                      </div>
+                      <span style={{
+                        fontSize: '0.72rem', fontWeight: '700', padding: '2px 6px', borderRadius: '6px',
+                        background: countInMonth > 0 ? (isChecked ? 'rgba(239, 68, 68, 0.15)' : 'var(--border)') : 'transparent',
+                        color: countInMonth > 0 ? (isChecked ? 'var(--color-danger, #ef4444)' : 'var(--text-muted)') : 'var(--text-faint)'
+                      }}>
+                        {countInMonth > 0 ? `${countInMonth} cl.` : '0'}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Warning if August or later is selected */}
+            {selectedMonthsToClear.some(m => ['Agosto', 'Septiembre'].includes(m)) && (
+              <div style={{
+                background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)',
+                borderRadius: '10px', padding: '10px 14px', marginBottom: '16px',
+                fontSize: '0.8rem', color: '#b45309', display: 'flex', alignItems: 'center', gap: '8px'
+              }}>
+                <span>⚠️</span>
+                <span><strong>Atención:</strong> Has seleccionado Agosto o Septiembre. Si vacías estos meses se borrarán las tareas que ya tengas realizadas o registradas en ellos.</span>
+              </div>
+            )}
+
+            {/* Impact Summary */}
+            <div style={{
+              background: 'var(--bg-main)', borderRadius: '12px', padding: '12px 16px',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              marginBottom: '20px', border: '1px solid var(--border)'
+            }}>
+              <div>
+                <div style={{fontSize: '0.75rem', color: 'var(--text-muted)'}}>IMPACTO DE LA LIMPIEZA</div>
+                <div style={{fontSize: '0.95rem', fontWeight: '800', color: selectedMonthsToClear.length > 0 ? 'var(--color-danger, #ef4444)' : 'var(--text-main)'}}>
+                  {tareas.filter(t => selectedMonthsToClear.includes(t.month)).length} fichas de clientes a eliminar
+                </div>
+              </div>
+              <div style={{textAlign: 'right'}}>
+                <div style={{fontSize: '0.75rem', color: 'var(--text-muted)'}}>MESES AFECTADOS</div>
+                <div style={{fontSize: '0.95rem', fontWeight: '800', color: 'var(--text-main)'}}>
+                  {selectedMonthsToClear.length} de 12 meses
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div style={{display: 'flex', justifyContent: 'flex-end', gap: '10px', paddingTop: '16px', borderTop: '1px solid var(--border)'}}>
+              <button 
+                type="button"
+                onClick={() => setIsClearMonthsModalOpen(false)}
+                disabled={isClearing}
+                style={{
+                  padding: '10px 18px', borderRadius: '12px', border: '1px solid var(--border)',
+                  background: 'var(--bg-input)', color: 'var(--text-secondary)',
+                  fontWeight: '700', fontSize: '0.88rem', cursor: isClearing ? 'not-allowed' : 'pointer'
+                }}
+              >
+                Cancelar
+              </button>
+              <button 
+                type="button"
+                onClick={handleConfirmClearMonths}
+                disabled={selectedMonthsToClear.length === 0 || isClearing}
+                style={{
+                  padding: '10px 22px', borderRadius: '12px', border: 'none',
+                  background: selectedMonthsToClear.length === 0 ? 'var(--border)' : 'var(--color-danger, #ef4444)',
+                  color: '#ffffff', fontWeight: '700', fontSize: '0.88rem',
+                  cursor: (selectedMonthsToClear.length === 0 || isClearing) ? 'not-allowed' : 'pointer',
+                  display: 'flex', alignItems: 'center', gap: '8px',
+                  boxShadow: selectedMonthsToClear.length > 0 ? '0 4px 12px rgba(239, 68, 68, 0.3)' : 'none'
+                }}
+              >
+                <Trash2 size={16} />
+                {isClearing 
+                  ? 'Borrando...' 
+                  : `Vaciar ${selectedMonthsToClear.length} ${selectedMonthsToClear.length === 1 ? 'mes' : 'meses'}`
+                }
+              </button>
+            </div>
+
           </div>
         </div>,
         document.body
