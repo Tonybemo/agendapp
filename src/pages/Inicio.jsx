@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Droplet, MapPin, Briefcase, BookOpen, CalendarCheck, ChevronRight, BarChart2, Calendar, LayoutDashboard, Settings, Search, User, X, Calculator } from 'lucide-react';
+import { Droplet, MapPin, Briefcase, BookOpen, CalendarCheck, ChevronRight, BarChart2, Calendar, LayoutDashboard, Settings, Search, User, X, Calculator, Navigation } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { openMapsForClient } from '../utils/navigation';
 import './Dashboard.css';
 
 const MONTH_NAMES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
@@ -45,9 +46,9 @@ const Inicio = () => {
       setIsSearching(true);
       const { data } = await supabase
         .from('clientes')
-        .select('id, name')
+        .select('id, name, address, contact')
         .ilike('name', `%${searchQuery}%`)
-        .limit(5);
+        .limit(6);
       setSearchResults(data || []);
       setIsSearching(false);
     };
@@ -258,20 +259,46 @@ const Inicio = () => {
               ) : searchResults.length === 0 ? (
                 <div style={{padding: '16px', textAlign: 'center', color: 'var(--text-muted)'}}>No se encontraron clientes</div>
               ) : (
-                searchResults.map(c => (
-                  <div key={c.id} 
-                    onClick={() => handleSelectClient(c)}
-                    style={{
-                      padding: '14px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center',
-                      borderBottom: '1px solid var(--border-light)', background: 'var(--bg-card)'
-                    }}
-                    onMouseOver={(e) => e.currentTarget.style.background = 'var(--bg-card-hover)'}
-                    onMouseOut={(e) => e.currentTarget.style.background = 'var(--bg-card)'}
-                  >
-                    <User size={18} color="var(--text-muted)" style={{marginRight: '12px'}} />
-                    <span style={{fontWeight: '600', color: 'var(--text-main)'}}>{c.name}</span>
-                  </div>
-                ))
+                  searchResults.map(c => (
+                    <div key={c.id} 
+                      onClick={() => handleSelectClient(c)}
+                      style={{
+                        padding: '14px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        borderBottom: '1px solid var(--border-light)', background: 'var(--bg-card)'
+                      }}
+                      onMouseOver={(e) => e.currentTarget.style.background = 'var(--bg-card-hover)'}
+                      onMouseOut={(e) => e.currentTarget.style.background = 'var(--bg-card)'}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <User size={18} color="var(--text-muted)" style={{marginRight: '12px'}} />
+                        <span style={{fontWeight: '600', color: 'var(--text-main)'}}>{c.name}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openMapsForClient(c.name, c.address);
+                        }}
+                        style={{
+                          background: 'rgba(2, 132, 199, 0.1)',
+                          border: '1px solid rgba(2, 132, 199, 0.25)',
+                          borderRadius: '8px',
+                          padding: '6px 12px',
+                          color: '#0284c7',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          fontSize: '0.78rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease'
+                        }}
+                        title={`Cómo llegar a ${c.name} en Google Maps`}
+                      >
+                        <Navigation size={13} /> Cómo llegar
+                      </button>
+                    </div>
+                  ))
               )}
             </div>
           )}
@@ -318,10 +345,34 @@ const Inicio = () => {
               justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0,
               background: 'var(--bg-card)', zIndex: 10, borderRadius: 'var(--radius-lg) var(--radius-lg) 0 0'
             }}>
-              <h2 style={{margin: 0, fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '10px'}}>
-                <User size={24} color="var(--accent-aquapp)" />
-                {selectedClient.name}
-              </h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+                <h2 style={{margin: 0, fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '10px'}}>
+                  <User size={24} color="var(--accent-aquapp)" />
+                  {selectedClient.name}
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => openMapsForClient(selectedClient.name, selectedClient.address)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '6px 14px',
+                    background: 'linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%)',
+                    color: '#ffffff',
+                    borderRadius: '999px',
+                    border: 'none',
+                    fontWeight: 700,
+                    fontSize: '0.8rem',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 6px rgba(14, 165, 233, 0.35)',
+                    transition: 'all 0.15s ease'
+                  }}
+                  title={`Iniciar ruta hacia ${selectedClient.name} en Google Maps o Waze`}
+                >
+                  <Navigation size={14} /> Cómo llegar
+                </button>
+              </div>
               <button onClick={() => setSelectedClient(null)} style={{background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)'}}><X size={24}/></button>
             </div>
             

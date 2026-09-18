@@ -3,12 +3,13 @@ import { createPortal } from 'react-dom';
 import { 
   CheckCircle2, Circle, Edit3, Trash2, Plus, Search, 
   Settings, MessageSquare, MoreVertical, LayoutGrid, Calendar as CalendarIcon,
-  MinusCircle, X, FileDown, FileText, Check
+  MinusCircle, X, FileDown, FileText, Check, Navigation
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { mockTareas, months } from '../data/mockTareas';
 import { supabase } from '../lib/supabase';
+import { openMapsForClient } from '../utils/navigation';
 import './Tareasapp.css';
 
 // Mini Calendar Component for filtering tasks by completed day
@@ -1213,6 +1214,22 @@ const Tareasapp = () => {
                               <h4 className="tf-day-client-title" title={c.clientName}>{c.clientName}</h4>
                               <span className="tf-day-client-count">{c.tasks.length} {c.tasks.length === 1 ? 'actuación' : 'actuaciones'}</span>
                             </div>
+                            <button
+                              type="button"
+                              onClick={() => openMapsForClient(c.clientName)}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer',
+                                padding: '4px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                color: '#0284c7'
+                              }}
+                              title={`Cómo llegar a ${c.clientName} (Google Maps / Waze)`}
+                            >
+                              <Navigation size={15} />
+                            </button>
                             {c.notas && (
                               <div title={c.notas} style={{ cursor: 'help' }}>
                                 <MessageSquare size={16} color="var(--color-danger)" />
@@ -1268,6 +1285,22 @@ const Tareasapp = () => {
                       </p>
                     </div>
                     <div className="tf-card-actions">
+                      <button
+                        type="button"
+                        onClick={() => openMapsForClient(tarea.clientName)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          padding: '2px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          color: '#0284c7'
+                        }}
+                        title={`Cómo llegar a ${tarea.clientName} (Google Maps / Waze)`}
+                      >
+                        <Navigation size={16} />
+                      </button>
                       <MessageSquare size={16} color={tarea.notas ? "var(--color-danger)" : "var(--text-faint)"} style={{cursor: 'pointer'}} onClick={() => addNote(tarea.id)}/>
                       <MoreVertical size={16} color="var(--text-faint)" style={{cursor: 'pointer'}} onClick={() => deleteCard(tarea.id)}/>
                     </div>

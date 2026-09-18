@@ -2,12 +2,13 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   Droplet, Lock, Bell, Settings, WifiOff, Home, 
   Wind, Thermometer, Calendar, Search, ChevronDown, ChevronUp, ChevronRight,
-  FlaskConical, Factory, SprayCan, Edit3, Trash2, Clock, Plus, PlusCircle, BookOpen, Bug, Box, Download, BarChart2, CheckCircle2, Zap, Waves, Folder, X
+  FlaskConical, Factory, SprayCan, Edit3, Trash2, Clock, Plus, PlusCircle, BookOpen, Bug, Box, Download, BarChart2, CheckCircle2, Zap, Waves, Folder, X, Navigation
 } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip as RechartsTooltip, CartesianGrid, ReferenceDot } from 'recharts';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { openMapsForClient } from '../utils/navigation';
 import './Aquapp.css';
 
 const IconMap = {
@@ -1007,6 +1008,29 @@ const Aquapp = () => {
               <p className="aq-detail-hero-address">{selectedClient.address}</p>
             )}
           </div>
+          <button
+            type="button"
+            onClick={() => openMapsForClient(selectedClient.name, selectedClient.address)}
+            style={{
+              marginLeft: 'auto',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 14px',
+              background: 'linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%)',
+              color: '#ffffff',
+              borderRadius: '999px',
+              border: 'none',
+              fontWeight: 700,
+              fontSize: '0.82rem',
+              cursor: 'pointer',
+              boxShadow: '0 2px 6px rgba(14, 165, 233, 0.3)',
+              flexShrink: 0
+            }}
+            title={`Iniciar ruta hacia ${selectedClient.name} (Google Maps / Waze)`}
+          >
+            <Navigation size={14} /> Cómo llegar
+          </button>
         </div>
 
         {loading ? (
