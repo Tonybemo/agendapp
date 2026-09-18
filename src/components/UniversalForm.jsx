@@ -1778,13 +1778,13 @@ const UniversalForm = () => {
 
                 <div className="uf-grid-2" style={{ gap: '10px' }}>
                   {/* Foto ANTES */}
-                  <div style={{ background: 'var(--bg-card, #ffffff)', border: '1px dashed var(--border, #cbd5e1)', borderRadius: '10px', padding: '10px', display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '130px', justifyContent: 'center', position: 'relative' }}>
-                    <span style={{ position: 'absolute', top: '6px', left: '8px', fontSize: '0.68rem', fontWeight: 800, background: '#fee2e2', color: '#b91c1c', padding: '2px 6px', borderRadius: '4px' }}>
+                  <div style={{ background: 'var(--bg-card, #ffffff)', border: '1px dashed var(--border, #cbd5e1)', borderRadius: '12px', padding: '12px 10px', display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '140px', justifyContent: 'center', position: 'relative' }}>
+                    <span style={{ position: 'absolute', top: '8px', left: '8px', fontSize: '0.68rem', fontWeight: 800, background: '#fee2e2', color: '#b91c1c', padding: '2px 6px', borderRadius: '4px' }}>
                       ANTES
                     </span>
                     {fotoAntesPreview ? (
-                      <div style={{ position: 'relative', width: '100%', height: '110px', marginTop: '16px' }}>
-                        <img src={fotoAntesPreview} alt="Foto Antes" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '6px' }} />
+                      <div style={{ position: 'relative', width: '100%', height: '115px', marginTop: '14px' }}>
+                        <img src={fotoAntesPreview} alt="Foto Antes" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
                         <button
                           type="button"
                           onClick={() => { setFotoAntesFile(null); setFotoAntesPreview(null); }}
@@ -1795,35 +1795,55 @@ const UniversalForm = () => {
                         </button>
                       </div>
                     ) : (
-                      <label style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', textAlign: 'center', padding: '16px 4px 4px 4px', width: '100%' }}>
-                        <Camera size={24} color="var(--text-muted, #64748b)" />
-                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--accent-aquapp, #0284c7)' }}>Foto Antes</span>
-                        <span style={{ fontSize: '0.68rem', color: 'var(--text-faint, #94a3b8)' }}>Cámara / Galería</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          capture="environment"
-                          style={{ display: 'none' }}
-                          onChange={(e) => {
-                            const file = e.target.files && e.target.files[0];
-                            if (file) {
-                              setFotoAntesFile(file);
-                              setFotoAntesPreview(URL.createObjectURL(file));
-                            }
-                          }}
-                        />
-                      </label>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', gap: '8px', marginTop: '18px' }}>
+                        {/* Hacer Foto con la Cámara */}
+                        <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: 'rgba(2, 132, 199, 0.08)', color: 'var(--accent-aquapp, #0284c7)', border: '1px solid rgba(2, 132, 199, 0.25)', borderRadius: '8px', padding: '8px 10px', width: '100%', fontSize: '0.76rem', fontWeight: 700 }}>
+                          <Camera size={15} />
+                          <span>Hacer Foto</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            capture="environment"
+                            style={{ display: 'none' }}
+                            onChange={(e) => {
+                              const file = e.target.files && e.target.files[0];
+                              if (file) {
+                                setFotoAntesFile(file);
+                                setFotoAntesPreview(URL.createObjectURL(file));
+                              }
+                            }}
+                          />
+                        </label>
+
+                        {/* Elegir de la Galería */}
+                        <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: 'var(--bg-main, #f1f5f9)', color: 'var(--text-secondary, #475569)', border: '1px solid var(--border, #cbd5e1)', borderRadius: '8px', padding: '8px 10px', width: '100%', fontSize: '0.76rem', fontWeight: 700 }}>
+                          <ImageIcon size={15} />
+                          <span>Galería</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            style={{ display: 'none' }}
+                            onChange={(e) => {
+                              const file = e.target.files && e.target.files[0];
+                              if (file) {
+                                setFotoAntesFile(file);
+                                setFotoAntesPreview(URL.createObjectURL(file));
+                              }
+                            }}
+                          />
+                        </label>
+                      </div>
                     )}
                   </div>
 
                   {/* Foto DESPUÉS */}
-                  <div style={{ background: 'var(--bg-card, #ffffff)', border: '1px dashed var(--border, #cbd5e1)', borderRadius: '10px', padding: '10px', display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '130px', justifyContent: 'center', position: 'relative' }}>
-                    <span style={{ position: 'absolute', top: '6px', left: '8px', fontSize: '0.68rem', fontWeight: 800, background: '#dcfce7', color: '#15803d', padding: '2px 6px', borderRadius: '4px' }}>
+                  <div style={{ background: 'var(--bg-card, #ffffff)', border: '1px dashed var(--border, #cbd5e1)', borderRadius: '12px', padding: '12px 10px', display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '140px', justifyContent: 'center', position: 'relative' }}>
+                    <span style={{ position: 'absolute', top: '8px', left: '8px', fontSize: '0.68rem', fontWeight: 800, background: '#dcfce7', color: '#15803d', padding: '2px 6px', borderRadius: '4px' }}>
                       DESPUÉS
                     </span>
                     {fotoDespuesPreview ? (
-                      <div style={{ position: 'relative', width: '100%', height: '110px', marginTop: '16px' }}>
-                        <img src={fotoDespuesPreview} alt="Foto Después" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '6px' }} />
+                      <div style={{ position: 'relative', width: '100%', height: '115px', marginTop: '14px' }}>
+                        <img src={fotoDespuesPreview} alt="Foto Después" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
                         <button
                           type="button"
                           onClick={() => { setFotoDespuesFile(null); setFotoDespuesPreview(null); }}
@@ -1834,24 +1854,44 @@ const UniversalForm = () => {
                         </button>
                       </div>
                     ) : (
-                      <label style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', textAlign: 'center', padding: '16px 4px 4px 4px', width: '100%' }}>
-                        <Camera size={24} color="var(--text-muted, #64748b)" />
-                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-success, #16a34a)' }}>Foto Después</span>
-                        <span style={{ fontSize: '0.68rem', color: 'var(--text-faint, #94a3b8)' }}>Cámara / Galería</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          capture="environment"
-                          style={{ display: 'none' }}
-                          onChange={(e) => {
-                            const file = e.target.files && e.target.files[0];
-                            if (file) {
-                              setFotoDespuesFile(file);
-                              setFotoDespuesPreview(URL.createObjectURL(file));
-                            }
-                          }}
-                        />
-                      </label>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', gap: '8px', marginTop: '18px' }}>
+                        {/* Hacer Foto con la Cámara */}
+                        <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: 'rgba(22, 163, 74, 0.08)', color: 'var(--color-success, #16a34a)', border: '1px solid rgba(22, 163, 74, 0.25)', borderRadius: '8px', padding: '8px 10px', width: '100%', fontSize: '0.76rem', fontWeight: 700 }}>
+                          <Camera size={15} />
+                          <span>Hacer Foto</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            capture="environment"
+                            style={{ display: 'none' }}
+                            onChange={(e) => {
+                              const file = e.target.files && e.target.files[0];
+                              if (file) {
+                                setFotoDespuesFile(file);
+                                setFotoDespuesPreview(URL.createObjectURL(file));
+                              }
+                            }}
+                          />
+                        </label>
+
+                        {/* Elegir de la Galería */}
+                        <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: 'var(--bg-main, #f1f5f9)', color: 'var(--text-secondary, #475569)', border: '1px solid var(--border, #cbd5e1)', borderRadius: '8px', padding: '8px 10px', width: '100%', fontSize: '0.76rem', fontWeight: 700 }}>
+                          <ImageIcon size={15} />
+                          <span>Galería</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            style={{ display: 'none' }}
+                            onChange={(e) => {
+                              const file = e.target.files && e.target.files[0];
+                              if (file) {
+                                setFotoDespuesFile(file);
+                                setFotoDespuesPreview(URL.createObjectURL(file));
+                              }
+                            }}
+                          />
+                        </label>
+                      </div>
                     )}
                   </div>
                 </div>
