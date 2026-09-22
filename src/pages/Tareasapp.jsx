@@ -3,7 +3,8 @@ import { createPortal } from 'react-dom';
 import { 
   CheckCircle2, Circle, Edit3, Trash2, Plus, Search, 
   Settings, MessageSquare, MoreVertical, LayoutGrid, Calendar as CalendarIcon,
-  MinusCircle, X, FileDown, FileText, Check, Navigation
+  MinusCircle, X, FileDown, FileText, Check, Navigation,
+  ArrowDownAZ, ArrowUpZA
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -137,6 +138,9 @@ const Tareasapp = () => {
   const [exportDay, setExportDay] = useState(1);
   const [exportIncludePending, setExportIncludePending] = useState(false);
   const [activeView, setActiveView] = useState('clientes'); // 'clientes' | 'dias'
+  const [clientSortOrder, setClientSortOrder] = useState(() => {
+    return localStorage.getItem('tareas_client_sort_order') || 'az';
+  });
 
   // Reset day filter when month or year changes
   React.useEffect(() => {
@@ -934,37 +938,48 @@ const Tareasapp = () => {
   const pendientesCount = totalActuaciones - actuacionesCompletadas;
   const globalProgress = totalActuaciones === 0 ? 0 : Math.round((actuacionesCompletadas / totalActuaciones) * 100);
 
-  // Apply visual filter, day filter, and search
-  const currentTareas = tareasDelMes.filter(t => {
-    // 1. Search filter
-    if (searchQuery && !t.clientName.toLowerCase().includes(searchQuery.toLowerCase()) && !t.tasks.some(task => task.name.toLowerCase().includes(searchQuery.toLowerCase()))) {
-      return false;
-    }
-
-    // 2. Day filter (if a specific day is clicked in mini calendar)
-    if (selectedDayFilter) {
-      const hasTaskOnDay = t.tasks.some(task => {
-        if (task.status !== 'completed' || !task.date) return false;
-        const cleanDate = task.date.replace(/-/g, '/');
-        const parts = cleanDate.split('/');
-        if (parts.length === 3) {
-          const d = parseInt(parts[0], 10);
-          const m = parseInt(parts[1], 10) - 1;
-          const y = parseInt(parts[2], 10);
-          return d === selectedDayFilter && m === monthIdx && (!y || y === currentYear);
+  // Apply visual filter, day filter, search, and alphabetical client sorting
+  const currentTareas = useMemo(() => {
+    return tareasDelMes
+      .filter(t => {
+        // 1. Search filter
+        if (searchQuery && !t.clientName.toLowerCase().includes(searchQuery.toLowerCase()) && !t.tasks.some(task => task.name.toLowerCase().includes(searchQuery.toLowerCase()))) {
+          return false;
         }
-        return false;
+
+        // 2. Day filter (if a specific day is clicked in mini calendar)
+        if (selectedDayFilter) {
+          const hasTaskOnDay = t.tasks.some(task => {
+            if (task.status !== 'completed' || !task.date) return false;
+            const cleanDate = task.date.replace(/-/g, '/');
+            const parts = cleanDate.split('/');
+            if (parts.length === 3) {
+              const d = parseInt(parts[0], 10);
+              const m = parseInt(parts[1], 10) - 1;
+              const y = parseInt(parts[2], 10);
+              return d === selectedDayFilter && m === monthIdx && (!y || y === currentYear);
+            }
+            return false;
+          });
+          if (!hasTaskOnDay) return false;
+        }
+        
+        // 3. Status filter
+        if (filter === 'Todos') return true;
+        const isCompleted = getProgressInfo(t).percentage === 100;
+        if (filter === 'Completos') return isCompleted;
+        if (filter === 'Pendientes') return !isCompleted;
+        return true;
+      })
+      .sort((a, b) => {
+        const nameA = a.clientName || '';
+        const nameB = b.clientName || '';
+        if (clientSortOrder === 'za') {
+          return nameB.localeCompare(nameA, 'es', { sensitivity: 'base', numeric: true });
+        }
+        return nameA.localeCompare(nameB, 'es', { sensitivity: 'base', numeric: true });
       });
-      if (!hasTaskOnDay) return false;
-    }
-    
-    // 3. Status filter
-    if (filter === 'Todos') return true;
-    const isCompleted = getProgressInfo(t).percentage === 100;
-    if (filter === 'Completos') return isCompleted;
-    if (filter === 'Pendientes') return !isCompleted;
-    return true;
-  });
+  }, [tareasDelMes, searchQuery, selectedDayFilter, monthIdx, currentYear, filter, clientSortOrder]);
 
   return (
     <div className="taskflow-container animate-fade-in">
@@ -1141,6 +1156,32 @@ const Tareasapp = () => {
                   onClick={() => setFilter('Completos')}
                 >
                   Completos ({completadosCount})
+                </button>
+                <button
+                  type="button"
+                  className={`pill-btn btn-sort-tareas ${clientSortOrder ? 'active-az' : ''}`}
+                  onClick={() => {
+                    const next = clientSortOrder === 'az' ? 'za' : 'az';
+                    setClientSortOrder(next);
+                    localStorage.setItem('tareas_client_sort_order', next);
+                  }}
+                  title={
+                    clientSortOrder === 'az'
+                      ? 'Orden alfabético A-Z por cliente. Clic para cambiar a Z-A'
+                      : 'Orden alfabético Z-A por cliente. Clic para cambiar a A-Z'
+                  }
+                >
+                  {clientSortOrder === 'za' ? (
+                    <>
+                      <ArrowUpZA size={15} />
+                      <span>Z-A</span>
+                    </>
+                  ) : (
+                    <>
+                      <ArrowDownAZ size={15} />
+                      <span>A-Z</span>
+                    </>
+                  )}
                 </button>
               </>
             )}

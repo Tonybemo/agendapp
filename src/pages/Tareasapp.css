@@ -359,6 +359,31 @@
   transform: translateY(-1px);
 }
 
+.btn-sort-tareas {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.btn-sort-tareas:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-main);
+  border-color: var(--border-hover, var(--border));
+}
+
+.btn-sort-tareas.active-az {
+  background: rgba(79, 70, 229, 0.08);
+  color: var(--accent-tareas, #4f46e5);
+  border-color: rgba(79, 70, 229, 0.35);
+  font-weight: 700;
+}
+
 .icon-btn-settings {
   display: flex;
   align-items: center;
