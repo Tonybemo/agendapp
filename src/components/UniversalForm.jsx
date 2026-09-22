@@ -542,7 +542,12 @@ const UniversalForm = () => {
       fechaGuardar = `${parts[2]}/${parts[1]}/${parts[0]}`;
     }
 
+    const clientGeneratedId = (editingItem && editingItem.editType === 'muestra')
+      ? editingItem.id
+      : (window.crypto?.randomUUID ? window.crypto.randomUUID() : ('sample_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9)));
+
     const record = {
+      id: clientGeneratedId,
       cliente_id: clienteId || null,
       cliente_nombre: clienteNombre,
       tipo_muestra: tipoMuestra,
@@ -566,6 +571,15 @@ const UniversalForm = () => {
       mat_a_4170: data.mat_a_4170
     };
 
+    // Actualizar caché de correlatividad local
+    try {
+      const cacheKey = `last_muestra_count_${clienteId || clienteNombre}_${fechaGuardar}_${tipoMuestra}`;
+      const numMatch = (data.numero_muestra || '').match(/\d+/);
+      const savedNum = numMatch ? parseInt(numMatch[0], 10) : 1;
+      const prevCount = parseInt(localStorage.getItem(cacheKey) || '0', 10);
+      localStorage.setItem(cacheKey, String(Math.max(prevCount, savedNum)));
+    } catch (e) {}
+
     // 1. Si no hay conexión o se está en modo offline directo
     if (!navigator.onLine && !editingItem) {
       saveOfflineRecord(QUEUE_MUESTRAS_KEY, record);
@@ -583,7 +597,7 @@ const UniversalForm = () => {
         if (editingItem && editingItem.editType === 'muestra') {
           query = query.neq('id', editingItem.id);
         }
-        const { data: existing } = await withTimeout(query, 2500);
+        const { data: existing } = await withTimeout(query, 3000);
         if (existing && existing.length > 0) {
           window.__toast?.error(`El código de envase ${data.cod_envase} ya existe (Cliente: ${existing[0].cliente_nombre || 'Desconocido'}). Por favor revisa.`);
           setIsSaving(false);
@@ -608,9 +622,9 @@ const UniversalForm = () => {
     try {
       let res;
       if (editingItem && editingItem.editType === 'muestra') {
-        res = await withTimeout(supabase.from('aquapp_muestras').update(record).eq('id', editingItem.id), 3500);
+        res = await withTimeout(supabase.from('aquapp_muestras').update(record).eq('id', editingItem.id), 7500);
       } else {
-        res = await withTimeout(supabase.from('aquapp_muestras').insert([record]), 3500);
+        res = await withTimeout(supabase.from('aquapp_muestras').insert([record]), 7500);
       }
       if (res?.error) {
         error = res.error;
@@ -1024,50 +1038,74 @@ const UniversalForm = () => {
     if (tipoMuestra === "Piscina") prefijo = "Piscina";
     if (tipoMuestra === "Jacuzzi") prefijo = "Jacuzzi";
 
-    if (!selectedClienteId) {
-      setSugerenciaMuestra(`${prefijo} 1`);
+    let fechaBusqueda = selectedFecha;
+    if (fechaBusqueda && fechaBusqueda.includes('-')) {
+      const parts = fechaBusqueda.split('-');
+      fechaBusqueda = `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+
+    const clientKey = selectedClienteId || customClienteName || 'default';
+    const cacheKey = `last_muestra_count_${clientKey}_${fechaBusqueda}_${tipoMuestra}`;
+    const localCachedCount = parseInt(localStorage.getItem(cacheKey) || '0', 10);
+
+    // Contar muestras offline pendientes en el móvil para este cliente y fecha
+    const offlineQueue = getOfflineQueue(QUEUE_MUESTRAS_KEY);
+    const offlineCount = offlineQueue.filter(m => 
+      (m.cliente_id === selectedClienteId || (m.cliente_nombre && m.cliente_nombre.toLowerCase() === (customClienteName || '').toLowerCase())) && 
+      m.fecha === fechaBusqueda && 
+      m.tipo_muestra === tipoMuestra
+    ).length;
+
+    // Base garantizada local para que NUNCA empiece en Muestra 1 si ya se han tomado muestras en esta sesión
+    const baseCount = Math.max(localCachedCount, offlineCount);
+    setSugerenciaMuestra(`${prefijo} ${baseCount + 1}`);
+
+    if (!selectedClienteId && !customClienteName) {
       return;
     }
 
     const fetchSugerencia = async () => {
-      let fechaBusqueda = selectedFecha;
-      if (fechaBusqueda && fechaBusqueda.includes('-')) {
-        const parts = fechaBusqueda.split('-');
-        fechaBusqueda = `${parts[2]}/${parts[1]}/${parts[0]}`;
-      }
-
-      // Contar muestras offline pendientes en el móvil para este cliente y fecha
-      const offlineQueue = getOfflineQueue(QUEUE_MUESTRAS_KEY);
-      const offlineCount = offlineQueue.filter(m => 
-        m.cliente_id === selectedClienteId && 
-        m.fecha === fechaBusqueda && 
-        m.tipo_muestra === tipoMuestra
-      ).length;
-
       try {
-        const { data } = await withTimeout(
-          supabase
-            .from('aquapp_muestras')
-            .select('id')
-            .eq('cliente_id', selectedClienteId)
-            .eq('fecha', fechaBusqueda)
-            .eq('tipo_muestra', tipoMuestra),
-          2500
-        );
+        let q = supabase
+          .from('aquapp_muestras')
+          .select('id, numero_muestra')
+          .eq('fecha', fechaBusqueda)
+          .eq('tipo_muestra', tipoMuestra);
+
+        if (selectedClienteId && selectedClienteId !== '_custom_') {
+          q = q.eq('cliente_id', selectedClienteId);
+        } else if (customClienteName) {
+          q = q.eq('cliente_nombre', customClienteName);
+        }
+
+        const { data } = await withTimeout(q, 3500);
         
-        if (data) {
-          setSugerenciaMuestra(`${prefijo} ${data.length + offlineCount + 1}`);
+        if (data && data.length > 0) {
+          let maxExisting = data.length;
+          data.forEach(d => {
+            const m = (d.numero_muestra || '').match(/\d+/);
+            if (m) {
+              const val = parseInt(m[0], 10);
+              if (val > maxExisting) maxExisting = val;
+            }
+          });
+          const totalCalculated = Math.max(maxExisting, data.length, baseCount) + offlineCount;
+          setSugerenciaMuestra(`${prefijo} ${totalCalculated + 1}`);
+          try {
+            localStorage.setItem(cacheKey, String(totalCalculated));
+          } catch (e) {}
         } else {
-          setSugerenciaMuestra(`${prefijo} ${offlineCount + 1}`);
+          setSugerenciaMuestra(`${prefijo} ${baseCount + 1}`);
         }
       } catch (err) {
-        setSugerenciaMuestra(`${prefijo} ${offlineCount + 1}`);
+        // En caso de fallo de red / timeout en sótano, MANTENER baseCount
+        setSugerenciaMuestra(`${prefijo} ${baseCount + 1}`);
       }
     };
     if (isOpen) {
       fetchSugerencia();
     }
-  }, [selectedClienteId, tipoMuestra, selectedFecha, isOpen]);
+  }, [selectedClienteId, customClienteName, tipoMuestra, selectedFecha, isOpen]);
 
   useEffect(() => {
     const handleOpenEvent = (e) => {

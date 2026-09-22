@@ -1,7 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
-import { X, Flashlight, Camera, Image, ExternalLink, Copy, Check, AlertCircle, RefreshCw } from 'lucide-react';
+import { X, Flashlight, Camera, Image, ExternalLink, Copy, Check, AlertCircle, RefreshCw, ZoomIn } from 'lucide-react';
 import './BarcodeScannerModal.css';
+
+const ALL_SUPPORTED_FORMATS = [
+  Html5QrcodeSupportedFormats.QR_CODE,
+  Html5QrcodeSupportedFormats.CODE_128,
+  Html5QrcodeSupportedFormats.CODE_39,
+  Html5QrcodeSupportedFormats.CODE_93,
+  Html5QrcodeSupportedFormats.CODABAR,
+  Html5QrcodeSupportedFormats.EAN_13,
+  Html5QrcodeSupportedFormats.EAN_8,
+  Html5QrcodeSupportedFormats.ITF,
+  Html5QrcodeSupportedFormats.UPC_A,
+  Html5QrcodeSupportedFormats.UPC_E,
+  Html5QrcodeSupportedFormats.UPC_EAN_EXTENSION,
+  Html5QrcodeSupportedFormats.DATA_MATRIX,
+  Html5QrcodeSupportedFormats.AZTEC,
+  Html5QrcodeSupportedFormats.PDF_417
+].filter(Boolean);
 
 export default function BarcodeScannerModal({
   isOpen,
@@ -13,11 +30,14 @@ export default function BarcodeScannerModal({
   const [cameraError, setCameraError] = useState(null);
   const [torchOn, setTorchOn] = useState(false);
   const [torchSupported, setTorchSupported] = useState(false);
+  const [zoomSupported, setZoomSupported] = useState(false);
+  const [currentZoom, setCurrentZoom] = useState(1);
   const [cameras, setCameras] = useState([]);
   const [selectedCameraId, setSelectedCameraId] = useState(null);
   const [scannedResult, setScannedResult] = useState(null);
   const [copied, setCopied] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
+  const [manualCode, setManualCode] = useState('');
 
   const scannerRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -91,17 +111,10 @@ export default function BarcodeScannerModal({
       await stopScanner();
 
       const html5QrCode = new Html5Qrcode('barcode-reader-viewport', {
-        formatsToSupport: [
-          Html5QrcodeSupportedFormats.QR_CODE,
-          Html5QrcodeSupportedFormats.CODE_128,
-          Html5QrcodeSupportedFormats.CODE_39,
-          Html5QrcodeSupportedFormats.EAN_13,
-          Html5QrcodeSupportedFormats.EAN_8,
-          Html5QrcodeSupportedFormats.UPC_A,
-          Html5QrcodeSupportedFormats.UPC_E,
-          Html5QrcodeSupportedFormats.ITF,
-          Html5QrcodeSupportedFormats.DATA_MATRIX
-        ],
+        formatsToSupport: ALL_SUPPORTED_FORMATS,
+        experimentalFeatures: {
+          useBarCodeDetectorIfSupported: true
+        },
         verbose: false
       });
       scannerRef.current = html5QrCode;
@@ -114,13 +127,13 @@ export default function BarcodeScannerModal({
         }
       } catch (e) {}
 
-      // Configuración de escaneo optimizada para frascos y códigos 1D horizontales
+      // Configuración de escaneo optimizada para frascos, etiquetas de laboratorio y códigos 1D/2D
       const config = {
-        fps: 20,
+        fps: 25,
         qrbox: (viewfinderWidth, viewfinderHeight) => {
-          // Ventana rectangular horizontal perfecta para códigos de barras de frascos y QR
-          const width = Math.min(viewfinderWidth * 0.85, 320);
-          const height = Math.min(viewfinderHeight * 0.65, 220);
+          // Ventana amplia que no recorta códigos largos ni etiquetas cuadradas
+          const width = Math.min(viewfinderWidth * 0.90, 380);
+          const height = Math.min(viewfinderHeight * 0.70, 260);
           return { width: Math.round(width), height: Math.round(height) };
         },
         aspectRatio: 1.3333
@@ -128,22 +141,29 @@ export default function BarcodeScannerModal({
 
       const cameraSource = cameraIdToUse
         ? { deviceId: { exact: cameraIdToUse } }
-        : { facingMode: 'environment' };
+        : { 
+            facingMode: 'environment',
+            width: { min: 640, ideal: 1280, max: 1920 },
+            height: { min: 480, ideal: 720, max: 1080 }
+          };
 
       await html5QrCode.start(
         cameraSource,
         config,
         (decodedText) => handleScanSuccess(decodedText),
-        () => {} // Ignorar errores de frame sin código
+        () => {} // Ignorar frames intermedios
       );
 
       setIsScanning(true);
 
-      // Comprobar soporte de linterna / flash
+      // Comprobar soporte de linterna y zoom óptico/digital en la cámara
       try {
         const capabilities = html5QrCode.getRunningTrackCapabilities();
         if (capabilities && capabilities.torch) {
           setTorchSupported(true);
+        }
+        if (capabilities && capabilities.zoom) {
+          setZoomSupported(true);
         }
       } catch (e) {}
     } catch (err) {
@@ -172,6 +192,19 @@ export default function BarcodeScannerModal({
     }
   };
 
+  const toggleZoom = async () => {
+    if (!scannerRef.current || !zoomSupported) return;
+    try {
+      const nextZoom = currentZoom === 1 ? 2 : currentZoom === 2 ? 3 : 1;
+      await scannerRef.current.applyVideoConstraints({
+        advanced: [{ zoom: nextZoom }]
+      });
+      setCurrentZoom(nextZoom);
+    } catch (e) {
+      console.warn('Error alternando zoom:', e);
+    }
+  };
+
   const switchCamera = async () => {
     if (cameras.length <= 1) return;
     const currentIndex = cameras.findIndex((c) => c.id === selectedCameraId);
@@ -190,16 +223,10 @@ export default function BarcodeScannerModal({
       await stopScanner();
 
       const html5QrCode = new Html5Qrcode('barcode-reader-viewport', {
-        formatsToSupport: [
-          Html5QrcodeSupportedFormats.QR_CODE,
-          Html5QrcodeSupportedFormats.CODE_128,
-          Html5QrcodeSupportedFormats.CODE_39,
-          Html5QrcodeSupportedFormats.EAN_13,
-          Html5QrcodeSupportedFormats.EAN_8,
-          Html5QrcodeSupportedFormats.UPC_A,
-          Html5QrcodeSupportedFormats.UPC_E,
-          Html5QrcodeSupportedFormats.ITF
-        ]
+        formatsToSupport: ALL_SUPPORTED_FORMATS,
+        experimentalFeatures: {
+          useBarCodeDetectorIfSupported: true
+        }
       });
       scannerRef.current = html5QrCode;
 
@@ -270,7 +297,9 @@ export default function BarcodeScannerModal({
                 <div className="bs-corner bottom-left"></div>
                 <div className="bs-corner bottom-right"></div>
               </div>
-              <p className="bs-aim-hint">Centra el código dentro del recuadro</p>
+              <p className="bs-aim-hint">
+                Centra el código · Mantén a 15-20 cm o usa Zoom si está cerca
+              </p>
             </div>
           )}
 
@@ -293,7 +322,7 @@ export default function BarcodeScannerModal({
           )}
         </div>
 
-        {/* Floating Quick Action Controls (Torch, Switch Camera, Gallery Photo) */}
+        {/* Floating Quick Action Controls (Torch, Zoom, Switch Camera, Gallery Photo) */}
         {!scannedResult && (
           <div className="bs-controls-bar">
             {torchSupported && (
@@ -304,7 +333,19 @@ export default function BarcodeScannerModal({
                 title={torchOn ? 'Apagar linterna' : 'Encender linterna'}
               >
                 <Flashlight size={18} />
-                <span>{torchOn ? 'Linterna ON' : 'Linterna'}</span>
+                <span>{torchOn ? 'Luz ON' : 'Linterna'}</span>
+              </button>
+            )}
+
+            {zoomSupported && (
+              <button
+                type="button"
+                className={`bs-ctrl-btn ${currentZoom > 1 ? 'active' : ''}`}
+                onClick={toggleZoom}
+                title={`Zoom actual ${currentZoom}x. Pulsa para alternar`}
+              >
+                <ZoomIn size={18} />
+                <span>{currentZoom}x Zoom</span>
               </button>
             )}
 
@@ -336,6 +377,32 @@ export default function BarcodeScannerModal({
               style={{ display: 'none' }}
               onChange={handleFileUpload}
             />
+          </div>
+        )}
+
+        {/* Manual Code Input Fallback */}
+        {!scannedResult && (
+          <div className="bs-manual-bar">
+            <input 
+              type="text"
+              className="bs-manual-input"
+              placeholder="O teclea el código (ej. 2626376)..."
+              value={manualCode}
+              onChange={(e) => setManualCode(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && manualCode.trim()) {
+                  handleScanSuccess(manualCode.trim());
+                }
+              }}
+            />
+            <button
+              type="button"
+              className="bs-manual-btn"
+              disabled={!manualCode.trim()}
+              onClick={() => manualCode.trim() && handleScanSuccess(manualCode.trim())}
+            >
+              Usar
+            </button>
           </div>
         )}
 

@@ -823,6 +823,12 @@ const Aquapp = () => {
   const handleDeleteMuestra = async (id) => {
     if(!window.confirm("¿Seguro que quieres borrar esta muestra?")) return;
     await supabase.from('aquapp_muestras').delete().eq('id', id);
+    try {
+      const q = JSON.parse(localStorage.getItem('offline_muestras_queue') || '[]');
+      const filtered = q.filter(x => x.id !== id && x._offlineId !== id);
+      localStorage.setItem('offline_muestras_queue', JSON.stringify(filtered));
+    } catch (e) {}
+    window.__toast?.success("Muestra eliminada");
     fetchClientDetails(selectedClient);
   };
 
@@ -978,9 +984,22 @@ const Aquapp = () => {
       });
       yGroup.months.forEach(mGroup => {
         mGroup.items.sort((a, b) => {
+          // 1. Cronológico por hora de recogida
+          const timeA = (a.hora || '').trim();
+          const timeB = (b.hora || '').trim();
+          if (timeA && timeB) {
+            const cmp = timeA.localeCompare(timeB);
+            if (cmp !== 0) return cmp;
+          } else if (timeA && !timeB) {
+            return -1;
+          } else if (!timeA && timeB) {
+            return 1;
+          }
+          // 2. Orden numérico de muestra
           const numA = parseInt((a.numero_muestra || '0').replace(/\D/g, ''), 10) || 0;
           const numB = parseInt((b.numero_muestra || '0').replace(/\D/g, ''), 10) || 0;
-          return numA - numB;
+          if (numA !== numB) return numA - numB;
+          return (a.created_at || '').localeCompare(b.created_at || '');
         });
       });
     });
@@ -992,6 +1011,27 @@ const Aquapp = () => {
     });
 
     return grouped;
+  };
+
+  const getCorrelativeMuestraLabel = (item, index) => {
+    const rawNum = (item.numero_muestra || '').trim();
+    const tipo = item.tipo_muestra || 'Estándar';
+    let defaultPrefix = 'Muestra';
+    if (tipo === 'Torre') defaultPrefix = 'Torre';
+    if (tipo === 'Piscina') defaultPrefix = 'Piscina';
+    if (tipo === 'Jacuzzi') defaultPrefix = 'Jacuzzi';
+
+    const isDefaultFormat = !rawNum || 
+      /^muestra\s*\d*$/i.test(rawNum) || 
+      /^torre\s*\d*$/i.test(rawNum) || 
+      /^piscina\s*\d*$/i.test(rawNum) || 
+      /^jacuzzi\s*\d*$/i.test(rawNum) ||
+      /^\d+$/.test(rawNum);
+
+    if (isDefaultFormat) {
+      return `${defaultPrefix} ${index + 1}`;
+    }
+    return rawNum;
   };
 
   const renderClientDetail = () => {
@@ -1150,7 +1190,7 @@ const Aquapp = () => {
             {/* 4. Active Month Cards Grid */}
             {activeMonthGroup?.items?.length > 0 ? (
               <div className="unified-cards-grid animate-fade-in" style={{ marginTop: '24px' }}>
-                {activeMonthGroup.items.map(item => {
+                {activeMonthGroup.items.map((item, itemIdx) => {
                   const displayDate = formatDisplayDate(item.fecha);
                   const displayTime = item.hora ? item.hora.substring(0, 5) : '-';
 
@@ -1316,7 +1356,7 @@ const Aquapp = () => {
                       {/* Top: Muestra num + Badges */}
                       <div className="unified-card-top">
                         <div className="unified-card-top-left">
-                          <span>{item.numero_muestra || 'Muestra'}</span>
+                          <span>{getCorrelativeMuestraLabel(item, itemIdx)}</span>
                         </div>
                         <div className="unified-card-top-right">
                           {item._offline && (

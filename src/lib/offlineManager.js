@@ -1,4 +1,4 @@
-﻿import { supabase } from './supabase';
+import { supabase } from './supabase';
 
 export const QUEUE_MUESTRAS_KEY = 'offline_muestras_queue';
 export const QUEUE_TRATAMIENTOS_KEY = 'offline_tratamientos_queue';
@@ -115,7 +115,55 @@ export const syncAllOfflineData = async (toast) => {
       for (const item of muestrasQueue) {
         const { _offlineId, _offline, _savedAt, id, ...cleanRecord } = item;
         try {
-          const res = await withTimeout(supabase.from('aquapp_muestras').insert([cleanRecord]), 4500);
+          // Protección contra duplicados en zona de cobertura débil:
+          // Comprobar si el registro ya llegó al servidor antes del timeout del cliente
+          let alreadyExists = false;
+
+          // 1. Por ID real de UUID
+          if (id && !String(id).startsWith('offline_') && !String(id).startsWith('sample_')) {
+            const { data: exId } = await withTimeout(
+              supabase.from('aquapp_muestras').select('id').eq('id', id).maybeSingle(),
+              3500
+            );
+            if (exId) alreadyExists = true;
+          }
+
+          // 2. Por código de envase (es único por frasco)
+          if (!alreadyExists && cleanRecord.cod_envase) {
+            const { data: exEnv } = await withTimeout(
+              supabase.from('aquapp_muestras').select('id').eq('cod_envase', cleanRecord.cod_envase).maybeSingle(),
+              3500
+            );
+            if (exEnv) alreadyExists = true;
+          }
+
+          // 3. Por cliente, fecha, hora y descripción exacta
+          if (!alreadyExists && cleanRecord.fecha && cleanRecord.hora && cleanRecord.descripcion) {
+            let q = supabase.from('aquapp_muestras')
+              .select('id')
+              .eq('fecha', cleanRecord.fecha)
+              .eq('hora', cleanRecord.hora)
+              .eq('descripcion', cleanRecord.descripcion);
+            if (cleanRecord.cliente_id) q = q.eq('cliente_id', cleanRecord.cliente_id);
+            else if (cleanRecord.cliente_nombre) q = q.eq('cliente_nombre', cleanRecord.cliente_nombre);
+            const { data: exMatch } = await withTimeout(q.maybeSingle(), 3500);
+            if (exMatch) alreadyExists = true;
+          }
+
+          if (alreadyExists) {
+            console.log("Muestra offline ya confirmada en Supabase (evitado duplicado de cobertura débil):", cleanRecord);
+            syncedMuestras++;
+            autoCompleteMuestraTasks(cleanRecord).catch(() => {});
+            continue; // Se descarta de la cola sin insertar dos veces
+          }
+
+          // Preparar payload para insertar
+          const payload = { ...cleanRecord };
+          if (id && !String(id).startsWith('offline_') && !String(id).startsWith('sample_')) {
+            payload.id = id;
+          }
+
+          const res = await withTimeout(supabase.from('aquapp_muestras').insert([payload]), 5500);
           if (!res.error) {
             syncedMuestras++;
             autoCompleteMuestraTasks(cleanRecord).catch(() => {});
@@ -142,7 +190,24 @@ export const syncAllOfflineData = async (toast) => {
       for (const item of tratQueue) {
         const { _offlineId, _offline, _savedAt, id, ...cleanRecord } = item;
         try {
-          const res = await withTimeout(supabase.from('aquapp_tratamientos').insert([cleanRecord]), 4500);
+          // Comprobar si ya existe por fecha y tipo
+          let alreadyExists = false;
+          if (cleanRecord.fecha && cleanRecord.tipo_tratamiento) {
+            let q = supabase.from('aquapp_tratamientos')
+              .select('id')
+              .eq('fecha', cleanRecord.fecha)
+              .eq('tipo_tratamiento', cleanRecord.tipo_tratamiento);
+            if (cleanRecord.cliente_id) q = q.eq('cliente_id', cleanRecord.cliente_id);
+            const { data: exT } = await withTimeout(q.maybeSingle(), 3500);
+            if (exT) alreadyExists = true;
+          }
+
+          if (alreadyExists) {
+            syncedTratamientos++;
+            continue;
+          }
+
+          const res = await withTimeout(supabase.from('aquapp_tratamientos').insert([cleanRecord]), 5500);
           if (!res.error) {
             syncedTratamientos++;
           } else if (isNetworkFailure(res.error)) {
@@ -167,7 +232,22 @@ export const syncAllOfflineData = async (toast) => {
       for (const item of avisosQueue) {
         const { _offlineId, _offline, _savedAt, id, ...cleanRecord } = item;
         try {
-          const res = await withTimeout(supabase.from('avisomap_avisos').insert([cleanRecord]), 4500);
+          // Comprobar si ya existe por número de aviso
+          let alreadyExists = false;
+          if (cleanRecord.numero_aviso) {
+            const { data: exA } = await withTimeout(
+              supabase.from('avisomap_avisos').select('id').eq('numero_aviso', cleanRecord.numero_aviso).maybeSingle(),
+              3500
+            );
+            if (exA) alreadyExists = true;
+          }
+
+          if (alreadyExists) {
+            syncedAvisos++;
+            continue;
+          }
+
+          const res = await withTimeout(supabase.from('avisomap_avisos').insert([cleanRecord]), 5500);
           if (!res.error) {
             syncedAvisos++;
           } else if (isNetworkFailure(res.error)) {
