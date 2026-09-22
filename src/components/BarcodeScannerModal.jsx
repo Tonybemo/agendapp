@@ -88,7 +88,12 @@ export default function BarcodeScannerModal({
 
   const handleScanSuccess = (decodedText) => {
     if (!decodedText || !decodedText.trim()) return;
-    const cleanText = decodedText.trim();
+    let cleanText = decodedText.trim().replace(/[\r\n\t]/g, '').trim();
+
+    if (mode === 'bottle') {
+      // Limpiar sufijo de frasco/fracción de laboratorio (ej. "1982889_6" -> "1982889")
+      cleanText = cleanText.replace(/_[0-9]+$/, '').trim();
+    }
 
     playFeedback();
 

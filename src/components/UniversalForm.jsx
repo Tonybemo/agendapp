@@ -542,6 +542,10 @@ const UniversalForm = () => {
       fechaGuardar = `${parts[2]}/${parts[1]}/${parts[0]}`;
     }
 
+    if (data.cod_envase) {
+      data.cod_envase = String(data.cod_envase).trim().replace(/[\r\n\t]/g, '').replace(/_[0-9]+$/, '').trim();
+    }
+
     const clientGeneratedId = (editingItem && editingItem.editType === 'muestra')
       ? editingItem.id
       : (window.crypto?.randomUUID ? window.crypto.randomUUID() : ('sample_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9)));
@@ -2165,8 +2169,10 @@ const UniversalForm = () => {
         mode="bottle"
         title="Escanear Frasco de Muestra"
         onScan={(code) => {
-          setEditCodEnvase(code);
-          window.__toast?.success(`Código de frasco escaneado: ${code}`);
+          // Limpia sufijos de fracción de laboratorio (ej. 1982889_6 -> 1982889) para que coincida exactamente con la pegatina
+          const cleanCode = (code || '').trim().replace(/[\r\n\t]/g, '').replace(/_[0-9]+$/, '').trim();
+          setEditCodEnvase(cleanCode);
+          window.__toast?.success(`Código de frasco escaneado: ${cleanCode}`);
         }}
       />
     </>
