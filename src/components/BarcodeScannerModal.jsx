@@ -129,32 +129,62 @@ export default function BarcodeScannerModal({
 
       // Configuración de escaneo optimizada para frascos, etiquetas de laboratorio y códigos 1D/2D
       const config = {
-        fps: 25,
+        fps: 20,
         qrbox: (viewfinderWidth, viewfinderHeight) => {
-          // Ventana amplia que no recorta códigos largos ni etiquetas cuadradas
-          const width = Math.min(viewfinderWidth * 0.90, 380);
-          const height = Math.min(viewfinderHeight * 0.70, 260);
-          return { width: Math.round(width), height: Math.round(height) };
+          // Ventana rectangular horizontal que abarca el código cómodamente
+          const width = Math.min(Math.round(viewfinderWidth * 0.88), 350);
+          const height = Math.min(Math.round(viewfinderHeight * 0.65), 200);
+          return { width, height };
         },
         aspectRatio: 1.3333
       };
 
-      const cameraSource = cameraIdToUse
-        ? { deviceId: { exact: cameraIdToUse } }
-        : { 
-            facingMode: 'environment',
-            width: { min: 640, ideal: 1280, max: 1920 },
-            height: { min: 480, ideal: 720, max: 1080 }
-          };
+      // Intentar primero con facingMode environment estándar (sin min/max de resolución que puedan fallar en móvil)
+      let cameraSource = cameraIdToUse || { facingMode: 'environment' };
 
-      await html5QrCode.start(
-        cameraSource,
-        config,
-        (decodedText) => handleScanSuccess(decodedText),
-        () => {} // Ignorar frames intermedios
-      );
+      try {
+        await html5QrCode.start(
+          cameraSource,
+          config,
+          (decodedText) => handleScanSuccess(decodedText),
+          () => {} // Ignorar frames intermedios
+        );
+      } catch (firstErr) {
+        console.warn('Primer intento de cámara con facingMode falló, probando con listado de dispositivos:', firstErr);
+        // Fallback: obtener lista de cámaras y seleccionar la trasera
+        const devices = await Html5Qrcode.getCameras().catch(() => []);
+        if (devices && devices.length > 0) {
+          setCameras(devices);
+          const backCam = devices.find(d => 
+            /back|trasera|environment|rear|0/i.test(d.label || '')
+          ) || devices[0];
+          setSelectedCameraId(backCam.id);
+          await html5QrCode.start(
+            backCam.id,
+            config,
+            (decodedText) => handleScanSuccess(decodedText),
+            () => {}
+          );
+        } else {
+          // Último recurso: cámara por defecto
+          await html5QrCode.start(
+            { facingMode: 'user' },
+            config,
+            (decodedText) => handleScanSuccess(decodedText),
+            () => {}
+          );
+        }
+      }
 
       setIsScanning(true);
+
+      // Cargar lista de cámaras disponibles si no las tenemos para el botón "Cambiar"
+      try {
+        const devices = await Html5Qrcode.getCameras();
+        if (devices && devices.length > 0) {
+          setCameras(devices);
+        }
+      } catch (e) {}
 
       // Comprobar soporte de linterna y zoom óptico/digital en la cámara
       try {
@@ -169,10 +199,15 @@ export default function BarcodeScannerModal({
     } catch (err) {
       console.error('Error iniciando cámara:', err);
       let msg = 'No se pudo acceder a la cámara.';
-      if (err?.name === 'NotAllowedError' || String(err).includes('Permission')) {
-        msg = 'Permiso de cámara denegado. Concede permiso en los ajustes de tu navegador para escanear.';
-      } else if (err?.name === 'NotFoundError') {
+      const errStr = String(err?.message || err?.name || err).toLowerCase();
+      if (err?.name === 'NotAllowedError' || errStr.includes('permission') || errStr.includes('denied') || errStr.includes('permiso')) {
+        msg = 'Permiso de cámara denegado. Permite el acceso a la cámara en los ajustes del navegador (o en el candado 🔒 de la barra de direcciones).';
+      } else if (err?.name === 'NotFoundError' || errStr.includes('not found')) {
         msg = 'No se encontró ninguna cámara disponible en tu dispositivo.';
+      } else if (err?.name === 'NotReadableError' || errStr.includes('in use') || errStr.includes('en uso')) {
+        msg = 'La cámara está siendo usada por otra app. Ciérrala y pulsa Reintentar.';
+      } else {
+        msg = 'No se pudo abrir la cámara. Revisa los permisos de tu navegador o escribe el código en el cajetín de abajo.';
       }
       setCameraError(msg);
       setIsScanning(false);
