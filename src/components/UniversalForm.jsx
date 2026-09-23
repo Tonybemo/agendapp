@@ -1606,29 +1606,7 @@ const UniversalForm = () => {
                 <input name="numero_muestra" className="uf-input-basic" type="text" value={sugerenciaMuestra} onChange={(e) => setSugerenciaMuestra(e.target.value)} />
               </div>
               <div className="uf-form-group">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                  <label style={{ margin: 0 }}>CÓD. ENVASE LAB</label>
-                  <button
-                    type="button"
-                    onClick={() => setShowBarcodeScanner(true)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: 'var(--accent-aquapp, #0284c7)',
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      fontSize: '0.72rem',
-                      fontWeight: 700,
-                      padding: '2px 4px',
-                      borderRadius: '4px'
-                    }}
-                    title="Escanear código del frasco con la cámara"
-                  >
-                    <ScanLine size={13} /> Escanear
-                  </button>
-                </div>
+                <label>CÓD. ENVASE LAB</label>
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                   <input
                     name="cod_envase"
@@ -1637,28 +1615,28 @@ const UniversalForm = () => {
                     placeholder="Ej: 2603885"
                     value={editCodEnvase}
                     onChange={(e) => setEditCodEnvase(e.target.value)}
-                    style={{ paddingRight: '38px' }}
+                    style={{ paddingRight: '40px' }}
                   />
                   <button
                     type="button"
                     onClick={() => setShowBarcodeScanner(true)}
-                    title="Escanear código de barras"
+                    title="Escanear código de barras del frasco"
                     style={{
                       position: 'absolute',
                       right: '6px',
-                      background: 'rgba(2, 132, 199, 0.1)',
+                      background: 'rgba(2, 132, 199, 0.12)',
                       color: 'var(--accent-aquapp, #0284c7)',
                       border: 'none',
                       borderRadius: '6px',
-                      width: '28px',
-                      height: '28px',
+                      width: '30px',
+                      height: '30px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       cursor: 'pointer'
                     }}
                   >
-                    <ScanLine size={15} />
+                    <ScanLine size={16} />
                   </button>
                 </div>
               </div>
