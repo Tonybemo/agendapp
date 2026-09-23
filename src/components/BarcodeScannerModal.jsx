@@ -3,22 +3,38 @@ import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import { X, Flashlight, Camera, Image, ExternalLink, Copy, Check, AlertCircle, RefreshCw, ZoomIn } from 'lucide-react';
 import './BarcodeScannerModal.css';
 
-const ALL_SUPPORTED_FORMATS = [
+// Formatos específicos para frascos de laboratorio (Conycal, etc.): Code 128 (1D), QR y EAN-13.
+// EXCLUIMOS deliberadamente ITF y Codabar que generan falsos positivos numéricos con sombras o desenfoque.
+const BOTTLE_SUPPORTED_FORMATS = [
+  Html5QrcodeSupportedFormats.CODE_128,
+  Html5QrcodeSupportedFormats.QR_CODE,
+  Html5QrcodeSupportedFormats.EAN_13,
+  Html5QrcodeSupportedFormats.DATA_MATRIX
+].filter(Boolean);
+
+// Formatos generales para enlaces, hojas de cálculo, tickets
+const GENERAL_SUPPORTED_FORMATS = [
   Html5QrcodeSupportedFormats.QR_CODE,
   Html5QrcodeSupportedFormats.CODE_128,
-  Html5QrcodeSupportedFormats.CODE_39,
-  Html5QrcodeSupportedFormats.CODE_93,
-  Html5QrcodeSupportedFormats.CODABAR,
   Html5QrcodeSupportedFormats.EAN_13,
   Html5QrcodeSupportedFormats.EAN_8,
-  Html5QrcodeSupportedFormats.ITF,
-  Html5QrcodeSupportedFormats.UPC_A,
-  Html5QrcodeSupportedFormats.UPC_E,
-  Html5QrcodeSupportedFormats.UPC_EAN_EXTENSION,
   Html5QrcodeSupportedFormats.DATA_MATRIX,
-  Html5QrcodeSupportedFormats.AZTEC,
-  Html5QrcodeSupportedFormats.PDF_417
+  Html5QrcodeSupportedFormats.CODE_39
 ].filter(Boolean);
+
+// Helper para seleccionar la mejor cámara trasera con autofoco (evitando ultra-wide con foco fijo en Samsung)
+const pickBestCamera = (devices) => {
+  if (!devices || devices.length === 0) return null;
+  // 1. Filtrar sólo cámaras traseras
+  const back = devices.filter(d => !/front|delantera|user|selfie|face|1,\s*facing/i.test(d.label || ''));
+  const pool = back.length > 0 ? back : devices;
+  // 2. Descartar lentes ultra-wide / gran angular (tienen enfoque fijo al infinito en Samsung A16)
+  const nonUltra = pool.filter(d => !/wide|gran\s*angular|ultra|depth/i.test(d.label || ''));
+  const preferred = nonUltra.length > 0 ? nonUltra : pool;
+  // 3. Buscar la cámara principal 0 o "back"
+  const main = preferred.find(d => /0.*back|main|principal/i.test(d.label || '')) || preferred[0];
+  return main.id;
+};
 
 export default function BarcodeScannerModal({
   isOpen,
@@ -32,6 +48,8 @@ export default function BarcodeScannerModal({
   const [torchSupported, setTorchSupported] = useState(false);
   const [zoomSupported, setZoomSupported] = useState(false);
   const [currentZoom, setCurrentZoom] = useState(1);
+  const [zoomRange, setZoomRange] = useState({ min: 1, max: 3 });
+  const [focusRing, setFocusRing] = useState(null);
   const [cameras, setCameras] = useState([]);
   const [selectedCameraId, setSelectedCameraId] = useState(null);
   const [scannedResult, setScannedResult] = useState(null);
@@ -84,6 +102,7 @@ export default function BarcodeScannerModal({
     setIsScanning(false);
     setTorchOn(false);
     setTorchSupported(false);
+    setFocusRing(null);
   };
 
   const handleScanSuccess = (decodedText) => {
@@ -91,6 +110,9 @@ export default function BarcodeScannerModal({
     let cleanText = decodedText.trim().replace(/[\r\n\t]/g, '').trim();
 
     if (mode === 'bottle') {
+      // Ignorar lecturas espurias de menos de 4 caracteres
+      if (cleanText.length < 4) return;
+
       // Limpiar sufijo de frasco/fracción de laboratorio (ej. "1982889_6" -> "1982889")
       cleanText = cleanText.replace(/_[0-9]+$/, '').trim();
     }
@@ -115,8 +137,9 @@ export default function BarcodeScannerModal({
       setCameraError(null);
       await stopScanner();
 
+      const formats = mode === 'bottle' ? BOTTLE_SUPPORTED_FORMATS : GENERAL_SUPPORTED_FORMATS;
       const html5QrCode = new Html5Qrcode('barcode-reader-viewport', {
-        formatsToSupport: ALL_SUPPORTED_FORMATS,
+        formatsToSupport: formats,
         experimentalFeatures: {
           useBarCodeDetectorIfSupported: true
         },
@@ -124,83 +147,87 @@ export default function BarcodeScannerModal({
       });
       scannerRef.current = html5QrCode;
 
-      // Obtener cámaras disponibles si aún no las tenemos
+      // Obtener cámaras y elegir la mejor trasera con autofoco
+      let targetCameraId = cameraIdToUse;
       try {
         const devices = await Html5Qrcode.getCameras();
         if (devices && devices.length > 0) {
           setCameras(devices);
+          if (!targetCameraId) {
+            targetCameraId = pickBestCamera(devices);
+          }
         }
       } catch (e) {}
 
-      // Configuración de escaneo optimizada para frascos, etiquetas de laboratorio y códigos 1D/2D
+      if (targetCameraId) {
+        setSelectedCameraId(targetCameraId);
+      }
+
+      // Configuración de escaneo optimizada en alta definición (1080p ideal) para enfocar códigos finos
       const config = {
-        fps: 20,
+        fps: 25,
+        videoConstraints: targetCameraId
+          ? {
+              deviceId: { exact: targetCameraId },
+              width: { ideal: 1920 },
+              height: { ideal: 1080 }
+            }
+          : {
+              facingMode: 'environment',
+              width: { ideal: 1920 },
+              height: { ideal: 1080 }
+            },
         qrbox: (viewfinderWidth, viewfinderHeight) => {
-          // Ventana rectangular horizontal que abarca el código cómodamente
-          const width = Math.min(Math.round(viewfinderWidth * 0.88), 350);
-          const height = Math.min(Math.round(viewfinderHeight * 0.65), 200);
+          // Ventana rectangular horizontal amplia para abarcar el código cómodamente
+          const width = Math.min(Math.round(viewfinderWidth * 0.92), 380);
+          const height = Math.min(Math.round(viewfinderHeight * 0.7), 240);
           return { width, height };
-        },
-        aspectRatio: 1.3333
+        }
       };
 
-      // Intentar primero con facingMode environment estándar (sin min/max de resolución que puedan fallar en móvil)
-      let cameraSource = cameraIdToUse || { facingMode: 'environment' };
+      const cameraSource = targetCameraId ? targetCameraId : { facingMode: 'environment' };
 
       try {
         await html5QrCode.start(
           cameraSource,
           config,
           (decodedText) => handleScanSuccess(decodedText),
-          () => {} // Ignorar frames intermedios
+          () => {} // Ignorar frames sin código
         );
       } catch (firstErr) {
-        console.warn('Primer intento de cámara con facingMode falló, probando con listado de dispositivos:', firstErr);
-        // Fallback: obtener lista de cámaras y seleccionar la trasera
-        const devices = await Html5Qrcode.getCameras().catch(() => []);
-        if (devices && devices.length > 0) {
-          setCameras(devices);
-          const backCam = devices.find(d => 
-            /back|trasera|environment|rear|0/i.test(d.label || '')
-          ) || devices[0];
-          setSelectedCameraId(backCam.id);
-          await html5QrCode.start(
-            backCam.id,
-            config,
-            (decodedText) => handleScanSuccess(decodedText),
-            () => {}
-          );
-        } else {
-          // Último recurso: cámara por defecto
-          await html5QrCode.start(
-            { facingMode: 'user' },
-            config,
-            (decodedText) => handleScanSuccess(decodedText),
-            () => {}
-          );
-        }
+        console.warn('Primer intento de inicio de cámara falló, probando fallback estándar:', firstErr);
+        await html5QrCode.start(
+          { facingMode: 'environment' },
+          { fps: 20 },
+          (decodedText) => handleScanSuccess(decodedText),
+          () => {}
+        );
       }
 
       setIsScanning(true);
 
-      // Cargar lista de cámaras disponibles si no las tenemos para el botón "Cambiar"
+      // Comprobar soporte de linterna, zoom y foco continuo en la cámara activa
       try {
-        const devices = await Html5Qrcode.getCameras();
-        if (devices && devices.length > 0) {
-          setCameras(devices);
-        }
-      } catch (e) {}
-
-      // Comprobar soporte de linterna y zoom óptico/digital en la cámara
-      try {
-        const capabilities = html5QrCode.getRunningTrackCapabilities();
-        if (capabilities && capabilities.torch) {
+        const capabilities = html5QrCode.getRunningTrackCapabilities?.() || {};
+        if (capabilities?.torch) {
           setTorchSupported(true);
         }
-        if (capabilities && capabilities.zoom) {
+        if (capabilities?.zoom) {
           setZoomSupported(true);
+          setZoomRange({
+            min: capabilities.zoom.min || 1,
+            max: capabilities.zoom.max || 4
+          });
         }
-      } catch (e) {}
+        // Activar autofocus continuo en el sensor
+        if (capabilities?.focusMode && capabilities.focusMode.includes('continuous')) {
+          await html5QrCode.applyVideoConstraints({
+            advanced: [{ focusMode: 'continuous' }]
+          });
+        }
+      } catch (e) {
+        console.warn('Configuración avanzada de track de cámara:', e);
+      }
     } catch (err) {
       console.error('Error iniciando cámara:', err);
       let msg = 'No se pudo acceder a la cámara.';
@@ -219,6 +246,24 @@ export default function BarcodeScannerModal({
     }
   };
 
+  const handleTapToFocus = async (e) => {
+    if (!scannerRef.current || !isScanning) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    setFocusRing({ x, y });
+    setTimeout(() => setFocusRing(null), 900);
+
+    try {
+      const capabilities = scannerRef.current.getRunningTrackCapabilities?.() || {};
+      if (capabilities?.focusMode && capabilities.focusMode.includes('continuous')) {
+        await scannerRef.current.applyVideoConstraints({
+          advanced: [{ focusMode: 'continuous' }]
+        });
+      }
+    } catch (err) {}
+  };
+
   const toggleTorch = async () => {
     if (!scannerRef.current || !torchSupported) return;
     try {
@@ -235,7 +280,9 @@ export default function BarcodeScannerModal({
   const toggleZoom = async () => {
     if (!scannerRef.current || !zoomSupported) return;
     try {
-      const nextZoom = currentZoom === 1 ? 2 : currentZoom === 2 ? 3 : 1;
+      const maxZ = zoomRange.max || 3;
+      let nextZoom = currentZoom === 1 ? 2 : currentZoom === 2 ? (maxZ >= 3 ? 3 : 1) : 1;
+      if (nextZoom > maxZ) nextZoom = 1;
       await scannerRef.current.applyVideoConstraints({
         advanced: [{ zoom: nextZoom }]
       });
@@ -262,8 +309,9 @@ export default function BarcodeScannerModal({
       setCameraError(null);
       await stopScanner();
 
+      const formats = mode === 'bottle' ? BOTTLE_SUPPORTED_FORMATS : GENERAL_SUPPORTED_FORMATS;
       const html5QrCode = new Html5Qrcode('barcode-reader-viewport', {
-        formatsToSupport: ALL_SUPPORTED_FORMATS,
+        formatsToSupport: formats,
         experimentalFeatures: {
           useBarCodeDetectorIfSupported: true
         }
@@ -326,7 +374,15 @@ export default function BarcodeScannerModal({
         </div>
 
         {/* Body Viewport */}
-        <div className="bs-viewport-wrapper">
+        <div className="bs-viewport-wrapper" onClick={handleTapToFocus} style={{ cursor: 'pointer' }}>
+          {/* Animated Tap-to-Focus Reticle */}
+          {focusRing && (
+            <div
+              className="bs-focus-ring"
+              style={{ left: `${focusRing.x}px`, top: `${focusRing.y}px` }}
+            />
+          )}
+
           {/* Target Scanning Laser Line Overlay */}
           {!scannedResult && !cameraError && (
             <div className="bs-scan-overlay">
@@ -338,7 +394,9 @@ export default function BarcodeScannerModal({
                 <div className="bs-corner bottom-right"></div>
               </div>
               <p className="bs-aim-hint">
-                Centra el código · Mantén a 15-20 cm o usa Zoom si está cerca
+                {mode === 'bottle'
+                  ? 'Mantén a 15-20 cm · Toca para enfocar · Usa 2x Zoom si está cerca'
+                  : 'Centra el código · Toca la pantalla para enfocar'}
               </p>
             </div>
           )}
@@ -348,7 +406,7 @@ export default function BarcodeScannerModal({
 
           {/* Camera Error / Permission Banner */}
           {cameraError && (
-            <div className="bs-error-banner">
+            <div className="bs-error-banner" onClick={(e) => e.stopPropagation()}>
               <AlertCircle size={28} color="#ef4444" />
               <p>{cameraError}</p>
               <button
@@ -382,7 +440,7 @@ export default function BarcodeScannerModal({
                 type="button"
                 className={`bs-ctrl-btn ${currentZoom > 1 ? 'active' : ''}`}
                 onClick={toggleZoom}
-                title={`Zoom actual ${currentZoom}x. Pulsa para alternar`}
+                title={`Zoom actual ${currentZoom}x. Pulsa para cambiar`}
               >
                 <ZoomIn size={18} />
                 <span>{currentZoom}x Zoom</span>
@@ -394,10 +452,10 @@ export default function BarcodeScannerModal({
                 type="button"
                 className="bs-ctrl-btn"
                 onClick={switchCamera}
-                title="Cambiar cámara"
+                title="Cambiar lente de la cámara trasera"
               >
                 <Camera size={18} />
-                <span>Cambiar</span>
+                <span>Lente ({Math.max(1, cameras.findIndex((c) => c.id === selectedCameraId) + 1)}/{cameras.length})</span>
               </button>
             )}
 
