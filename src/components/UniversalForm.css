@@ -450,50 +450,6 @@
 .uf-input-basic::placeholder, .uf-textarea::placeholder, input::placeholder, textarea::placeholder { color: transparent; }
 .uf-input-basic:focus::placeholder, .uf-textarea:focus::placeholder, input:focus::placeholder, textarea:focus::placeholder { color: var(--border-input); }
 
-/* Botón de Dictado por Voz */
-.uf-voice-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 10px;
-  background: rgba(2, 132, 199, 0.1);
-  color: var(--accent-aquapp, #0284c7);
-  border: 1px solid rgba(2, 132, 199, 0.25);
-  border-radius: 20px;
-  font-size: 0.76rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  user-select: none;
-}
-
-.uf-voice-btn:hover {
-  background: rgba(2, 132, 199, 0.18);
-  border-color: var(--accent-aquapp, #0284c7);
-}
-
-.uf-voice-btn:active {
-  transform: scale(0.96);
-}
-
-.uf-voice-btn.listening {
-  background: #fee2e2;
-  color: #dc2626;
-  border-color: #f87171;
-  animation: uf-pulse-mic 1.2s infinite;
-}
-
-@keyframes uf-pulse-mic {
-  0% {
-    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.45);
-  }
-  70% {
-    box-shadow: 0 0 0 8px rgba(220, 38, 38, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
-  }
-}
 
 /* Sugerencias de Puntos Habituales del Cliente */
 .uf-puntos-sugeridos {

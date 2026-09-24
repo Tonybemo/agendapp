@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, X, Droplet, Wind, MapPin, Briefcase, ChevronRight, Check, Calendar, Clock, Car, FileText, UploadCloud, PlusCircle, Search, Bug, Hexagon, BookOpen, Camera, ScanLine, Trash2, Image as ImageIcon, Sparkles, Mic, MicOff, History } from 'lucide-react';
+import { Plus, X, Droplet, Wind, MapPin, Briefcase, ChevronRight, Check, Calendar, Clock, Car, FileText, UploadCloud, PlusCircle, Search, Bug, Hexagon, BookOpen, Camera, ScanLine, Trash2, Image as ImageIcon, Sparkles, History } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import BarcodeScannerModal from './BarcodeScannerModal';
 import { compressImage } from '../utils/imageCompressor';
@@ -66,10 +66,8 @@ const UniversalForm = () => {
   const [editNotas, setEditNotas] = useState('');
   const [editTipoActuacion, setEditTipoActuacion] = useState('');
 
-  // Sugerencias de lugares anteriores y dictado por voz para muestras
+  // Sugerencias de lugares anteriores para muestras
   const [puntosSugeridos, setPuntosSugeridos] = useState([]);
-  const [isListening, setIsListening] = useState(false);
-  const recognitionRef = useRef(null);
   const descripcionInputRef = useRef(null);
 
   // Escáner de código de barras
@@ -516,10 +514,6 @@ const UniversalForm = () => {
     setFotoDespuesFile(null);
     setFotoDespuesPreview(null);
     setIsCompressingFotos(false);
-    if (recognitionRef.current) {
-      try { recognitionRef.current.stop(); } catch (e) {}
-    }
-    setIsListening(false);
   };
 
   const handleGuardarMuestra = async (e) => {
@@ -1144,72 +1138,6 @@ const UniversalForm = () => {
     }
   };
 
-  const toggleSpeechRecognition = () => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      window.__toast?.info("Tu navegador no soporta dictado directo. Puedes usar el icono de micrófono del teclado de tu móvil.");
-      return;
-    }
-
-    if (isListening) {
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.stop();
-        } catch (e) {}
-      }
-      setIsListening(false);
-      return;
-    }
-
-    try {
-      const recognition = new SpeechRecognition();
-      recognition.lang = 'es-ES';
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      recognition.maxAlternatives = 1;
-
-      recognition.onstart = () => {
-        setIsListening(true);
-      };
-
-      recognition.onresult = (event) => {
-        const transcript = event.results?.[0]?.[0]?.transcript;
-        if (transcript && transcript.trim()) {
-          const raw = transcript.trim();
-          const capitalized = raw.charAt(0).toUpperCase() + raw.slice(1);
-          setEditDescripcion(prev => {
-            if (!prev || !prev.trim()) return capitalized;
-            return `${prev.trim()} ${capitalized}`;
-          });
-          if (descripcionInputRef.current) {
-            descripcionInputRef.current.focus();
-          }
-        }
-        setIsListening(false);
-      };
-
-      recognition.onerror = (event) => {
-        console.warn("Speech recognition error:", event.error);
-        setIsListening(false);
-        if (event.error === 'not-allowed' || event.error === 'permission-denied') {
-          window.__toast?.error("Permiso de micrófono no concedido en el navegador.");
-        } else if (event.error !== 'no-speech') {
-          window.__toast?.error(`Aviso de voz: ${event.error}`);
-        }
-      };
-
-      recognition.onend = () => {
-        setIsListening(false);
-      };
-
-      recognitionRef.current = recognition;
-      recognition.start();
-    } catch (err) {
-      console.warn("Error starting speech recognition:", err);
-      setIsListening(false);
-      window.__toast?.error("No se pudo iniciar el micrófono.");
-    }
-  };
 
   // Cargar puntos de muestreo habituales de este cliente (offline + historial online)
   useEffect(() => {
@@ -1824,19 +1752,7 @@ const UniversalForm = () => {
             </div>
 
             <div className="uf-form-group">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                <label style={{ margin: 0 }}>LUGAR DE TOMA / DESCRIPCIÓN</label>
-                <button
-                  type="button"
-                  onClick={toggleSpeechRecognition}
-                  className={`uf-voice-btn ${isListening ? 'listening' : ''}`}
-                  title={isListening ? "Detener dictado por voz" : "Dictar lugar por voz"}
-                >
-                  {isListening ? <MicOff size={14} /> : <Mic size={14} />}
-                  <span>{isListening ? 'Escuchando...' : 'Dictar por voz'}</span>
-                </button>
-              </div>
-
+              <label>LUGAR DE TOMA / DESCRIPCIÓN</label>
               <textarea 
                 ref={descripcionInputRef}
                 name="descripcion" 
