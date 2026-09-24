@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, X, Droplet, Wind, MapPin, Briefcase, ChevronRight, Check, Calendar, Clock, Car, FileText, UploadCloud, PlusCircle, Search, Bug, Hexagon, BookOpen, Camera, ScanLine, Trash2, Image as ImageIcon, Sparkles } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Plus, X, Droplet, Wind, MapPin, Briefcase, ChevronRight, Check, Calendar, Clock, Car, FileText, UploadCloud, PlusCircle, Search, Bug, Hexagon, BookOpen, Camera, ScanLine, Trash2, Image as ImageIcon, Sparkles, Mic, MicOff, History } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import BarcodeScannerModal from './BarcodeScannerModal';
 import { compressImage } from '../utils/imageCompressor';
@@ -65,6 +65,12 @@ const UniversalForm = () => {
   const [editMatA4170, setEditMatA4170] = useState('');
   const [editNotas, setEditNotas] = useState('');
   const [editTipoActuacion, setEditTipoActuacion] = useState('');
+
+  // Sugerencias de lugares anteriores y dictado por voz para muestras
+  const [puntosSugeridos, setPuntosSugeridos] = useState([]);
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef(null);
+  const descripcionInputRef = useRef(null);
 
   // Escáner de código de barras
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
@@ -510,6 +516,10 @@ const UniversalForm = () => {
     setFotoDespuesFile(null);
     setFotoDespuesPreview(null);
     setIsCompressingFotos(false);
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch (e) {}
+    }
+    setIsListening(false);
   };
 
   const handleGuardarMuestra = async (e) => {
@@ -583,6 +593,18 @@ const UniversalForm = () => {
       const prevCount = parseInt(localStorage.getItem(cacheKey) || '0', 10);
       localStorage.setItem(cacheKey, String(Math.max(prevCount, savedNum)));
     } catch (e) {}
+
+    // Actualizar historial local de puntos del cliente
+    if (data.descripcion && data.descripcion.trim().length > 2) {
+      try {
+        const clientKey = clienteId || clienteNombre || 'default';
+        const puntosKey = `historial_puntos_${clientKey}`;
+        const prevList = JSON.parse(localStorage.getItem(puntosKey) || '[]');
+        const cleanDesc = data.descripcion.trim();
+        const updated = [cleanDesc, ...prevList.filter(p => p.toLowerCase() !== cleanDesc.toLowerCase())].slice(0, 15);
+        localStorage.setItem(puntosKey, JSON.stringify(updated));
+      } catch (e) {}
+    }
 
     // 1. Si no hay conexión o se está en modo offline directo
     if (!navigator.onLine && !editingItem) {
@@ -1110,6 +1132,165 @@ const UniversalForm = () => {
       fetchSugerencia();
     }
   }, [selectedClienteId, customClienteName, tipoMuestra, selectedFecha, isOpen]);
+
+  const handleSelectPuntoSugerido = (punto) => {
+    setEditDescripcion(punto);
+    if (descripcionInputRef.current) {
+      descripcionInputRef.current.focus();
+      try {
+        const len = punto.length;
+        descripcionInputRef.current.setSelectionRange(len, len);
+      } catch (e) {}
+    }
+  };
+
+  const toggleSpeechRecognition = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      window.__toast?.info("Tu navegador no soporta dictado directo. Puedes usar el icono de micrófono del teclado de tu móvil.");
+      return;
+    }
+
+    if (isListening) {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {}
+      }
+      setIsListening(false);
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'es-ES';
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      recognition.onstart = () => {
+        setIsListening(true);
+      };
+
+      recognition.onresult = (event) => {
+        const transcript = event.results?.[0]?.[0]?.transcript;
+        if (transcript && transcript.trim()) {
+          const raw = transcript.trim();
+          const capitalized = raw.charAt(0).toUpperCase() + raw.slice(1);
+          setEditDescripcion(prev => {
+            if (!prev || !prev.trim()) return capitalized;
+            return `${prev.trim()} ${capitalized}`;
+          });
+          if (descripcionInputRef.current) {
+            descripcionInputRef.current.focus();
+          }
+        }
+        setIsListening(false);
+      };
+
+      recognition.onerror = (event) => {
+        console.warn("Speech recognition error:", event.error);
+        setIsListening(false);
+        if (event.error === 'not-allowed' || event.error === 'permission-denied') {
+          window.__toast?.error("Permiso de micrófono no concedido en el navegador.");
+        } else if (event.error !== 'no-speech') {
+          window.__toast?.error(`Aviso de voz: ${event.error}`);
+        }
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch (err) {
+      console.warn("Error starting speech recognition:", err);
+      setIsListening(false);
+      window.__toast?.error("No se pudo iniciar el micrófono.");
+    }
+  };
+
+  // Cargar puntos de muestreo habituales de este cliente (offline + historial online)
+  useEffect(() => {
+    if (!isOpen || (!selectedClienteId && !customClienteName)) {
+      setPuntosSugeridos([]);
+      return;
+    }
+
+    const clientKey = selectedClienteId || customClienteName || 'default';
+
+    // 1. Obtener de caché local instantánea (0ms, siempre disponible offline)
+    let localList = [];
+    try {
+      const cached = localStorage.getItem(`historial_puntos_${clientKey}`);
+      if (cached) localList = JSON.parse(cached);
+    } catch (e) {}
+
+    // 2. Obtener de muestras pendientes offline en el móvil
+    const offlineQueue = getOfflineQueue(QUEUE_MUESTRAS_KEY);
+    const offlineDescs = offlineQueue
+      .filter(m => 
+        (m.cliente_id === selectedClienteId || (customClienteName && m.cliente_nombre?.toLowerCase() === customClienteName.toLowerCase())) &&
+        m.descripcion && m.descripcion.trim().length > 2
+      )
+      .map(m => m.descripcion.trim());
+
+    const mergeUnique = (...arrays) => {
+      const seen = new Set();
+      const result = [];
+      for (const arr of arrays) {
+        if (!Array.isArray(arr)) continue;
+        for (const item of arr) {
+          const clean = (item || '').trim();
+          if (clean.length > 2 && !seen.has(clean.toLowerCase())) {
+            seen.add(clean.toLowerCase());
+            result.push(clean);
+          }
+        }
+      }
+      return result;
+    };
+
+    const initialMerged = mergeUnique(localList, offlineDescs);
+    setPuntosSugeridos(initialMerged.slice(0, 8));
+
+    // 3. Si hay conexión online, consultar muestras históricas de este cliente en Supabase
+    if (navigator.onLine && (selectedClienteId || customClienteName)) {
+      let isMounted = true;
+      (async () => {
+        try {
+          let q = supabase
+            .from('aquapp_muestras')
+            .select('descripcion')
+            .order('fecha', { ascending: false })
+            .limit(40);
+
+          if (selectedClienteId && selectedClienteId !== '_custom_') {
+            q = q.eq('cliente_id', selectedClienteId);
+          } else if (customClienteName) {
+            q = q.eq('cliente_nombre', customClienteName);
+          }
+
+          const { data } = await withTimeout(q, 3500);
+          if (isMounted && data && data.length > 0) {
+            const remoteDescs = data.map(d => d.descripcion).filter(Boolean);
+            const allMerged = mergeUnique(localList, offlineDescs, remoteDescs);
+            setPuntosSugeridos(allMerged.slice(0, 8));
+            try {
+              localStorage.setItem(`historial_puntos_${clientKey}`, JSON.stringify(allMerged.slice(0, 15)));
+            } catch (e) {}
+          }
+        } catch (err) {
+          // Si estamos en sótano o sin cobertura, mantenemos los puntos locales
+        }
+      })();
+
+      return () => {
+        isMounted = false;
+      };
+    }
+  }, [selectedClienteId, customClienteName, isOpen]);
 
   useEffect(() => {
     const handleOpenEvent = (e) => {
@@ -1643,8 +1824,50 @@ const UniversalForm = () => {
             </div>
 
             <div className="uf-form-group">
-              <label>DESCRIPCIÓN</label>
-              <textarea name="descripcion" className="uf-textarea" rows="2" placeholder="Observaciones..." value={editDescripcion} onChange={(e) => setEditDescripcion(e.target.value)}></textarea>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <label style={{ margin: 0 }}>LUGAR DE TOMA / DESCRIPCIÓN</label>
+                <button
+                  type="button"
+                  onClick={toggleSpeechRecognition}
+                  className={`uf-voice-btn ${isListening ? 'listening' : ''}`}
+                  title={isListening ? "Detener dictado por voz" : "Dictar lugar por voz"}
+                >
+                  {isListening ? <MicOff size={14} /> : <Mic size={14} />}
+                  <span>{isListening ? 'Escuchando...' : 'Dictar por voz'}</span>
+                </button>
+              </div>
+
+              <textarea 
+                ref={descripcionInputRef}
+                name="descripcion" 
+                className="uf-textarea" 
+                rows="2" 
+                placeholder="Ej: Ducha 1 ACS vestuario masc. planta 1..." 
+                value={editDescripcion} 
+                onChange={(e) => setEditDescripcion(e.target.value)}
+              />
+
+              {puntosSugeridos.length > 0 && (
+                <div className="uf-puntos-sugeridos">
+                  <div className="uf-puntos-header">
+                    <History size={13} />
+                    <span>Puntos habituales de este cliente:</span>
+                  </div>
+                  <div className="uf-puntos-chips">
+                    {puntosSugeridos.map((punto, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        className="uf-punto-chip"
+                        onClick={() => handleSelectPuntoSugerido(punto)}
+                        title="Toca para usar este punto de toma"
+                      >
+                        {punto}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="uf-section-title">

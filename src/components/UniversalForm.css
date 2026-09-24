@@ -450,3 +450,105 @@
 .uf-input-basic::placeholder, .uf-textarea::placeholder, input::placeholder, textarea::placeholder { color: transparent; }
 .uf-input-basic:focus::placeholder, .uf-textarea:focus::placeholder, input:focus::placeholder, textarea:focus::placeholder { color: var(--border-input); }
 
+/* Botón de Dictado por Voz */
+.uf-voice-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  background: rgba(2, 132, 199, 0.1);
+  color: var(--accent-aquapp, #0284c7);
+  border: 1px solid rgba(2, 132, 199, 0.25);
+  border-radius: 20px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.uf-voice-btn:hover {
+  background: rgba(2, 132, 199, 0.18);
+  border-color: var(--accent-aquapp, #0284c7);
+}
+
+.uf-voice-btn:active {
+  transform: scale(0.96);
+}
+
+.uf-voice-btn.listening {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #f87171;
+  animation: uf-pulse-mic 1.2s infinite;
+}
+
+@keyframes uf-pulse-mic {
+  0% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.45);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(220, 38, 38, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
+  }
+}
+
+/* Sugerencias de Puntos Habituales del Cliente */
+.uf-puntos-sugeridos {
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: var(--bg-card-hover, rgba(0, 0, 0, 0.02));
+  border-radius: var(--radius-sm, 8px);
+  border: 1px dashed var(--border-light, #e2e8f0);
+}
+
+.uf-puntos-header {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--text-muted, #64748b);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.uf-puntos-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.uf-punto-chip {
+  background: var(--bg-card, #ffffff);
+  color: var(--text-main, #1e293b);
+  border: 1px solid var(--border-input, #cbd5e1);
+  border-radius: 12px;
+  padding: 5px 10px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+  line-height: 1.2;
+  max-width: 100%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.uf-punto-chip:hover {
+  border-color: var(--accent-aquapp, #0284c7);
+  color: var(--accent-aquapp, #0284c7);
+  background: rgba(2, 132, 199, 0.06);
+  transform: translateY(-1px);
+}
+
+.uf-punto-chip:active {
+  transform: scale(0.97);
+}
+
+
