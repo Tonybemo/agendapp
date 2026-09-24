@@ -63,6 +63,7 @@ const UniversalForm = () => {
   const [editMatF8580, setEditMatF8580] = useState('');
   const [editMatF8481, setEditMatF8481] = useState('');
   const [editMatA4170, setEditMatA4170] = useState('');
+  const [editMatA645D, setEditMatA645D] = useState('');
   const [editNotas, setEditNotas] = useState('');
   const [editTipoActuacion, setEditTipoActuacion] = useState('');
 
@@ -496,6 +497,7 @@ const UniversalForm = () => {
     setEditMatF8580('');
     setEditMatF8481('');
     setEditMatA4170('');
+    setEditMatA645D('');
     setEditNotas('');
     setEditTipoActuacion('');
     setAvisoPlagas([]);
@@ -576,7 +578,8 @@ const UniversalForm = () => {
       mat_f_8583: data.mat_f_8583,
       mat_f_8580: data.mat_f_8580,
       mat_f_8481: data.mat_f_8481,
-      mat_a_4170: data.mat_a_4170
+      mat_a_4170: data.mat_a_4170,
+      mat_a_645d: data.mat_a_645d
     };
 
     // Actualizar caché de correlatividad local
@@ -1266,6 +1269,7 @@ const UniversalForm = () => {
         setEditMatF8580(item.mat_f_8580 || '');
         setEditMatF8481(item.mat_f_8481 || '');
         setEditMatA4170(item.mat_a_4170 || '');
+        setEditMatA645D(item.mat_a_645d || '');
       } else if (item.editType === 'tratamiento') {
         setAquappMode('tratamiento');
         setTipoTratamiento(item.tipo_tratamiento || 'Hipercloracion');
@@ -1849,13 +1853,20 @@ const UniversalForm = () => {
                 </div>
                 <div className="uf-form-row">
                   <div className="uf-form-group">
-                    <label>F-8481</label>
+                    <label>Ferrocid 8441</label>
                     <input name="mat_f_8481" className="uf-input-basic" type="text" placeholder="Ej: 1 Garrafa" value={editMatF8481} onChange={(e) => setEditMatF8481(e.target.value)} />
                   </div>
                   <div className="uf-form-group">
-                    <label>A-4170 / 645D</label>
+                    <label>A-4170 (Aktiphos 4170)</label>
                     <input name="mat_a_4170" className="uf-input-basic" type="text" placeholder="Ej: 1 Garrafa" value={editMatA4170} onChange={(e) => setEditMatA4170(e.target.value)} />
                   </div>
+                </div>
+                <div className="uf-form-row">
+                  <div className="uf-form-group">
+                    <label>A-645D (Aktiphos 645D)</label>
+                    <input name="mat_a_645d" className="uf-input-basic" type="text" placeholder="Ej: 1 Garrafa" value={editMatA645D} onChange={(e) => setEditMatA645D(e.target.value)} />
+                  </div>
+                  <div className="uf-form-group" />
                 </div>
               </>
             ) : (
