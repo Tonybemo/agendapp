@@ -579,7 +579,7 @@ const UniversalForm = () => {
       mat_f_8580: data.mat_f_8580,
       mat_f_8481: data.mat_f_8481,
       mat_a_4170: data.mat_a_4170,
-      // mat_a_645d se añadirá al record cuando la columna exista en Supabase (ver migración pendiente)
+      mat_a_645d: data.mat_a_645d
     };
 
     // Actualizar caché de correlatividad local
