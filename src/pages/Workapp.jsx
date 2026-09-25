@@ -824,7 +824,7 @@ const Workapp = () => {
                   {/* Cabecera con velo tenue (soft violet/indigo tint) */}
                   <div className="wa-card-top">
                     <div className="wa-card-date-group">
-                      <Calendar size={14} color="#7c3aed" />
+                      <Calendar size={14} color="#ffffff" />
                       <span className="wa-date-pill">{formatFechaDisplay(reg.fecha)}</span>
                     </div>
 

@@ -400,8 +400,8 @@
 .wa-card {
   background-color: var(--bg-card);
   border-radius: var(--radius-md);
-  border: 1px solid rgba(221, 214, 254, 0.85);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(148, 180, 218, 0.7);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   flex-direction: column;
@@ -411,18 +411,18 @@
 
 .wa-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(109, 40, 217, 0.12);
-  border-color: #c4b5fd;
+  box-shadow: 0 8px 24px rgba(30, 58, 95, 0.18);
+  border-color: #7eafd4;
 }
 
-/* Cabecera con Velo Tenue Violeta/Índigo */
+/* Cabecera azul marino — contrasta con el fondo y con la tarjeta blanca */
 .wa-card-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 10px;
-  background: linear-gradient(135deg, rgba(245, 243, 255, 0.95) 0%, rgba(237, 233, 254, 0.6) 100%);
-  border-bottom: 1px solid #ede9fe;
+  background: linear-gradient(135deg, #1e3a5f 0%, #2d5282 100%);
+  border-bottom: 1px solid #1a3352;
   padding: 13px 16px;
 }
 
@@ -433,7 +433,7 @@
 }
 
 .wa-date-pill {
-  color: var(--text-main);
+  color: #ffffff;
   font-weight: 800;
   font-size: 0.9rem;
   letter-spacing: -0.2px;
@@ -456,16 +456,16 @@
 }
 
 .wa-hour-pill.base {
-  background-color: #ede9fe;
-  color: #6d28d9;
-  border: 1px solid #ddd6fe;
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
 }
 
 /* Horas extras en rojo brillante con sombra tal como solicitó el usuario */
 .wa-hour-pill.extra {
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: #ffffff;
-  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.35);
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.45);
   border: 1px solid rgba(239, 68, 68, 0.8);
 }
 
