@@ -1417,7 +1417,7 @@ const Tareasapp = () => {
                 <div key={tarea.id} className={`tf-card ${cardColorClass}`}>
                   <div className="tf-card-header">
                     <div className="tf-card-title">
-                      <h3>{tarea.clientName} {isFullyCompleted && <CheckCircle2 size={16} color="#ffffff" className="inline-check"/>}</h3>
+                      <h3>{tarea.clientName} {isFullyCompleted && <CheckCircle2 size={16} color="#22c55e" className="inline-check"/>}</h3>
                       <p>
                         {completed} de {total} completadas ({percentage}%)
                       </p>
@@ -1433,14 +1433,14 @@ const Tareasapp = () => {
                           padding: '2px',
                           display: 'flex',
                           alignItems: 'center',
-                          color: 'rgba(255,255,255,0.85)'
+                          color: '#0284c7'
                         }}
                         title={`Cómo llegar a ${tarea.clientName} (Google Maps / Waze)`}
                       >
                         <Navigation size={16} />
                       </button>
-                      <MessageSquare size={16} color={tarea.notas ? "#fca5a5" : "rgba(255,255,255,0.6)"} style={{cursor: 'pointer'}} onClick={() => addNote(tarea.id)}/>
-                      <MoreVertical size={16} color="rgba(255,255,255,0.6)" style={{cursor: 'pointer'}} onClick={() => deleteCard(tarea.id)}/>
+                      <MessageSquare size={16} color={tarea.notas ? "var(--color-danger)" : "var(--text-faint)"} style={{cursor: 'pointer'}} onClick={() => addNote(tarea.id)}/>
+                      <MoreVertical size={16} color="var(--text-faint)" style={{cursor: 'pointer'}} onClick={() => deleteCard(tarea.id)}/>
                     </div>
                   </div>
 

@@ -420,30 +420,30 @@
 
 /* VERDE — Pendiente (0% completado) */
 .tf-card.status-pending .tf-card-header {
-  background: linear-gradient(135deg, #1b6e3d 0%, #28805a 100%);
-  border-bottom: 1px solid #166534;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.12) 0%, rgba(34, 197, 94, 0.06) 100%);
+  border-bottom: 1px solid rgba(34, 197, 94, 0.2);
 }
-.tf-card.status-pending .tf-card-title h3 { color: #ffffff; }
-.tf-card.status-pending .tf-card-title p { color: rgba(255, 255, 255, 0.8); }
-.tf-card.status-pending { border-color: rgba(34, 197, 94, 0.4); }
+.tf-card.status-pending .tf-card-title h3 { color: #15803d; }
+.tf-card.status-pending .tf-card-title p { color: #16a34a; }
+.tf-card.status-pending { border-color: rgba(34, 197, 94, 0.25); }
 
 /* AMARILLO — Parcialmente completado (>0% y <100%) */
 .tf-card.status-partial .tf-card-header {
-  background: linear-gradient(135deg, #a16207 0%, #b97a0a 100%);
-  border-bottom: 1px solid #854d0e;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(245, 158, 11, 0.06) 100%);
+  border-bottom: 1px solid rgba(245, 158, 11, 0.2);
 }
-.tf-card.status-partial .tf-card-title h3 { color: #ffffff; }
-.tf-card.status-partial .tf-card-title p { color: rgba(255, 255, 255, 0.8); }
-.tf-card.status-partial { border-color: rgba(245, 158, 11, 0.4); }
+.tf-card.status-partial .tf-card-title h3 { color: #b45309; }
+.tf-card.status-partial .tf-card-title p { color: #d97706; }
+.tf-card.status-partial { border-color: rgba(245, 158, 11, 0.25); }
 
 /* ROJO — Completado (100%) */
 .tf-card.status-completed .tf-card-header {
-  background: linear-gradient(135deg, #991b1b 0%, #b52525 100%);
-  border-bottom: 1px solid #7f1d1d;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(239, 68, 68, 0.06) 100%);
+  border-bottom: 1px solid rgba(239, 68, 68, 0.2);
 }
-.tf-card.status-completed .tf-card-title h3 { color: #ffffff; }
-.tf-card.status-completed .tf-card-title p { color: rgba(255, 255, 255, 0.8); }
-.tf-card.status-completed { border-color: rgba(239, 68, 68, 0.4); }
+.tf-card.status-completed .tf-card-title h3 { color: #b91c1c; }
+.tf-card.status-completed .tf-card-title p { color: #dc2626; }
+.tf-card.status-completed { border-color: rgba(239, 68, 68, 0.25); }
 
 .tf-card-header {
   padding: 16px;
