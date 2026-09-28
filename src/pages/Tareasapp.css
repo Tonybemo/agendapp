@@ -413,13 +413,37 @@
   border: 1px solid var(--border-light);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
-.tf-card.completed-card,
-.tf-card.weekly-card,
-.tf-card.monthly-card {
-  background-color: var(--bg-card);
+/* ── Semáforo: cabeceras por estado ── */
+
+/* VERDE — Pendiente (0% completado) */
+.tf-card.status-pending .tf-card-header {
+  background: linear-gradient(135deg, #1b6e3d 0%, #28805a 100%);
+  border-bottom: 1px solid #166534;
 }
+.tf-card.status-pending .tf-card-title h3 { color: #ffffff; }
+.tf-card.status-pending .tf-card-title p { color: rgba(255, 255, 255, 0.8); }
+.tf-card.status-pending { border-color: rgba(34, 197, 94, 0.4); }
+
+/* AMARILLO — Parcialmente completado (>0% y <100%) */
+.tf-card.status-partial .tf-card-header {
+  background: linear-gradient(135deg, #a16207 0%, #b97a0a 100%);
+  border-bottom: 1px solid #854d0e;
+}
+.tf-card.status-partial .tf-card-title h3 { color: #ffffff; }
+.tf-card.status-partial .tf-card-title p { color: rgba(255, 255, 255, 0.8); }
+.tf-card.status-partial { border-color: rgba(245, 158, 11, 0.4); }
+
+/* ROJO — Completado (100%) */
+.tf-card.status-completed .tf-card-header {
+  background: linear-gradient(135deg, #991b1b 0%, #b52525 100%);
+  border-bottom: 1px solid #7f1d1d;
+}
+.tf-card.status-completed .tf-card-title h3 { color: #ffffff; }
+.tf-card.status-completed .tf-card-title p { color: rgba(255, 255, 255, 0.8); }
+.tf-card.status-completed { border-color: rgba(239, 68, 68, 0.4); }
 
 .tf-card-header {
   padding: 16px;
@@ -437,18 +461,6 @@
   display: flex;
   align-items: center;
   gap: 6px;
-}
-
-.tf-card.completed-card .tf-card-title h3 {
-  color: var(--color-success);
-}
-
-.tf-card.weekly-card .tf-card-title h3 {
-  color: #d97706; /* Ámbar oscuro para que se lea bien en blanco */
-}
-
-.tf-card.monthly-card .tf-card-title h3 {
-  color: var(--color-danger);
 }
 
 .inline-check {
