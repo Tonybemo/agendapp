@@ -401,10 +401,13 @@
   padding: 32px;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-auto-rows: max-content;
+  align-content: start;
   gap: 24px;
   overflow-y: auto;
+  flex: 1;
+  min-height: 0;
 }
-
 
 .tf-card {
   background-color: var(--bg-card);
@@ -413,44 +416,50 @@
   border: 1px solid var(--border-light);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  min-height: fit-content;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.tf-card:hover {
+  box-shadow: var(--shadow-md);
 }
 
 /* ── Semáforo: cabeceras por estado ── */
 
 /* VERDE — Pendiente (0% completado) */
 .tf-card.status-pending .tf-card-header {
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.12) 0%, rgba(34, 197, 94, 0.06) 100%);
-  border-bottom: 1px solid rgba(34, 197, 94, 0.2);
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.16) 0%, rgba(34, 197, 94, 0.08) 100%);
+  border-bottom: 1px solid rgba(34, 197, 94, 0.28);
 }
 .tf-card.status-pending .tf-card-title h3 { color: #15803d; }
 .tf-card.status-pending .tf-card-title p { color: #16a34a; }
-.tf-card.status-pending { border-color: rgba(34, 197, 94, 0.25); }
+.tf-card.status-pending { border-color: rgba(34, 197, 94, 0.35); }
 
 /* AMARILLO — Parcialmente completado (>0% y <100%) */
 .tf-card.status-partial .tf-card-header {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(245, 158, 11, 0.06) 100%);
-  border-bottom: 1px solid rgba(245, 158, 11, 0.2);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.16) 0%, rgba(245, 158, 11, 0.08) 100%);
+  border-bottom: 1px solid rgba(245, 158, 11, 0.28);
 }
 .tf-card.status-partial .tf-card-title h3 { color: #b45309; }
 .tf-card.status-partial .tf-card-title p { color: #d97706; }
-.tf-card.status-partial { border-color: rgba(245, 158, 11, 0.25); }
+.tf-card.status-partial { border-color: rgba(245, 158, 11, 0.35); }
 
 /* ROJO — Completado (100%) */
 .tf-card.status-completed .tf-card-header {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(239, 68, 68, 0.06) 100%);
-  border-bottom: 1px solid rgba(239, 68, 68, 0.2);
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.16) 0%, rgba(239, 68, 68, 0.08) 100%);
+  border-bottom: 1px solid rgba(239, 68, 68, 0.28);
 }
 .tf-card.status-completed .tf-card-title h3 { color: #b91c1c; }
 .tf-card.status-completed .tf-card-title p { color: #dc2626; }
-.tf-card.status-completed { border-color: rgba(239, 68, 68, 0.25); }
+.tf-card.status-completed { border-color: rgba(239, 68, 68, 0.35); }
 
 .tf-card-header {
-  padding: 16px;
+  padding: 14px 16px;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   border-bottom: 1px solid var(--border-light);
+  border-radius: calc(var(--radius-md) - 1px) calc(var(--radius-md) - 1px) 0 0;
 }
 
 .tf-card-title h3 {
@@ -530,13 +539,15 @@
 }
 
 .tf-task-row.completed .tf-task-name {
-  color: var(--text-faint);
+  color: var(--text-secondary);
   text-decoration: line-through;
+  opacity: 0.75;
 }
 
 .tf-task-row.skipped .tf-task-name {
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-style: italic;
+  opacity: 0.7;
 }
 
 .tf-task-date-input {

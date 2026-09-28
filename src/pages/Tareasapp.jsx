@@ -1417,7 +1417,7 @@ const Tareasapp = () => {
                 <div key={tarea.id} className={`tf-card ${cardColorClass}`}>
                   <div className="tf-card-header">
                     <div className="tf-card-title">
-                      <h3>{tarea.clientName} {isFullyCompleted && <CheckCircle2 size={16} color="#22c55e" className="inline-check"/>}</h3>
+                      <h3>{tarea.clientName} {isFullyCompleted && <CheckCircle2 size={16} color="#dc2626" className="inline-check"/>}</h3>
                       <p>
                         {completed} de {total} completadas ({percentage}%)
                       </p>
