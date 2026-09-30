@@ -1241,7 +1241,10 @@ const UniversalForm = () => {
         return d.toISOString().split('T')[0];
       });
       setEditHora(getHoraActual());
-      if (e.detail?.type) setSelectedType(e.detail.type);
+      if (e.detail?.type) {
+        const targetType = e.detail.type === 'avisomap' ? 'aviso' : e.detail.type;
+        setSelectedType(targetType);
+      }
       if (e.detail?.mode) setAquappMode(e.detail.mode);
       if (e.detail?.tipoTratamiento) setTipoTratamiento(e.detail.tipoTratamiento);
     };

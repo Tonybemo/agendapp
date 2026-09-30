@@ -713,7 +713,11 @@
 .am-edit-form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
+  padding: 20px 24px 28px 24px;
+  max-height: calc(88vh - 75px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .am-edit-form label {
@@ -779,7 +783,11 @@
 }
 
 .am-btn-submit-edit {
-  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px;
   background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
   color: #ffffff;
   border: none;
@@ -787,16 +795,37 @@
   font-weight: 700;
   font-size: 0.95rem;
   cursor: pointer;
-  margin-top: 8px;
+  margin-top: 10px;
   transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
 }
 
-.am-btn-submit-edit:hover {
+.am-btn-submit-edit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.am-btn-submit-edit:hover:not(:disabled) {
   opacity: 0.95;
+  transform: translateY(-1px);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spin-icon {
+  animation: spin 1s linear infinite;
 }
 
 /* 11. Ajustes Responsive */
 @media (max-width: 768px) {
+  .am-edit-form {
+    padding: 16px 18px 24px 18px;
+    max-height: calc(88vh - 65px);
+  }
+
   .avisomap-wrapper {
     margin: -16px;
   }

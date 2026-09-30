@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { 
   ShieldCheck, Search, List, BarChart2, Calendar, 
   MapPin, Clock, Navigation, Eye, Edit3, Trash2, Camera,
-  Bug, Phone, X, XCircle, Plus
+  Bug, Phone, X, XCircle, Plus, RefreshCw
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -99,51 +99,106 @@ const Avisomap = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [avisoFileName, setAvisoFileName] = useState('');
 
-  const handleSaveEdit = async (e) => {
-    e.preventDefault();
-    setIsUploading(true);
-
-    let adjuntoUrl = editingAviso.adjunto;
-    const fileField = e.target.elements.adjuntoEdit;
-    if (fileField && fileField.files && fileField.files.length > 0) {
-      const file = fileField.files[0];
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
-      const filePath = `avisos/${fileName}`;
-      
-      const { error: uploadError } = await supabase.storage.from('adjuntos').upload(filePath, file);
-      if (!uploadError) {
-        const { data: publicUrlData } = supabase.storage.from('adjuntos').getPublicUrl(filePath);
-        adjuntoUrl = publicUrlData.publicUrl;
+  const handleOpenEdit = (aviso, plagasArray) => {
+    // 1. Normalizar hora para input tipo "time" (formato HH:mm)
+    let formattedHora = '';
+    if (aviso.hora) {
+      const parts = String(aviso.hora).trim().split(':');
+      if (parts.length >= 2) {
+        formattedHora = `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
       } else {
-        console.error("Error subiendo archivo:", uploadError);
-        window.__toast?.error("Aviso: No se pudo subir el nuevo archivo adjunto. (" + uploadError.message + ")");
+        formattedHora = aviso.hora;
       }
     }
 
-    const plagasArray = editingAviso.plagasStr.split(',').map(s => s.trim()).filter(s => s !== '');
-    
-    const { error } = await supabase.from('avisomap_avisos').update({
-      direccion: editingAviso.direccion,
-      portal: editingAviso.portal,
-      localidad: editingAviso.localidad,
-      fecha: editingAviso.fecha,
-      hora: editingAviso.hora,
-      contacto: editingAviso.contacto,
-      comentarios: editingAviso.comentarios,
-      plagas: plagasArray,
-      adjunto: adjuntoUrl
-    }).eq('id', editingAviso.id);
-    
-    setIsUploading(false);
+    // 2. Normalizar fecha para input tipo "date" (formato YYYY-MM-DD)
+    let formattedFecha = '';
+    if (aviso.fecha) {
+      if (aviso.fecha.includes('/')) {
+        const parts = aviso.fecha.split('/');
+        if (parts.length === 3) {
+          formattedFecha = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+        }
+      } else {
+        formattedFecha = aviso.fecha;
+      }
+    }
 
-    if (!error) {
-      setEditingAviso(null);
-      setAvisoFileName('');
-      fetchData();
-      window.__toast?.success("Aviso actualizado correctamente");
-    } else {
-      window.__toast?.error("Error al actualizar: " + error.message);
+    // 3. Normalizar plagas a string separado por comas
+    const plagasStr = Array.isArray(plagasArray) && plagasArray.length > 0 
+      ? plagasArray.join(', ') 
+      : (Array.isArray(aviso.plagas) ? aviso.plagas.join(', ') : (aviso.plagas || ''));
+
+    setEditingAviso({
+      ...aviso,
+      hora: formattedHora,
+      fecha: formattedFecha,
+      plagasStr: plagasStr
+    });
+    setAvisoFileName('');
+  };
+
+  const handleSaveEdit = async (e) => {
+    e.preventDefault();
+    if (!editingAviso) return;
+    setIsUploading(true);
+
+    try {
+      let adjuntoUrl = editingAviso.adjunto;
+      const fileField = e.target.elements?.adjuntoEdit;
+      if (fileField && fileField.files && fileField.files.length > 0) {
+        const file = fileField.files[0];
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+        const filePath = `avisos/${fileName}`;
+        
+        const { error: uploadError } = await supabase.storage.from('adjuntos').upload(filePath, file);
+        if (!uploadError) {
+          const { data: publicUrlData } = supabase.storage.from('adjuntos').getPublicUrl(filePath);
+          adjuntoUrl = publicUrlData.publicUrl;
+        } else {
+          console.error("Error subiendo archivo:", uploadError);
+          window.__toast?.error("Aviso: No se pudo subir el nuevo archivo adjunto (" + uploadError.message + ")");
+        }
+      }
+
+      const plagasArray = (editingAviso.plagasStr || '')
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean);
+
+      const updatePayload = {
+        direccion: editingAviso.direccion || '',
+        portal: editingAviso.portal || '',
+        localidad: editingAviso.localidad || '',
+        fecha: editingAviso.fecha || '',
+        hora: editingAviso.hora || '',
+        contacto: editingAviso.contacto || 'Presencial',
+        comentarios: editingAviso.comentarios || '',
+        plagas: plagasArray,
+        adjunto: adjuntoUrl
+      };
+
+      const { error } = await supabase
+        .from('avisomap_avisos')
+        .update(updatePayload)
+        .eq('id', editingAviso.id);
+
+      setIsUploading(false);
+
+      if (!error) {
+        setEditingAviso(null);
+        setAvisoFileName('');
+        fetchData();
+        window.__toast?.success("Aviso actualizado correctamente ✓");
+      } else {
+        console.error("Error al actualizar aviso:", error);
+        window.__toast?.error("Error al actualizar: " + error.message);
+      }
+    } catch (err) {
+      setIsUploading(false);
+      console.error("Error inesperado al guardar aviso:", err);
+      window.__toast?.error("Error al guardar: " + (err.message || 'Error inesperado'));
     }
   };
 
@@ -490,29 +545,24 @@ const Avisomap = () => {
                         </a>
                       ) : null}
 
-                      {isAdmin && (
-                        <div className="admin-actions-group">
-                          <button 
-                            type="button"
-                            className="aviso-action-icon edit"
-                            title="Editar aviso"
-                            onClick={() => {
-                              setEditingAviso({ ...aviso, plagasStr: plagasArray.join(', ') });
-                              setAvisoFileName('');
-                            }}
-                          >
-                            <Edit3 size={15} />
-                          </button>
-                          <button 
-                            type="button"
-                            className="aviso-action-icon delete"
-                            title="Eliminar aviso"
-                            onClick={() => handleDeleteAviso(aviso.id)}
-                          >
-                            <Trash2 size={15} />
-                          </button>
-                        </div>
-                      )}
+                      <div className="admin-actions-group">
+                        <button 
+                          type="button"
+                          className="aviso-action-icon edit"
+                          title="Editar aviso"
+                          onClick={() => handleOpenEdit(aviso, plagasArray)}
+                        >
+                          <Edit3 size={15} />
+                        </button>
+                        <button 
+                          type="button"
+                          className="aviso-action-icon delete"
+                          title="Eliminar aviso"
+                          onClick={() => handleDeleteAviso(aviso.id)}
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -665,7 +715,7 @@ const Avisomap = () => {
           className="btn-nuevo-aviso-top"
           onClick={() => {
             window.dispatchEvent(new CustomEvent('open-universal-form', { 
-              detail: { type: 'avisomap', mode: 'create' } 
+              detail: { type: 'aviso', mode: 'create' } 
             }));
           }}
           title="Crear un nuevo aviso"
@@ -752,6 +802,7 @@ const Avisomap = () => {
                   <label>HORA</label>
                   <input 
                     type="time" 
+                    step="any"
                     value={editingAviso.hora || ''} 
                     onChange={e => setEditingAviso({...editingAviso, hora: e.target.value})} 
                     required 
@@ -774,8 +825,9 @@ const Avisomap = () => {
                 <label>PLAGAS (Separadas por comas)</label>
                 <input 
                   type="text" 
-                  value={editingAviso.plagasStr} 
+                  value={editingAviso.plagasStr || ''} 
                   onChange={e => setEditingAviso({...editingAviso, plagasStr: e.target.value})} 
+                  placeholder="Ej: Cucarachas, Avispas..."
                   required 
                 />
               </div>
@@ -807,7 +859,14 @@ const Avisomap = () => {
                 disabled={isUploading} 
                 className="am-btn-submit-edit"
               >
-                {isUploading ? 'Guardando...' : 'Guardar Cambios'}
+                {isUploading ? (
+                  <>
+                    <RefreshCw size={18} className="spin-icon" />
+                    <span>Guardando cambios...</span>
+                  </>
+                ) : (
+                  <span>Guardar Cambios</span>
+                )}
               </button>
             </form>
           </div>
