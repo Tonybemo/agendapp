@@ -1,6 +1,7 @@
-﻿import React, { useState, useEffect } from 'react';
-import { WifiOff, CloudUpload, CheckCircle2, RefreshCw, Smartphone } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { WifiOff, CloudUpload, CheckCircle2, RefreshCw, Smartphone, ListFilter } from 'lucide-react';
 import { getPendingOfflineCount, syncAllOfflineData } from '../lib/offlineManager';
+import OfflineQueueModal from './OfflineQueueModal';
 import './OfflineBanner.css';
 
 const OfflineBanner = () => {
@@ -8,6 +9,7 @@ const OfflineBanner = () => {
   const [pendingCount, setPendingCount] = useState(() => getPendingOfflineCount());
   const [isSyncing, setIsSyncing] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showQueueModal, setShowQueueModal] = useState(false);
 
   useEffect(() => {
     const handleOnline = () => {
@@ -35,11 +37,14 @@ const OfflineBanner = () => {
       }
     };
 
+    const handleOpenQueue = () => setShowQueueModal(true);
+
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
     window.addEventListener('offline-queue-updated', updatePending);
     window.addEventListener('offline-sync-started', handleSyncStarted);
     window.addEventListener('offline-sync-finished', handleSyncFinished);
+    window.addEventListener('open-offline-queue', handleOpenQueue);
 
     // Periodic check every 15s
     const interval = setInterval(() => {
@@ -55,6 +60,7 @@ const OfflineBanner = () => {
       window.removeEventListener('offline-queue-updated', updatePending);
       window.removeEventListener('offline-sync-started', handleSyncStarted);
       window.removeEventListener('offline-sync-finished', handleSyncFinished);
+      window.removeEventListener('open-offline-queue', handleOpenQueue);
       clearInterval(interval);
     };
   }, []);
@@ -65,67 +71,96 @@ const OfflineBanner = () => {
     syncAllOfflineData();
   };
 
-  // Don't render anything if everything is online and no items pending
-  if (isOnline && pendingCount === 0 && !showSuccess && !isSyncing) {
-    return null;
-  }
+  const shouldRenderBanner = !(!isOnline ? false : (pendingCount === 0 && !showSuccess && !isSyncing));
 
   return (
-    <div className={`offline-floating-banner animate-fade-in ${!isOnline ? 'is-offline' : ''} ${showSuccess ? 'is-success' : ''}`}>
-      <div className="offline-banner-content">
-        {!isOnline ? (
-          <>
-            <div className="offline-banner-left">
-              <span className="offline-pulse-dot" />
-              <WifiOff size={18} className="offline-icon" />
-              <div className="offline-banner-texts">
-                <strong>Sin cobertura (Modo Fuera de Línea)</strong>
-                <span>
-                  {pendingCount > 0 
-                    ? `${pendingCount} registro${pendingCount > 1 ? 's' : ''} a salvo en este móvil` 
-                    : 'Tus registros se guardarán en el móvil y se subirán al volver a tener señal'}
-                </span>
+    <>
+      {shouldRenderBanner && (
+        <div 
+          className={`offline-floating-banner animate-fade-in ${!isOnline ? 'is-offline' : ''} ${showSuccess ? 'is-success' : ''}`}
+          onClick={() => pendingCount > 0 && setShowQueueModal(true)}
+          style={{ cursor: pendingCount > 0 ? 'pointer' : 'default' }}
+          title={pendingCount > 0 ? "Toca para ver los registros guardados en este móvil" : undefined}
+        >
+          <div className="offline-banner-content">
+            {!isOnline ? (
+              <>
+                <div className="offline-banner-left">
+                  <span className="offline-pulse-dot" />
+                  <WifiOff size={18} className="offline-icon" />
+                  <div className="offline-banner-texts">
+                    <strong>Sin cobertura (Modo Fuera de Línea)</strong>
+                    <span>
+                      {pendingCount > 0 
+                        ? `${pendingCount} registro${pendingCount > 1 ? 's' : ''} a salvo en este móvil` 
+                        : 'Tus registros se guardarán en el móvil y se subirán al volver a tener señal'}
+                    </span>
+                  </div>
+                </div>
+                {pendingCount > 0 && (
+                  <button 
+                    type="button" 
+                    className="offline-badge-count-btn"
+                    onClick={(e) => { e.stopPropagation(); setShowQueueModal(true); }}
+                    title="Ver registros guardados en este móvil"
+                  >
+                    <Smartphone size={13} />
+                    <span>Ver {pendingCount}</span>
+                  </button>
+                )}
+              </>
+            ) : showSuccess ? (
+              <div className="offline-banner-left success-mode">
+                <CheckCircle2 size={18} color="#ffffff" />
+                <span>¡Todo sincronizado con la nube con éxito!</span>
               </div>
-            </div>
-            {pendingCount > 0 && (
-              <span className="offline-badge-count">
-                <Smartphone size={13} /> {pendingCount}
-              </span>
+            ) : isSyncing ? (
+              <div className="offline-banner-left syncing-mode">
+                <RefreshCw size={18} className="spin-icon" color="#ffffff" />
+                <span>Subiendo {pendingCount} registro{pendingCount > 1 ? 's' : ''} a la nube...</span>
+              </div>
+            ) : (
+              <>
+                <div className="offline-banner-left">
+                  <CloudUpload size={18} className="offline-icon-upload" />
+                  <div className="offline-banner-texts">
+                    <strong>{pendingCount} registro{pendingCount > 1 ? 's' : ''} guardado{pendingCount > 1 ? 's' : ''} en el móvil</strong>
+                    <span>Cobertura recuperada. Listo para sincronizar con la nube.</span>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <button 
+                    type="button"
+                    className="offline-view-queue-btn"
+                    onClick={(e) => { e.stopPropagation(); setShowQueueModal(true); }}
+                    title="Ver los registros guardados"
+                  >
+                    Ver ({pendingCount})
+                  </button>
+                  <button 
+                    type="button" 
+                    className="offline-sync-btn"
+                    onClick={handleManualSync}
+                    disabled={isSyncing}
+                  >
+                    <RefreshCw size={14} className={isSyncing ? 'spin-icon' : ''} />
+                    <span>Subir ahora</span>
+                  </button>
+                </div>
+              </>
             )}
-          </>
-        ) : showSuccess ? (
-          <div className="offline-banner-left success-mode">
-            <CheckCircle2 size={18} color="#ffffff" />
-            <span>¡Todo sincronizado con la nube con éxito!</span>
           </div>
-        ) : isSyncing ? (
-          <div className="offline-banner-left syncing-mode">
-            <RefreshCw size={18} className="spin-icon" color="#ffffff" />
-            <span>Subiendo {pendingCount} registro{pendingCount > 1 ? 's' : ''} a la nube...</span>
-          </div>
-        ) : (
-          <>
-            <div className="offline-banner-left">
-              <CloudUpload size={18} className="offline-icon-upload" />
-              <div className="offline-banner-texts">
-                <strong>{pendingCount} registro{pendingCount > 1 ? 's' : ''} guardado{pendingCount > 1 ? 's' : ''} en el móvil</strong>
-                <span>Cobertura recuperada. Listo para sincronizar con la nube.</span>
-              </div>
-            </div>
-            <button 
-              type="button" 
-              className="offline-sync-btn"
-              onClick={handleManualSync}
-              disabled={isSyncing}
-            >
-              <RefreshCw size={14} className={isSyncing ? 'spin-icon' : ''} />
-              <span>Subir ahora</span>
-            </button>
-          </>
-        )}
-      </div>
-    </div>
+        </div>
+      )}
+
+      {/* Modal para ver qué muestras están guardadas en el móvil */}
+      <OfflineQueueModal 
+        isOpen={showQueueModal}
+        onClose={() => setShowQueueModal(false)}
+      />
+    </>
   );
 };
 
 export default OfflineBanner;
+

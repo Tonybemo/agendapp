@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   Droplet, Lock, Bell, Settings, WifiOff, Home, 
   Wind, Thermometer, Calendar, Search, ChevronDown, ChevronUp, ChevronRight,
-  FlaskConical, Factory, SprayCan, Edit3, Trash2, Clock, Plus, PlusCircle, BookOpen, Bug, Box, Download, BarChart2, CheckCircle2, Zap, Waves, Folder, X, Navigation
+  FlaskConical, Factory, SprayCan, Edit3, Trash2, Clock, Plus, PlusCircle, BookOpen, Bug, Box, Download, BarChart2, CheckCircle2, Zap, Waves, Folder, X, Navigation,
+  Smartphone
 } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip as RechartsTooltip, CartesianGrid, ReferenceDot } from 'recharts';
@@ -40,6 +41,27 @@ const Aquapp = () => {
   const [currentView, setCurrentView] = useState('historial'); 
   const [selectedClient, setSelectedClient] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [offlinePendingCount, setOfflinePendingCount] = useState(0);
+
+  useEffect(() => {
+    const updateOfflineCount = () => {
+      try {
+        const m = JSON.parse(localStorage.getItem('offline_muestras_queue') || '[]');
+        const t = JSON.parse(localStorage.getItem('offline_tratamientos_queue') || '[]');
+        const p = JSON.parse(localStorage.getItem('offline_plagas_queue') || '[]');
+        setOfflinePendingCount(m.length + t.length + p.length);
+      } catch (e) {
+        setOfflinePendingCount(0);
+      }
+    };
+    updateOfflineCount();
+    window.addEventListener('offline-queue-updated', updateOfflineCount);
+    window.addEventListener('offline-sync-finished', updateOfflineCount);
+    return () => {
+      window.removeEventListener('offline-queue-updated', updateOfflineCount);
+      window.removeEventListener('offline-sync-finished', updateOfflineCount);
+    };
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -866,6 +888,49 @@ const Aquapp = () => {
         <div className="view-header">
           <h2>Clientes ({filteredClients.length})</h2>
         </div>
+
+        {offlinePendingCount > 0 && (
+          <div 
+            onClick={() => window.dispatchEvent(new CustomEvent('open-offline-queue'))}
+            style={{
+              margin: '0 0 14px 0',
+              padding: '12px 14px',
+              backgroundColor: 'rgba(245, 158, 11, 0.12)',
+              border: '1px solid rgba(245, 158, 11, 0.35)',
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              cursor: 'pointer',
+              gap: '10px'
+            }}
+            title="Toca para ver los registros guardados en tu móvil"
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+              <Smartphone size={22} color="#d97706" style={{ flexShrink: 0 }} />
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontWeight: '700', fontSize: '0.88rem', color: '#b45309', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {offlinePendingCount} {offlinePendingCount === 1 ? 'registro guardado en el móvil' : 'registros guardados en el móvil'}
+                </div>
+                <div style={{ fontSize: '0.76rem', color: '#92400e', opacity: 0.9 }}>
+                  Toca para ver la lista a salvo y sincronizar
+                </div>
+              </div>
+            </div>
+            <span style={{
+              fontSize: '0.76rem',
+              fontWeight: '700',
+              color: '#ffffff',
+              backgroundColor: '#d97706',
+              padding: '5px 12px',
+              borderRadius: '20px',
+              whiteSpace: 'nowrap',
+              flexShrink: 0
+            }}>
+              Ver cola
+            </span>
+          </div>
+        )}
 
         <div className="search-box">
           <Search size={20} color="#64748b" />

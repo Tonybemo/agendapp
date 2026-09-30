@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, X, Droplet, Wind, MapPin, Briefcase, ChevronRight, Check, Calendar, Clock, Car, FileText, UploadCloud, PlusCircle, Search, Bug, Hexagon, BookOpen, Camera, ScanLine, Trash2, Image as ImageIcon, Sparkles, History } from 'lucide-react';
+import { Plus, X, Droplet, Wind, MapPin, Briefcase, ChevronRight, Check, Calendar, Clock, Car, FileText, UploadCloud, PlusCircle, Search, Bug, Hexagon, BookOpen, Camera, ScanLine, Trash2, Image as ImageIcon, Sparkles, History, RefreshCw } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import BarcodeScannerModal from './BarcodeScannerModal';
 import { compressImage } from '../utils/imageCompressor';
@@ -522,6 +522,12 @@ const UniversalForm = () => {
     e.preventDefault();
     if (isSaving) return;
     setIsSaving(true);
+
+    // Haptic feedback inmediato para que el usuario sienta la pulsación físicamente en el móvil
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      try { navigator.vibrate([50, 40, 50]); } catch (vErr) {}
+    }
+
     try {
       const formData = new FormData(e.target);
       const data = Object.fromEntries(formData);
@@ -606,21 +612,22 @@ const UniversalForm = () => {
     // 1. Si no hay conexión o se está en modo offline directo
     if (!navigator.onLine && !editingItem) {
       saveOfflineRecord(QUEUE_MUESTRAS_KEY, record);
-      window.__toast?.success("📱 Muestra guardada en el móvil (Sin cobertura).\nSe subirá automáticamente cuando recuperes la señal.");
+      const totalInQueue = getOfflineQueue(QUEUE_MUESTRAS_KEY).length;
+      window.__toast?.success(`📱 Muestra guardada en el móvil (Sin cobertura).\n${totalInQueue} muestra${totalInQueue > 1 ? 's' : ''} a salvo en este dispositivo.`);
       window.dispatchEvent(new CustomEvent('aquapp-refresh-data'));
       handleClose();
       setIsSaving(false);
       return;
     }
 
-    // 2. Comprobación de código de envase duplicado con timeout corto
+    // 2. Comprobación de código de envase duplicado con timeout corto (máx 2s)
     if (data.cod_envase && navigator.onLine) {
       try {
         let query = supabase.from('aquapp_muestras').select('id, cliente_nombre').eq('cod_envase', data.cod_envase);
         if (editingItem && editingItem.editType === 'muestra') {
           query = query.neq('id', editingItem.id);
         }
-        const { data: existing } = await withTimeout(query, 3000);
+        const { data: existing } = await withTimeout(query, 2000);
         if (existing && existing.length > 0) {
           window.__toast?.error(`El código de envase ${data.cod_envase} ya existe (Cliente: ${existing[0].cliente_nombre || 'Desconocido'}). Por favor revisa.`);
           setIsSaving(false);
@@ -638,16 +645,16 @@ const UniversalForm = () => {
       }
     }
 
-    // 3. Intento de guardado remoto con fallback seguro a offline
+    // 3. Intento de guardado remoto con fallback seguro a offline (máx 3.5s)
     let error = null;
     let savedOnline = false;
 
     try {
       let res;
       if (editingItem && editingItem.editType === 'muestra') {
-        res = await withTimeout(supabase.from('aquapp_muestras').update(record).eq('id', editingItem.id), 7500);
+        res = await withTimeout(supabase.from('aquapp_muestras').update(record).eq('id', editingItem.id), 3500);
       } else {
-        res = await withTimeout(supabase.from('aquapp_muestras').insert([record]), 7500);
+        res = await withTimeout(supabase.from('aquapp_muestras').insert([record]), 3500);
       }
       if (res?.error) {
         error = res.error;
@@ -721,7 +728,8 @@ const UniversalForm = () => {
       if (isNetworkFailure(error) && !editingItem) {
         console.warn("Fallo de red en sótano/sin cobertura. Guardando muestra en almacenamiento local:", error);
         saveOfflineRecord(QUEUE_MUESTRAS_KEY, record);
-        window.__toast?.success("📱 Guardada en el móvil (Sin cobertura).\nSe subirá automáticamente cuando recuperes la señal.");
+        const totalInQueue = getOfflineQueue(QUEUE_MUESTRAS_KEY).length;
+        window.__toast?.success(`📱 Muestra guardada en el móvil (Sin cobertura).\n${totalInQueue} muestra${totalInQueue > 1 ? 's' : ''} a salvo en este dispositivo.`);
         window.dispatchEvent(new CustomEvent('aquapp-refresh-data'));
         handleClose();
       } else {
@@ -733,7 +741,8 @@ const UniversalForm = () => {
       console.error(err);
       if (isNetworkFailure(err) && !editingItem) {
         saveOfflineRecord(QUEUE_MUESTRAS_KEY, record);
-        window.__toast?.success("📱 Guardada en el móvil (Sin cobertura).\nSe subirá automáticamente cuando recuperes la señal.");
+        const totalInQueue = getOfflineQueue(QUEUE_MUESTRAS_KEY).length;
+        window.__toast?.success(`📱 Muestra guardada en el móvil (Sin cobertura).\n${totalInQueue} muestra${totalInQueue > 1 ? 's' : ''} a salvo en este dispositivo.`);
         window.dispatchEvent(new CustomEvent('aquapp-refresh-data'));
         handleClose();
       } else {
@@ -1882,8 +1891,23 @@ const UniversalForm = () => {
               </div>
             )}
             
-            <button type="submit" className="uf-btn-save" style={{ background: editingItem ? 'var(--color-warning)' : 'var(--accent-aquapp)', marginTop: '16px' }}>
-              <UploadCloud size={20} /> {editingItem ? 'Actualizar Registro' : 'Guardar Registro'}
+            <button 
+              type="submit" 
+              disabled={isSaving}
+              className="uf-btn-save" 
+              style={{ 
+                background: editingItem ? 'var(--color-warning)' : 'var(--accent-aquapp)', 
+                marginTop: '16px',
+                opacity: isSaving ? 0.75 : 1,
+                cursor: isSaving ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
+              }}
+            >
+              {isSaving ? <RefreshCw size={20} className="spin-icon" /> : <UploadCloud size={20} />}
+              <span>{isSaving ? 'Guardando muestra...' : (editingItem ? 'Actualizar Registro' : 'Guardar Registro')}</span>
             </button>
           </form>
         )}
@@ -2085,8 +2109,23 @@ const UniversalForm = () => {
               </div>
             </div>
 
-            <button type="submit" className="uf-btn-save" style={{ background: editingItem ? 'var(--color-warning)' : 'var(--color-error)', marginTop: '16px' }}>
-              <UploadCloud size={20} /> {editingItem ? 'Actualizar Tratamiento' : 'Guardar Tratamiento'}
+            <button 
+              type="submit" 
+              disabled={isSaving}
+              className="uf-btn-save" 
+              style={{ 
+                background: editingItem ? 'var(--color-warning)' : 'var(--color-error)', 
+                marginTop: '16px',
+                opacity: isSaving ? 0.75 : 1,
+                cursor: isSaving ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
+              }}
+            >
+              {isSaving ? <RefreshCw size={20} className="spin-icon" /> : <UploadCloud size={20} />}
+              <span>{isSaving ? 'Guardando tratamiento...' : (editingItem ? 'Actualizar Tratamiento' : 'Guardar Tratamiento')}</span>
             </button>
           </form>
         )}
