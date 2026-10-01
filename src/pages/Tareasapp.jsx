@@ -138,6 +138,7 @@ const Tareasapp = () => {
   const [exportDay, setExportDay] = useState(1);
   const [exportIncludePending, setExportIncludePending] = useState(false);
   const [activeView, setActiveView] = useState('clientes'); // 'clientes' | 'dias'
+  const [openMenuId, setOpenMenuId] = useState(null);
   const [clientSortOrder, setClientSortOrder] = useState(() => {
     return localStorage.getItem('tareas_client_sort_order') || 'az';
   });
@@ -146,6 +147,14 @@ const Tareasapp = () => {
   React.useEffect(() => {
     setSelectedDayFilter(null);
   }, [currentMonth, currentYear]);
+
+  // Close card dropdown menu on outside click
+  React.useEffect(() => {
+    if (!openMenuId) return;
+    const handleClickOutside = () => setOpenMenuId(null);
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [openMenuId]);
 
   const availableTaskOptions = useMemo(() => {
     const set = new Set(defaultTasksList);
@@ -450,6 +459,46 @@ const Tareasapp = () => {
     if (window.confirm('¿Seguro que quieres eliminar toda la ficha de este cliente para este mes?')) {
       const { error } = await supabase.from('tareas_programadas').delete().eq('id', tareaId);
       if (!error) fetchData();
+    }
+  };
+
+  const handleMoveOrDuplicate = async (tareaId, action) => {
+    const tarea = tareas.find(t => t.id === tareaId);
+    if (!tarea) return;
+    
+    const targetMonth = window.prompt(`¿A qué mes quieres ${action === 'move' ? 'MOVER' : 'DUPLICAR'} esta ficha?\nEscribe el nombre del mes (ej: Octubre):`, "Octubre");
+    if (!targetMonth) return;
+    
+    const validMonth = mesesNombres.find(m => m.toLowerCase() === targetMonth.toLowerCase().trim());
+    if (!validMonth) {
+      window.__toast?.error('Mes no válido. Asegúrate de escribirlo correctamente.');
+      return;
+    }
+
+    if (action === 'move') {
+      const { error } = await supabase.from('tareas_programadas').update({ mes: validMonth }).eq('id', tarea.id);
+      if (!error) {
+        window.__toast?.success(`Ficha movida a ${validMonth}`);
+        fetchData();
+      } else {
+        window.__toast?.error('Error al mover la ficha');
+      }
+    } else {
+      const newTask = {
+         cliente_id: tarea.clientId,
+         mes: validMonth,
+         año: tarea.año,
+         frecuencia: tarea.frecuencia,
+         tareas_json: tarea.tasks.map(t => ({...t, status: 'pending', date: null, id: Date.now() + Math.random().toString(36)})),
+         notas: tarea.notas
+      };
+      const { error } = await supabase.from('tareas_programadas').insert([newTask]);
+      if (!error) {
+         window.__toast?.success(`Ficha duplicada en ${validMonth}.`);
+         fetchData();
+      } else {
+         window.__toast?.error('Error al duplicar la ficha');
+      }
     }
   };
 
@@ -1422,7 +1471,7 @@ const Tareasapp = () => {
                         {completed} de {total} completadas ({percentage}%)
                       </p>
                     </div>
-                    <div className="tf-card-actions">
+                    <div className="tf-card-actions" style={{position: 'relative'}}>
                       <button
                         type="button"
                         onClick={() => openMapsForClient(tarea.clientName)}
@@ -1440,7 +1489,26 @@ const Tareasapp = () => {
                         <Navigation size={16} />
                       </button>
                       <MessageSquare size={16} color={tarea.notas ? "var(--color-danger)" : "var(--text-faint)"} style={{cursor: 'pointer'}} onClick={() => addNote(tarea.id)}/>
-                      <MoreVertical size={16} color="var(--text-faint)" style={{cursor: 'pointer'}} onClick={() => deleteCard(tarea.id)}/>
+                      <MoreVertical 
+                        size={16} 
+                        color="var(--text-faint)" 
+                        style={{cursor: 'pointer'}} 
+                        onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === tarea.id ? null : tarea.id); }}
+                      />
+                      {openMenuId === tarea.id && (
+                        <div className="card-menu-dropdown" style={{
+                          position: 'absolute', right: 0, top: '24px', 
+                          background: 'var(--bg-card)', border: '1px solid var(--border)', 
+                          borderRadius: '8px', padding: '6px', zIndex: 10, 
+                          boxShadow: 'var(--shadow-lg)', display: 'flex', flexDirection: 'column',
+                          minWidth: '160px', gap: '4px'
+                        }}>
+                          <button type="button" onClick={(e) => { e.stopPropagation(); handleMoveOrDuplicate(tarea.id, 'duplicate'); setOpenMenuId(null); }} style={{background: 'none', border: 'none', textAlign: 'left', padding: '8px', cursor: 'pointer', fontSize: '0.8rem', color: 'var(--text-main)', borderRadius: '4px'}}>Duplicar a otro mes</button>
+                          <button type="button" onClick={(e) => { e.stopPropagation(); handleMoveOrDuplicate(tarea.id, 'move'); setOpenMenuId(null); }} style={{background: 'none', border: 'none', textAlign: 'left', padding: '8px', cursor: 'pointer', fontSize: '0.8rem', color: 'var(--text-main)', borderRadius: '4px'}}>Mover a otro mes</button>
+                          <div style={{height: '1px', background: 'var(--border-light)', margin: '2px 0'}} />
+                          <button type="button" onClick={(e) => { e.stopPropagation(); deleteCard(tarea.id); setOpenMenuId(null); }} style={{background: 'none', border: 'none', textAlign: 'left', padding: '8px', cursor: 'pointer', fontSize: '0.8rem', color: 'var(--color-danger)', borderRadius: '4px'}}>Eliminar ficha</button>
+                        </div>
+                      )}
                     </div>
                   </div>
 
