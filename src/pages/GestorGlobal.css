@@ -1,61 +1,120 @@
+/* ═══════════════════════════════════════════════════════════════
+   GESTOR GLOBAL — Rediseño Unificado de Clientes y Tareas
+   ═══════════════════════════════════════════════════════════════ */
+
 .gg-container {
-  max-width: 900px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding-bottom: 40px;
+  padding: 8px 16px 48px 16px;
 }
 
+/* ── Cabecera Principal ── */
 .gg-header {
-  margin-bottom: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.gg-header-info {
+  flex: 1;
+  min-width: 260px;
 }
 
 .gg-header-title {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
+  gap: 14px;
+}
+
+.gg-title-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(99, 102, 241, 0.05) 100%);
+  color: var(--accent-gestor, #6366f1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid rgba(99, 102, 241, 0.25);
 }
 
 .gg-header-title h1 {
-  font-size: 1.8rem;
-  font-weight: 700;
+  font-size: 1.65rem;
+  font-weight: 800;
   color: var(--text-main);
   margin: 0;
+  letter-spacing: -0.02em;
 }
 
 .gg-subtitle {
   color: var(--text-muted);
-  font-size: 0.95rem;
-  margin: 0;
+  font-size: 0.88rem;
+  margin: 3px 0 0 0;
 }
 
+.gg-btn-backup {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #10b981;
+  color: #ffffff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: var(--radius-pill, 999px);
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.gg-btn-backup:hover:not(:disabled) {
+  background: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+}
+
+.gg-btn-backup:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* ── Pestañas (Tabs) ── */
 .gg-tabs {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   border-bottom: 2px solid var(--border);
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .gg-tab {
   background: none;
   border: none;
-  padding: 12px 24px;
-  font-size: 1rem;
-  font-weight: 600;
+  padding: 12px 20px;
+  font-size: 0.92rem;
+  font-weight: 700;
   color: var(--text-muted);
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
   position: relative;
-  transition: color 0.2s;
+  transition: all 0.2s ease;
+  border-radius: 8px 8px 0 0;
 }
 
 .gg-tab:hover {
-  color: var(--accent-gestor);
+  color: var(--accent-gestor, #6366f1);
+  background: rgba(99, 102, 241, 0.04);
 }
 
 .gg-tab.active {
-  color: var(--accent-gestor);
+  color: var(--accent-gestor, #6366f1);
 }
 
 .gg-tab.active::after {
@@ -64,145 +123,695 @@
   bottom: -2px;
   left: 0;
   right: 0;
-  height: 2px;
-  background-color: var(--accent-gestor);
+  height: 3px;
+  background-color: var(--accent-gestor, #6366f1);
+  border-radius: 3px 3px 0 0;
 }
 
+.gg-tab-counter {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--bg-card-hover, #e2e8f0);
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.gg-tab.active .gg-tab-counter {
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--accent-gestor, #6366f1);
+}
+
+/* ── Toolbar: Búsqueda y Botón Añadir ── */
 .gg-toolbar {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
-  gap: 16px;
+  gap: 14px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 
 .gg-search {
   flex: 1;
+  min-width: 260px;
   display: flex;
   align-items: center;
   background: var(--bg-card);
-  border: 1px solid var(--border-input);
-  border-radius: var(--radius-sm);
-  padding: 10px 16px;
-  gap: 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-pill, 999px);
+  padding: 9px 18px;
+  gap: 10px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s ease;
+}
+
+.gg-search:focus-within {
+  border-color: var(--accent-gestor, #6366f1);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+.gg-search .search-icon {
+  color: var(--text-faint);
+  flex-shrink: 0;
 }
 
 .gg-search input {
   border: none;
   outline: none;
   width: 100%;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   background: transparent;
+  color: var(--text-main);
+  font-family: inherit;
+}
+
+.search-clear-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.15s;
+}
+
+.search-clear-btn:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-main);
 }
 
 .gg-add-btn {
-  background: var(--accent-gestor);
-  color: var(--text-on-primary);
+  background: var(--accent-gestor, #6366f1);
+  color: #ffffff;
   border: none;
-  padding: 12px 24px;
-  border-radius: var(--radius-sm);
-  font-weight: bold;
-  font-size: 0.95rem;
+  padding: 11px 22px;
+  border-radius: var(--radius-pill, 999px);
+  font-weight: 700;
+  font-size: 0.88rem;
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  box-shadow: var(--shadow-sm);
-  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.28);
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .gg-add-btn:hover {
+  background: #4f46e5;
   transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.38);
 }
 
-.gg-list {
+.gg-search-feedback {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  padding: 0 4px;
+}
+
+/* ── Cuadrícula de Tarjetas (Grid) ── */
+.gg-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(295px, 1fr));
+  gap: 16px;
 }
 
+/* ── Tarjetas Individuales (Cards) ── */
 .gg-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 20px;
-  box-shadow: var(--shadow-sm);
-  transition: box-shadow 0.2s, border-color 0.2s;
+  border-radius: 16px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  overflow: hidden;
+  position: relative;
 }
 
 .gg-card:hover {
-  box-shadow: var(--shadow-md);
-  border-color: var(--border-input);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  border-color: #cbd5e1;
+}
+
+.gg-card.client-card {
+  border-left: 4px solid var(--primary, #3b82f6);
 }
 
 .gg-card.task-card {
-  border-left: 4px solid var(--color-danger);
+  border-left: 4px solid var(--accent-workapp, #e11d48);
 }
 
-.gg-card:not(.task-card) {
-  border-left: 4px solid var(--primary);
-}
-
+/* Cabecera de la Tarjeta */
 .gg-card-header {
+  padding: 14px 14px 10px 14px;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 16px;
-}
-
-.gg-card-header h3 {
-  margin: 0;
-  font-size: 1.1rem;
-  color: var(--text-main);
-  font-weight: 700;
-  line-height: 1.3;
-}
-
-.gg-card-actions {
-  display: flex;
   gap: 8px;
 }
 
-.icon-btn-edit, .icon-btn-delete {
-  background: none;
+.gg-card-title-group {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.gg-card-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.gg-card-avatar.client {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--primary, #3b82f6);
+}
+
+.gg-card-avatar.task {
+  background: rgba(225, 29, 72, 0.1);
+  color: var(--accent-workapp, #e11d48);
+}
+
+.gg-card-title-container {
+  flex: 1;
+  min-width: 0;
+}
+
+.gg-card-title {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+.gg-card-contact-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--bg-card-hover, #f1f5f9);
+  padding: 2px 7px;
+  border-radius: 6px;
+  margin-top: 5px;
+}
+
+.gg-card-type-tag {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #b91c1c;
+  background: rgba(239, 68, 68, 0.08);
+  padding: 1px 7px;
+  border-radius: 6px;
+  margin-top: 5px;
+}
+
+/* Botones de acción en la tarjeta */
+.gg-card-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.icon-btn-edit,
+.icon-btn-delete {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
   border: none;
-  padding: 6px;
-  border-radius: var(--radius-sm);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.2s;
+  transition: all 0.15s ease;
 }
 
 .icon-btn-edit {
-  color: var(--color-success);
-  background-color: var(--color-success-light);
+  color: #16a34a;
+  background: rgba(34, 197, 94, 0.1);
 }
 
 .icon-btn-edit:hover {
-  background-color: var(--color-success-border);
+  background: rgba(34, 197, 94, 0.2);
+  transform: scale(1.05);
 }
 
 .icon-btn-delete {
-  color: var(--color-danger);
-  background-color: var(--color-error-light);
+  color: #dc2626;
+  background: rgba(239, 68, 68, 0.1);
 }
 
 .icon-btn-delete:hover {
-  background-color: var(--color-error-border);
+  background: rgba(239, 68, 68, 0.2);
+  transform: scale(1.05);
 }
 
-.gg-card-body p {
-  margin: 0 0 8px 0;
-  font-size: 0.9rem;
-  color: var(--text-secondary);
+/* Cuerpo de la Tarjeta */
+.gg-card-body {
+  padding: 0 14px 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  flex: 1;
+}
+
+.gg-info-row {
   display: flex;
   align-items: center;
   gap: 8px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.35;
 }
 
-.gg-card-body p:last-child {
-  margin-bottom: 0;
+.gg-info-row .info-icon {
+  flex-shrink: 0;
+}
+
+.gg-info-row.empty {
+  color: var(--text-faint);
+  font-style: italic;
+  font-size: 0.78rem;
+}
+
+.gg-info-row .info-icon.faint {
+  color: var(--text-faint);
+  opacity: 0.7;
+}
+
+.gg-info-row .info-icon.text-primary {
+  color: var(--primary, #3b82f6);
+}
+
+.gg-info-row .info-icon.text-success {
+  color: var(--color-success, #22c55e);
+}
+
+.gg-info-row .phone-link {
+  color: #15803d;
+  font-weight: 700;
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  transition: color 0.15s;
+}
+
+.gg-info-row .phone-link:hover {
+  color: #166534;
+  text-decoration: underline;
+}
+
+.gg-info-row.description .info-text {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Pie de la Tarjeta / Acciones */
+.gg-card-footer {
+  padding: 10px 14px;
+  background: var(--bg-card-hover, #f8fafc);
+  border-top: 1px solid var(--border-light, #f1f5f9);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.gg-card-footer.task-footer {
+  justify-content: flex-start;
+}
+
+.btn-como-llegar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill, 999px);
+  border: none;
+  background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%);
+  color: #ffffff;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(14, 165, 233, 0.25);
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn-como-llegar:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(14, 165, 233, 0.4);
+}
+
+.btn-llamar-quick {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: var(--radius-pill, 999px);
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  color: #15803d;
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn-llamar-quick:hover {
+  background: #22c55e;
+  color: #ffffff;
+  border-color: #22c55e;
+  transform: translateY(-1px);
+}
+
+.btn-add-contact-hint {
+  background: transparent;
+  border: 1px dashed var(--border-input, #cbd5e1);
+  color: var(--text-muted);
+  border-radius: var(--radius-pill, 999px);
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-add-contact-hint:hover {
+  background: var(--bg-card);
+  color: var(--primary, #3b82f6);
+  border-color: var(--primary, #3b82f6);
+}
+
+.gg-task-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #15803d;
+}
+
+/* ── Estados Vacíos y de Carga ── */
+.gg-empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+  background: var(--bg-card);
+  border-radius: 20px;
+  border: 1px dashed var(--border);
+}
+
+.gg-empty-state .empty-icon {
+  color: var(--text-faint);
+  margin-bottom: 12px;
+}
+
+.gg-empty-state h3 {
+  margin: 0 0 6px 0;
+  font-size: 1.1rem;
+  color: var(--text-main);
+  font-weight: 700;
+}
+
+.gg-empty-state p {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+.gg-loading-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+}
+
+.gg-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent-gestor, #6366f1);
+  border-radius: 50%;
+  margin: 0 auto 12px auto;
+  animation: gg-spin 0.8s linear infinite;
+}
+
+@keyframes gg-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MODAL INTEGRADO (Añadir / Editar)
+   ═══════════════════════════════════════════════════════════════ */
+
+.gg-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: var(--bg-modal-overlay, rgba(15, 23, 42, 0.55));
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 16px;
+}
+
+.gg-modal-card {
+  background: var(--bg-card, #ffffff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 24px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  padding: 26px;
+}
+
+.gg-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 22px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-light, #f1f5f9);
+}
+
+.gg-modal-header-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.gg-modal-icon-badge {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.gg-modal-icon-badge.cliente {
+  background: rgba(59, 130, 246, 0.12);
+  color: var(--primary, #3b82f6);
+}
+
+.gg-modal-icon-badge.tarea {
+  background: rgba(225, 29, 72, 0.12);
+  color: var(--accent-workapp, #e11d48);
+}
+
+.gg-modal-header-title h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.gg-modal-header-title p {
+  margin: 2px 0 0 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.gg-modal-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 8px;
+  transition: all 0.15s;
+}
+
+.gg-modal-close:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-main);
+}
+
+/* Formulario dentro del modal */
+.gg-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.gg-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 500px) {
+  .gg-form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.gg-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gg-form-group label {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
+}
+
+.gg-form-group label .required {
+  color: #ef4444;
+  margin-left: 2px;
+}
+
+.gg-input-wrapper {
+  display: flex;
+  align-items: center;
+  background: var(--bg-input, #f8fafc);
+  border: 1.5px solid var(--border-input, #cbd5e1);
+  border-radius: 12px;
+  padding: 10px 14px;
+  gap: 10px;
+  transition: all 0.2s ease;
+}
+
+.gg-input-wrapper:focus-within {
+  border-color: var(--accent-gestor, #6366f1);
+  background: var(--bg-card);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+.gg-input-wrapper .input-icon {
+  color: var(--text-faint);
+  flex-shrink: 0;
+}
+
+.gg-input-wrapper input {
+  border: none;
+  outline: none;
+  background: transparent;
+  width: 100%;
+  font-size: 0.92rem;
+  color: var(--text-main);
+  font-family: inherit;
+}
+
+.gg-form-hint {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+.gg-textarea {
+  width: 100%;
+  background: var(--bg-input, #f8fafc);
+  border: 1.5px solid var(--border-input, #cbd5e1);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 0.92rem;
+  font-family: inherit;
+  color: var(--text-main);
+  outline: none;
+  resize: vertical;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.gg-textarea:focus {
+  border-color: var(--accent-gestor, #6366f1);
+  background: var(--bg-card);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+.gg-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-light, #f1f5f9);
+}
+
+.gg-btn-cancel {
+  background: var(--bg-card-hover, #f1f5f9);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.gg-btn-cancel:hover {
+  background: #e2e8f0;
+  color: var(--text-main);
+}
+
+.gg-btn-save {
+  background: var(--accent-gestor, #6366f1);
+  color: #ffffff;
+  border: none;
+  padding: 10px 22px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+  transition: all 0.15s;
+}
+
+.gg-btn-save:hover {
+  background: #4f46e5;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
 }

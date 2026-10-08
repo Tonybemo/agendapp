@@ -1,10 +1,39 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Users, CalendarCheck, Search, PlusCircle, Edit3, Trash2, 
-  MapPin, Mail, AlignLeft, CheckCircle2, Download, X 
+  MapPin, Phone, User, AlignLeft, CheckCircle2, Download, X,
+  Navigation, Building2, CheckSquare, Sparkles
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { openMapsForClient } from '../utils/navigation';
 import './GestorGlobal.css';
+
+// Helper para extraer de forma segura persona de contacto y teléfono
+const parseContact = (contactRaw) => {
+  if (!contactRaw || contactRaw === 'null') return { persona: '', telefono: '' };
+  const str = String(contactRaw).trim();
+  if (!str) return { persona: '', telefono: '' };
+  
+  if (str.startsWith('{') && str.endsWith('}')) {
+    try {
+      const parsed = JSON.parse(str);
+      return { 
+        persona: parsed.persona || parsed.name || '', 
+        telefono: parsed.telefono || parsed.phone || '' 
+      };
+    } catch (e) {}
+  }
+
+  // Si es un texto plano, intentamos detectar teléfono por expresión regular
+  const phoneMatch = str.match(/(?:\+?\d{1,3}[\s-]?)?\(?\d{2,4}\)?[\s.-]?\d{2,4}[\s.-]?\d{2,4}/);
+  if (phoneMatch) {
+    const telefono = phoneMatch[0].trim();
+    const persona = str.replace(phoneMatch[0], '').replace(/[-–·|(),]/g, '').trim();
+    return { persona, telefono };
+  }
+
+  return { persona: str, telefono: '' };
+};
 
 const GestorGlobal = () => {
   const [activeTab, setActiveTab] = useState('clientes'); // 'clientes' o 'tareas'
@@ -14,6 +43,26 @@ const GestorGlobal = () => {
   const [tareas, setTareas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
+
+  // Estado del Modal integrado para Añadir / Editar
+  const [modalConfig, setModalConfig] = useState({ 
+    isOpen: false, 
+    type: 'cliente', // 'cliente' o 'tarea'
+    mode: 'add',     // 'add' o 'edit'
+    item: null 
+  });
+
+  const [clientForm, setClientForm] = useState({ 
+    name: '', 
+    address: '', 
+    persona: '', 
+    telefono: '' 
+  });
+  
+  const [tareaForm, setTareaForm] = useState({ 
+    name: '', 
+    description: '' 
+  });
 
   useEffect(() => {
     fetchData();
@@ -43,15 +92,18 @@ const GestorGlobal = () => {
   };
 
   const handleExportBackup = async () => {
-    if(!window.confirm("¿Descargar copia de seguridad de la base de datos (CSV)?")) return;
+    if (!window.confirm("¿Descargar copia de seguridad de la base de datos (CSV)?")) return;
     setIsExporting(true);
     try {
-      const tables = ['clientes', 'tareas_estandar', 'tareas_programadas', 'aquapp_muestras', 'aquapp_tratamientos', 'aquapp_plagas', 'avisomap_avisos', 'workapp_nominas', 'workapp_jornadas', 'productos'];
+      const tables = [
+        'clientes', 'tareas_estandar', 'tareas_programadas', 
+        'aquapp_muestras', 'aquapp_tratamientos', 'aquapp_plagas', 
+        'avisomap_avisos', 'workapp_nominas', 'workapp_jornadas', 'productos'
+      ];
       let csvContent = "";
       
       for (const table of tables) {
         const { data, error } = await supabase.from(table).select('*');
-        
         csvContent += `\n--- TABLA: ${table.toUpperCase()} ---\n`;
 
         if (error) {
@@ -67,7 +119,6 @@ const GestorGlobal = () => {
           data.forEach(row => {
             const rowData = headers.map(header => {
               let cell = row[header] === null ? "" : String(row[header]);
-              // Escape quotes and wrap in quotes if contains comma
               cell = cell.replace(/"/g, '""');
               if (cell.search(/("|,|\n)/g) >= 0) {
                 cell = `"${cell}"`;
@@ -81,7 +132,6 @@ const GestorGlobal = () => {
         }
       }
 
-      // Añadir BOM para asegurar compatibilidad UTF-8 en Excel
       const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
       const blob = new Blob([bom, csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
@@ -101,175 +151,223 @@ const GestorGlobal = () => {
     }
   };
 
-  const handleAddCliente = async () => {
-    const name = prompt("Nombre del cliente:");
-    if (!name) return;
-    const address = prompt("Dirección:");
-    const contact = prompt("Contacto (email/tlf):");
-
-    const { error } = await supabase
-      .from('clientes')
-      .insert([{ name, address, contact }]);
-      
-    if (!error) {
-      fetchData(); // Recargar
+  // Apertura de Modales
+  const openAddModal = (type) => {
+    if (type === 'cliente') {
+      setClientForm({ name: '', address: '', persona: '', telefono: '' });
+      setModalConfig({ isOpen: true, type: 'cliente', mode: 'add', item: null });
     } else {
-      window.__toast?.error("Error al añadir cliente");
-      console.error(error);
+      setTareaForm({ name: '', description: '' });
+      setModalConfig({ isOpen: true, type: 'tarea', mode: 'add', item: null });
     }
   };
 
-  const handleAddTarea = async () => {
-    const name = prompt("Nombre de la tarea:");
-    if (!name) return;
-    const description = prompt("Descripción:");
-
-    const { error } = await supabase
-      .from('tareas_estandar')
-      .insert([{ name, description }]);
-      
-    if (!error) {
-      fetchData(); // Recargar
+  const openEditModal = (item, type) => {
+    if (type === 'cliente') {
+      const { persona, telefono } = parseContact(item.contact);
+      setClientForm({
+        name: item.name || '',
+        address: (item.address && item.address !== 'null') ? item.address : '',
+        persona: persona || '',
+        telefono: telefono || ''
+      });
+      setModalConfig({ isOpen: true, type: 'cliente', mode: 'edit', item });
     } else {
-      window.__toast?.error("Error al añadir tarea");
-      console.error(error);
+      setTareaForm({
+        name: item.name || '',
+        description: (item.description && item.description !== 'null') ? item.description : ''
+      });
+      setModalConfig({ isOpen: true, type: 'tarea', mode: 'edit', item });
     }
   };
 
-  const handleDeleteCliente = async (id) => {
-    if (window.confirm("¿Seguro que deseas eliminar este cliente? Se borrarán sus tareas asociadas.")) {
+  const closeModal = () => {
+    setModalConfig({ isOpen: false, type: 'cliente', mode: 'add', item: null });
+  };
+
+  // Guardado de Cliente
+  const handleSaveClient = async (e) => {
+    e.preventDefault();
+    if (!clientForm.name.trim()) {
+      window.__toast?.error("El nombre del cliente es obligatorio");
+      return;
+    }
+
+    const personaTrim = clientForm.persona.trim();
+    const telTrim = clientForm.telefono.trim();
+    let contactString = null;
+    if (personaTrim || telTrim) {
+      contactString = JSON.stringify({ persona: personaTrim, telefono: telTrim });
+    }
+
+    const payload = {
+      name: clientForm.name.trim(),
+      address: clientForm.address.trim() || null,
+      contact: contactString
+    };
+
+    if (modalConfig.mode === 'add') {
+      const { error } = await supabase.from('clientes').insert([payload]);
+      if (!error) {
+        window.__toast?.success("Cliente añadido correctamente");
+        closeModal();
+        fetchData();
+      } else {
+        window.__toast?.error("Error al añadir cliente: " + error.message);
+      }
+    } else {
+      const { error } = await supabase.from('clientes').update(payload).eq('id', modalConfig.item.id);
+      if (!error) {
+        window.__toast?.success("Cliente actualizado");
+        closeModal();
+        fetchData();
+      } else {
+        window.__toast?.error("Error al actualizar cliente: " + error.message);
+      }
+    }
+  };
+
+  // Guardado de Tarea
+  const handleSaveTarea = async (e) => {
+    e.preventDefault();
+    if (!tareaForm.name.trim()) {
+      window.__toast?.error("El nombre de la tarea es obligatorio");
+      return;
+    }
+
+    const payload = {
+      name: tareaForm.name.trim(),
+      description: tareaForm.description.trim() || null
+    };
+
+    if (modalConfig.mode === 'add') {
+      const { error } = await supabase.from('tareas_estandar').insert([payload]);
+      if (!error) {
+        window.__toast?.success("Tarea añadida correctamente");
+        closeModal();
+        fetchData();
+      } else {
+        window.__toast?.error("Error al añadir tarea: " + error.message);
+      }
+    } else {
+      const { error } = await supabase.from('tareas_estandar').update(payload).eq('id', modalConfig.item.id);
+      if (!error) {
+        window.__toast?.success("Tarea actualizada");
+        closeModal();
+        fetchData();
+      } else {
+        window.__toast?.error("Error al actualizar tarea: " + error.message);
+      }
+    }
+  };
+
+  // Eliminación
+  const handleDeleteCliente = async (id, name) => {
+    if (window.confirm(`¿Seguro que deseas eliminar a "${name}"?\nSe borrarán también las planificaciones vinculadas.`)) {
       const { error } = await supabase.from('clientes').delete().eq('id', id);
-      if (!error) fetchData();
-      else window.__toast?.error("Error al eliminar cliente");
+      if (!error) {
+        window.__toast?.success("Cliente eliminado");
+        fetchData();
+      } else {
+        window.__toast?.error("Error al eliminar cliente: " + error.message);
+      }
     }
   };
 
-  const handleEditCliente = async (client) => {
-    const newName = prompt("Nuevo nombre (dejar en blanco para no cambiar):", client.name) || client.name;
-    const newAddress = prompt("Nueva dirección:", client.address) || client.address;
-    const newContact = prompt("Nuevo contacto:", client.contact) || client.contact;
-
-    const { error } = await supabase.from('clientes').update({ name: newName, address: newAddress, contact: newContact }).eq('id', client.id);
-    if (!error) fetchData();
-    else window.__toast?.error("Error al editar cliente");
-  };
-
-  const handleDeleteTarea = async (id) => {
-    if (window.confirm("¿Seguro que deseas eliminar esta tarea global?")) {
+  const handleDeleteTarea = async (id, name) => {
+    if (window.confirm(`¿Seguro que deseas eliminar la tarea global "${name}"?`)) {
       const { error } = await supabase.from('tareas_estandar').delete().eq('id', id);
-      if (!error) fetchData();
-      else window.__toast?.error("Error al eliminar tarea");
+      if (!error) {
+        window.__toast?.success("Tarea eliminada");
+        fetchData();
+      } else {
+        window.__toast?.error("Error al eliminar tarea: " + error.message);
+      }
     }
   };
 
-  const handleEditTarea = async (task) => {
-    const newName = prompt("Nuevo nombre (dejar en blanco para no cambiar):", task.name) || task.name;
-    const newDescription = prompt("Nueva descripción:", task.description) || task.description;
+  // Filtrado de Clientes
+  const filteredClients = useMemo(() => {
+    if (!searchQuery.trim()) return clientes;
+    const q = searchQuery.toLowerCase().trim();
+    return clientes.filter(c => {
+      const { persona, telefono } = parseContact(c.contact);
+      return (
+        c.name?.toLowerCase().includes(q) ||
+        (c.address && c.address !== 'null' && c.address.toLowerCase().includes(q)) ||
+        persona.toLowerCase().includes(q) ||
+        telefono.toLowerCase().includes(q)
+      );
+    });
+  }, [clientes, searchQuery]);
 
-    const { error } = await supabase.from('tareas_estandar').update({ name: newName, description: newDescription }).eq('id', task.id);
-    if (!error) fetchData();
-    else window.__toast?.error("Error al editar tarea");
-  };
-
-  const renderClientes = () => {
-    const filteredClients = clientes.filter(c => 
-      c.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      c.address?.toLowerCase().includes(searchQuery.toLowerCase())
+  // Filtrado de Tareas
+  const filteredTasks = useMemo(() => {
+    if (!searchQuery.trim()) return tareas;
+    const q = searchQuery.toLowerCase().trim();
+    return tareas.filter(t => 
+      t.name?.toLowerCase().includes(q) ||
+      (t.description && t.description !== 'null' && t.description.toLowerCase().includes(q))
     );
-
-    return (
-      <div className="gg-list animate-fade-in">
-        {filteredClients.map(client => (
-          <div key={client.id} className="gg-card">
-            <div className="gg-card-header">
-              <h3>{client.name}</h3>
-              <div className="gg-card-actions">
-                <button className="icon-btn-edit" onClick={() => handleEditCliente(client)}><Edit3 size={16}/></button>
-                <button className="icon-btn-delete" onClick={() => handleDeleteCliente(client.id)}><Trash2 size={16}/></button>
-              </div>
-            </div>
-            <div className="gg-card-body">
-              {client.address && <p><MapPin size={14} color="var(--text-muted)"/> {client.address}</p>}
-              {client.contact && <p><Mail size={14} color="var(--text-muted)"/> {client.contact}</p>}
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  };
-
-  const renderTareas = () => {
-    const filteredTasks = tareas.filter(t => 
-      t.name?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
-    return (
-      <div className="gg-list animate-fade-in">
-        {filteredTasks.map(task => (
-          <div key={task.id} className="gg-card task-card">
-            <div className="gg-card-header">
-              <h3>{task.name}</h3>
-              <div className="gg-card-actions">
-                <button className="icon-btn-edit" onClick={() => handleEditTarea(task)}><Edit3 size={16}/></button>
-                <button className="icon-btn-delete" onClick={() => handleDeleteTarea(task.id)}><Trash2 size={16}/></button>
-              </div>
-            </div>
-            <div className="gg-card-body">
-              {task.description && <p><AlignLeft size={14} color="var(--text-muted)"/> {task.description}</p>}
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  };
+  }, [tareas, searchQuery]);
 
   return (
     <div className="gg-container">
-      <div className="gg-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
+      {/* Cabecera Principal */}
+      <div className="gg-header">
+        <div className="gg-header-info">
           <div className="gg-header-title">
-            <CheckCircle2 size={28} color="var(--accent-gestor)" />
-            <h1>Gestor Global</h1>
+            <div className="gg-title-badge">
+              <CheckCircle2 size={24} />
+            </div>
+            <div>
+              <h1>Gestor Global</h1>
+              <p className="gg-subtitle">Administra tu base de clientes y actuaciones sincronizadas en la nube</p>
+            </div>
           </div>
-          <p className="gg-subtitle">Administra tu base de clientes y tareas (Conectado a Supabase).</p>
         </div>
+
         <button 
+          type="button"
           onClick={handleExportBackup}
           disabled={isExporting}
-          style={{
-            display: 'flex', alignItems: 'center', gap: '8px',
-            background: 'var(--color-success)', color: 'var(--text-on-primary)', border: 'none',
-            padding: '10px 16px', borderRadius: 'var(--radius-sm)', fontWeight: 'bold',
-            cursor: isExporting ? 'not-allowed' : 'pointer',
-            opacity: isExporting ? 0.7 : 1
-          }}
+          className="gg-btn-backup"
+          title="Exportar todas las tablas a un archivo CSV para Excel"
         >
-          <Download size={18} />
-          {isExporting ? 'Exportando...' : 'Backup CSV'}
+          <Download size={17} />
+          <span>{isExporting ? 'Exportando...' : 'Backup CSV'}</span>
         </button>
       </div>
 
+      {/* Selector de Pestañas */}
       <div className="gg-tabs">
         <button 
+          type="button"
           className={`gg-tab ${activeTab === 'clientes' ? 'active' : ''}`}
           onClick={() => setActiveTab('clientes')}
         >
-          <Users size={18} /> CLIENTES ({clientes.length})
+          <Users size={18} />
+          <span>CLIENTES</span>
+          <span className="gg-tab-counter">{clientes.length}</span>
         </button>
         <button 
+          type="button"
           className={`gg-tab ${activeTab === 'tareas' ? 'active' : ''}`}
           onClick={() => setActiveTab('tareas')}
         >
-          <CalendarCheck size={18} /> TAREAS ({tareas.length})
+          <CalendarCheck size={18} />
+          <span>TAREAS</span>
+          <span className="gg-tab-counter">{tareas.length}</span>
         </button>
       </div>
 
+      {/* Barra de Búsqueda y Acción */}
       <div className="gg-toolbar">
         <div className="gg-search">
-          <Search size={18} color="var(--text-faint)" />
+          <Search size={18} className="search-icon" />
           <input 
             type="text" 
-            placeholder={`Buscar ${activeTab}...`} 
+            placeholder={activeTab === 'clientes' ? "Buscar cliente por nombre, dirección, teléfono o contacto..." : "Buscar tarea por nombre o descripción..."} 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -284,26 +382,368 @@ const GestorGlobal = () => {
             </button>
           )}
         </div>
+
         <button 
+          type="button"
           className="gg-add-btn"
-          onClick={activeTab === 'clientes' ? handleAddCliente : handleAddTarea}
+          onClick={() => openAddModal(activeTab === 'clientes' ? 'cliente' : 'tarea')}
         >
-          <PlusCircle size={18} /> AÑADIR {activeTab === 'clientes' ? 'CLIENTE' : 'TAREA'}
+          <PlusCircle size={18} />
+          <span>AÑADIR {activeTab === 'clientes' ? 'CLIENTE' : 'TAREA'}</span>
         </button>
       </div>
 
+      {/* Contador de Resultados si hay búsqueda */}
+      {searchQuery && (
+        <div className="gg-search-feedback">
+          Mostrando {activeTab === 'clientes' ? filteredClients.length : filteredTasks.length} de {activeTab === 'clientes' ? clientes.length : tareas.length} {activeTab}
+        </div>
+      )}
+
+      {/* Contenido / Cuadrícula de Tarjetas */}
       <div className="gg-content">
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
-            <p>Cargando datos desde la nube...</p>
+          <div className="gg-loading-state">
+            <div className="gg-spinner"></div>
+            <p>Cargando datos desde Supabase...</p>
           </div>
+        ) : activeTab === 'clientes' ? (
+          filteredClients.length === 0 ? (
+            <div className="gg-empty-state">
+              <Building2 size={40} className="empty-icon" />
+              <h3>No se encontraron clientes</h3>
+              <p>{searchQuery ? 'Prueba con otro término de búsqueda' : 'Añade tu primer cliente con el botón superior'}</p>
+            </div>
+          ) : (
+            <div className="gg-grid animate-fade-in">
+              {filteredClients.map(client => {
+                const { persona, telefono } = parseContact(client.contact);
+                const hasAddress = client.address && client.address !== 'null' && client.address.trim() !== '';
+
+                return (
+                  <div key={client.id} className="gg-card client-card">
+                    {/* Cabecera Tarjeta */}
+                    <div className="gg-card-header">
+                      <div className="gg-card-title-group">
+                        <div className="gg-card-avatar client">
+                          <Building2 size={18} />
+                        </div>
+                        <div className="gg-card-title-container">
+                          <h3 className="gg-card-title" title={client.name}>{client.name}</h3>
+                          {persona && (
+                            <span className="gg-card-contact-badge" title={`Persona de contacto: ${persona}`}>
+                              <User size={12} /> {persona}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="gg-card-actions">
+                        <button 
+                          type="button" 
+                          className="icon-btn-edit" 
+                          onClick={() => openEditModal(client, 'cliente')}
+                          title={`Editar datos de ${client.name}`}
+                        >
+                          <Edit3 size={15}/>
+                        </button>
+                        <button 
+                          type="button" 
+                          className="icon-btn-delete" 
+                          onClick={() => handleDeleteCliente(client.id, client.name)}
+                          title={`Eliminar ${client.name}`}
+                        >
+                          <Trash2 size={15}/>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Cuerpo Tarjeta */}
+                    <div className="gg-card-body">
+                      {/* Dirección */}
+                      <div className={`gg-info-row ${hasAddress ? 'address' : 'empty'}`}>
+                        <MapPin size={15} className={`info-icon ${hasAddress ? 'text-primary' : 'faint'}`} />
+                        <span className="info-text">
+                          {hasAddress ? client.address : 'Sin dirección guardada'}
+                        </span>
+                      </div>
+
+                      {/* Teléfono */}
+                      <div className={`gg-info-row ${telefono ? 'phone' : 'empty'}`}>
+                        <Phone size={15} className={`info-icon ${telefono ? 'text-success' : 'faint'}`} />
+                        {telefono ? (
+                          <a 
+                            href={`tel:${telefono.replace(/\s+/g, '')}`} 
+                            className="phone-link"
+                            title={`Llamar al ${telefono}`}
+                          >
+                            {telefono}
+                          </a>
+                        ) : (
+                          <span className="info-text">Sin teléfono guardado</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Pie Tarjeta / Acciones directas */}
+                    <div className="gg-card-footer">
+                      <button
+                        type="button"
+                        className="btn-como-llegar"
+                        onClick={() => openMapsForClient(client.name, client.address)}
+                        title={`Cómo llegar a ${client.name} (Google Maps / Waze)`}
+                      >
+                        <Navigation size={14} />
+                        <span>Cómo llegar</span>
+                      </button>
+
+                      {telefono ? (
+                        <a 
+                          href={`tel:${telefono.replace(/\s+/g, '')}`} 
+                          className="btn-llamar-quick"
+                          title={`Llamar a ${client.name} (${telefono})`}
+                        >
+                          <Phone size={14} />
+                          <span>Llamar</span>
+                        </a>
+                      ) : (
+                        <button
+                          type="button"
+                          className="btn-add-contact-hint"
+                          onClick={() => openEditModal(client, 'cliente')}
+                          title="Añadir teléfono y persona de contacto"
+                        >
+                          + Añadir contacto
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )
         ) : (
-          <>
-            {activeTab === 'clientes' && renderClientes()}
-            {activeTab === 'tareas' && renderTareas()}
-          </>
+          /* Pestaña Tareas */
+          filteredTasks.length === 0 ? (
+            <div className="gg-empty-state">
+              <CheckSquare size={40} className="empty-icon" />
+              <h3>No se encontraron tareas</h3>
+              <p>{searchQuery ? 'Prueba con otro término de búsqueda' : 'Añade tu primera tarea con el botón superior'}</p>
+            </div>
+          ) : (
+            <div className="gg-grid animate-fade-in">
+              {filteredTasks.map(task => {
+                const hasDesc = task.description && task.description !== 'null' && task.description.trim() !== '';
+
+                return (
+                  <div key={task.id} className="gg-card task-card">
+                    {/* Cabecera Tarjeta */}
+                    <div className="gg-card-header">
+                      <div className="gg-card-title-group">
+                        <div className="gg-card-avatar task">
+                          <CheckSquare size={18} />
+                        </div>
+                        <div className="gg-card-title-container">
+                          <h3 className="gg-card-title" title={task.name}>{task.name}</h3>
+                          <span className="gg-card-type-tag">Tarea estándar</span>
+                        </div>
+                      </div>
+
+                      <div className="gg-card-actions">
+                        <button 
+                          type="button" 
+                          className="icon-btn-edit" 
+                          onClick={() => openEditModal(task, 'tarea')}
+                          title={`Editar tarea "${task.name}"`}
+                        >
+                          <Edit3 size={15}/>
+                        </button>
+                        <button 
+                          type="button" 
+                          className="icon-btn-delete" 
+                          onClick={() => handleDeleteTarea(task.id, task.name)}
+                          title={`Eliminar tarea "${task.name}"`}
+                        >
+                          <Trash2 size={15}/>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Cuerpo Tarjeta */}
+                    <div className="gg-card-body">
+                      <div className={`gg-info-row ${hasDesc ? 'description' : 'empty'}`}>
+                        <AlignLeft size={15} className={`info-icon ${hasDesc ? 'text-primary' : 'faint'}`} />
+                        <span className="info-text">
+                          {hasDesc ? task.description : 'Sin descripción adicional'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Pie Tarjeta */}
+                    <div className="gg-card-footer task-footer">
+                      <div className="gg-task-status-pill">
+                        <CheckCircle2 size={13} className="text-success" />
+                        <span>Disponible en Planificación</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )
         )}
       </div>
+
+      {/* ── MODAL FORMULARIO PROFESIONAL INTEGRADO (Añadir / Editar) ── */}
+      {modalConfig.isOpen && (
+        <div className="gg-modal-overlay animate-fade-in" onClick={closeModal}>
+          <div className="gg-modal-card" onClick={e => e.stopPropagation()}>
+            {/* Cabecera del modal */}
+            <div className="gg-modal-header">
+              <div className="gg-modal-header-title">
+                <div className={`gg-modal-icon-badge ${modalConfig.type}`}>
+                  {modalConfig.type === 'cliente' ? <Building2 size={20} /> : <CheckSquare size={20} />}
+                </div>
+                <div>
+                  <h2>
+                    {modalConfig.mode === 'add' ? 'Añadir ' : 'Editar '}
+                    {modalConfig.type === 'cliente' ? 'Cliente' : 'Tarea Estándar'}
+                  </h2>
+                  <p>
+                    {modalConfig.type === 'cliente' 
+                      ? 'Guarda la ficha completa con dirección y contacto directo' 
+                      : 'Define el nombre y descripción de la actuación global'}
+                  </p>
+                </div>
+              </div>
+              <button type="button" className="gg-modal-close" onClick={closeModal} title="Cerrar ventana">
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Formulario Cliente */}
+            {modalConfig.type === 'cliente' ? (
+              <form onSubmit={handleSaveClient} className="gg-modal-form">
+                <div className="gg-form-group">
+                  <label htmlFor="client-name">
+                    NOMBRE DEL CLIENTE <span className="required">*</span>
+                  </label>
+                  <div className="gg-input-wrapper">
+                    <Building2 size={16} className="input-icon" />
+                    <input 
+                      id="client-name"
+                      type="text" 
+                      required
+                      placeholder="Ej. Hotel Reconquista / Café Central"
+                      value={clientForm.name}
+                      onChange={e => setClientForm({ ...clientForm, name: e.target.value })}
+                      autoFocus
+                    />
+                  </div>
+                </div>
+
+                <div className="gg-form-row">
+                  <div className="gg-form-group">
+                    <label htmlFor="client-persona">PERSONA DE CONTACTO</label>
+                    <div className="gg-input-wrapper">
+                      <User size={16} className="input-icon" />
+                      <input 
+                        id="client-persona"
+                        type="text" 
+                        placeholder="Ej. María / Encargado"
+                        value={clientForm.persona}
+                        onChange={e => setClientForm({ ...clientForm, persona: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="gg-form-group">
+                    <label htmlFor="client-tel">TELÉFONO</label>
+                    <div className="gg-input-wrapper">
+                      <Phone size={16} className="input-icon" />
+                      <input 
+                        id="client-tel"
+                        type="tel" 
+                        placeholder="Ej. 654 98 73 21"
+                        value={clientForm.telefono}
+                        onChange={e => setClientForm({ ...clientForm, telefono: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="gg-form-group">
+                  <label htmlFor="client-address">DIRECCIÓN FÍSICA</label>
+                  <div className="gg-input-wrapper">
+                    <MapPin size={16} className="input-icon" />
+                    <input 
+                      id="client-address"
+                      type="text" 
+                      placeholder="Ej. C/ San Francisco 4, Oviedo"
+                      value={clientForm.address}
+                      onChange={e => setClientForm({ ...clientForm, address: e.target.value })}
+                    />
+                  </div>
+                  <span className="gg-form-hint">
+                    💡 La dirección se usará para iniciar la ruta en Google Maps y Waze.
+                  </span>
+                </div>
+
+                <div className="gg-modal-actions">
+                  <button type="button" className="gg-btn-cancel" onClick={closeModal}>
+                    Cancelar
+                  </button>
+                  <button type="submit" className="gg-btn-save">
+                    {modalConfig.mode === 'add' ? 'Guardar Cliente' : 'Actualizar Cliente'}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              /* Formulario Tarea */
+              <form onSubmit={handleSaveTarea} className="gg-modal-form">
+                <div className="gg-form-group">
+                  <label htmlFor="tarea-name">
+                    NOMBRE DE LA TAREA / ACTUACIÓN <span className="required">*</span>
+                  </label>
+                  <div className="gg-input-wrapper">
+                    <CheckSquare size={16} className="input-icon" />
+                    <input 
+                      id="tarea-name"
+                      type="text" 
+                      required
+                      placeholder="Ej. Choque Térmico / Limpieza Depósito"
+                      value={tareaForm.name}
+                      onChange={e => setTareaForm({ ...tareaForm, name: e.target.value })}
+                      autoFocus
+                    />
+                  </div>
+                </div>
+
+                <div className="gg-form-group">
+                  <label htmlFor="tarea-desc">DESCRIPCIÓN / OBSERVACIONES</label>
+                  <textarea 
+                    id="tarea-desc"
+                    rows={4}
+                    placeholder="Detalles sobre el protocolo de trabajo o especificaciones..."
+                    value={tareaForm.description}
+                    onChange={e => setTareaForm({ ...tareaForm, description: e.target.value })}
+                    className="gg-textarea"
+                  />
+                </div>
+
+                <div className="gg-modal-actions">
+                  <button type="button" className="gg-btn-cancel" onClick={closeModal}>
+                    Cancelar
+                  </button>
+                  <button type="submit" className="gg-btn-save">
+                    {modalConfig.mode === 'add' ? 'Guardar Tarea' : 'Actualizar Tarea'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
