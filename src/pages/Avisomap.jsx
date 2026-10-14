@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  ShieldCheck, Search, List, BarChart2, Calendar, 
+  ShieldCheck, Search, Calendar, 
   MapPin, Clock, Navigation, Eye, Edit3, Trash2, Camera,
   Bug, Phone, X, XCircle, Plus, RefreshCw
 } from 'lucide-react';
@@ -76,7 +76,6 @@ const parsePlagas = (plagas) => {
 
 const Avisomap = () => {
   const { isAdmin } = useAuth();
-  const [activeTab, setActiveTab] = useState('historial');
   
   // Year & Month selection (pill navigation)
   const [selectedYear, setSelectedYear] = useState(() => new Date().getFullYear().toString());
@@ -574,106 +573,6 @@ const Avisomap = () => {
     </div>
   );
 
-  const renderEstadisticas = () => (
-    <div className="tab-content animate-fade-in">
-      <div className="stats-header">
-        <div>
-          <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800 }}>Estadísticas Globales</h2>
-          <p style={{ margin: '4px 0 0', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Distribución de incidencias y avisos registrados</p>
-        </div>
-        <span className="stats-total-badge">{avisosData.total} avisos totales</span>
-      </div>
-
-      <div className="stats-cards-container">
-        <div className="stats-card">
-          <div className="stats-card-title">
-            <div className="stats-icon-circle" style={{ background: '#dbeafe', color: '#2563eb' }}>
-              <Bug size={20} />
-            </div>
-            <div>
-              <h3>Por Tipo de Plaga</h3>
-              <p>Haz clic para filtrar en el historial</p>
-            </div>
-          </div>
-          <div className="stats-list">
-            {plagasStats.map(stat => {
-              const pc = getPlagaStyle(stat.name);
-              const pct = avisosData.total > 0 ? Math.round((stat.count / avisosData.total) * 100) : 0;
-
-              return (
-                <div 
-                  key={stat.name} 
-                  className="stat-row"
-                  onClick={() => {
-                    setPlagaFilter(stat.name);
-                    setActiveTab('historial');
-                  }}
-                  title={`Filtrar por ${stat.name}`}
-                >
-                  <div className="stat-info">
-                    <span className="stat-name">
-                      <span className="stat-dot" style={{ backgroundColor: pc.color }} />
-                      {stat.name}
-                    </span>
-                    <span className="stat-numbers">
-                      <strong>{stat.count}</strong> <span style={{ opacity: 0.6 }}>({pct}%)</span>
-                    </span>
-                  </div>
-                  <div className="stat-bar-bg">
-                    <div className="stat-bar-fill" style={{ width: `${pct}%`, backgroundColor: pc.color }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-
-        <div className="stats-card">
-          <div className="stats-card-title">
-            <div className="stats-icon-circle" style={{ background: '#e0e7ff', color: '#4338ca' }}>
-              <MapPin size={20} />
-            </div>
-            <div>
-              <h3>Por Localidad</h3>
-              <p>Haz clic para filtrar en el historial</p>
-            </div>
-          </div>
-          <div className="stats-list">
-            {localidadStats.map(stat => {
-              const pct = avisosData.total > 0 ? Math.round((stat.count / avisosData.total) * 100) : 0;
-
-              return (
-                <div 
-                  key={stat.name} 
-                  className="stat-row"
-                  onClick={() => {
-                    setLocalidadFilter(stat.name);
-                    setActiveTab('historial');
-                  }}
-                  title={`Filtrar por ${stat.name}`}
-                >
-                  <div className="stat-info">
-                    <span className="stat-name">
-                      <MapPin size={13} color="var(--text-muted)" style={{ marginRight: '6px' }} />
-                      {stat.name}
-                    </span>
-                    <span className="stat-numbers">
-                      <strong>{stat.count}</strong> <span style={{ opacity: 0.6 }}>({pct}%)</span>
-                    </span>
-                  </div>
-                  <div className="stat-bar-bg">
-                    <div className="stat-bar-fill" style={{ width: `${pct}%`, backgroundColor: '#2563eb' }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
   return (
     <div className="avisomap-wrapper animate-fade-in">
       {/* Top Header */}
@@ -724,27 +623,9 @@ const Avisomap = () => {
         </button>
       </header>
 
-      {/* Tabs Menu */}
-      <div className="avisomap-tabs-menu">
-        <button 
-          type="button"
-          className={`tab-btn-menu ${activeTab === 'historial' ? 'active' : ''}`}
-          onClick={() => setActiveTab('historial')}
-        >
-          <List size={16} /> Mis Avisos ({avisosData.total})
-        </button>
-        <button 
-          type="button"
-          className={`tab-btn-menu ${activeTab === 'stats' ? 'active' : ''}`}
-          onClick={() => setActiveTab('stats')}
-        >
-          <BarChart2 size={16} /> Estadísticas
-        </button>
-      </div>
-
       {/* Main Content */}
       <div className="avisomap-main-content">
-        {activeTab === 'historial' ? renderMisAvisos() : renderEstadisticas()}
+        {renderMisAvisos()}
       </div>
 
       {/* Modal Editar Aviso */}

@@ -1673,12 +1673,6 @@ const UniversalForm = () => {
           >
             <Wind size={16}/> Tratamiento
           </button>
-          <button 
-            className={`uf-tab-sub ${aquappMode === 'plagas' ? 'active' : ''}`}
-            onClick={() => setAquappMode('plagas')}
-          >
-            <Bug size={16}/> Plagas (Cliente)
-          </button>
         </div>
 
         {aquappMode === 'muestra' && (

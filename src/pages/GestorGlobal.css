@@ -815,3 +815,122 @@
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
 }
+
+/* ── Múltiples Contactos Badges & Filas ── */
+.gg-card-contacts-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.gg-card-contacts-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gg-contact-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.gg-contact-label {
+  font-weight: 700;
+  color: var(--text-main);
+  font-size: 0.82rem;
+}
+
+.gg-card-footer-calls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* Sección Dinámica de Contactos en Modal */
+.gg-contacts-form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gg-contacts-form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.gg-contacts-form-header label {
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.gg-btn-add-contact-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--accent-gestor, #6366f1);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: var(--radius-sm, 8px);
+  padding: 4px 10px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.gg-btn-add-contact-row:hover {
+  background: var(--accent-gestor, #6366f1);
+  color: #ffffff;
+}
+
+.gg-contacts-rows-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gg-contact-form-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gg-contact-row-num {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.gg-btn-remove-contact-row {
+  width: 34px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(239, 68, 68, 0.08);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 10px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.gg-btn-remove-contact-row:hover {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.flex-1 {
+  flex: 1;
+}

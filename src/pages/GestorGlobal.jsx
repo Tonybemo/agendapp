@@ -8,31 +8,65 @@ import { supabase } from '../lib/supabase';
 import { openMapsForClient } from '../utils/navigation';
 import './GestorGlobal.css';
 
-// Helper para extraer de forma segura persona de contacto y teléfono
+// Helper para extraer de forma segura personas de contacto y teléfonos (uno o varios)
 const parseContact = (contactRaw) => {
-  if (!contactRaw || contactRaw === 'null') return { persona: '', telefono: '' };
+  if (!contactRaw || contactRaw === 'null') return { contactos: [], persona: '', telefono: '' };
   const str = String(contactRaw).trim();
-  if (!str) return { persona: '', telefono: '' };
+  if (!str) return { contactos: [], persona: '', telefono: '' };
   
-  if (str.startsWith('{') && str.endsWith('}')) {
+  // 1. JSON Array o JSON Object
+  if ((str.startsWith('[') && str.endsWith(']')) || (str.startsWith('{') && str.endsWith('}'))) {
     try {
       const parsed = JSON.parse(str);
-      return { 
-        persona: parsed.persona || parsed.name || '', 
-        telefono: parsed.telefono || parsed.phone || '' 
-      };
+      if (Array.isArray(parsed)) {
+        const contactos = parsed
+          .map(c => ({ persona: String(c.persona || c.name || '').trim(), telefono: String(c.telefono || c.phone || '').trim() }))
+          .filter(c => c.persona || c.telefono);
+        return {
+          contactos,
+          persona: contactos[0]?.persona || '',
+          telefono: contactos[0]?.telefono || ''
+        };
+      }
+      if (parsed.contactos && Array.isArray(parsed.contactos)) {
+        const contactos = parsed.contactos
+          .map(c => ({ persona: String(c.persona || c.name || '').trim(), telefono: String(c.telefono || c.phone || '').trim() }))
+          .filter(c => c.persona || c.telefono);
+        return {
+          contactos,
+          persona: contactos[0]?.persona || parsed.persona || '',
+          telefono: contactos[0]?.telefono || parsed.telefono || ''
+        };
+      }
+      if (parsed.persona || parsed.telefono || parsed.name || parsed.phone) {
+        const p = String(parsed.persona || parsed.name || '').trim();
+        const t = String(parsed.telefono || parsed.phone || '').trim();
+        return {
+          contactos: (p || t) ? [{ persona: p, telefono: t }] : [],
+          persona: p,
+          telefono: t
+        };
+      }
     } catch (e) {}
   }
 
-  // Si es un texto plano, intentamos detectar teléfono por expresión regular
+  // 2. Si es un texto plano, intentamos detectar teléfono por expresión regular
   const phoneMatch = str.match(/(?:\+?\d{1,3}[\s-]?)?\(?\d{2,4}\)?[\s.-]?\d{2,4}[\s.-]?\d{2,4}/);
   if (phoneMatch) {
     const telefono = phoneMatch[0].trim();
     const persona = str.replace(phoneMatch[0], '').replace(/[-–·|(),]/g, '').trim();
-    return { persona, telefono };
+    return {
+      contactos: [{ persona, telefono }],
+      persona,
+      telefono
+    };
   }
 
-  return { persona: str, telefono: '' };
+  return {
+    contactos: [{ persona: str, telefono: '' }],
+    persona: str,
+    telefono: ''
+  };
 };
 
 const GestorGlobal = () => {
@@ -55,8 +89,7 @@ const GestorGlobal = () => {
   const [clientForm, setClientForm] = useState({ 
     name: '', 
     address: '', 
-    persona: '', 
-    telefono: '' 
+    contactos: [{ persona: '', telefono: '' }]
   });
   
   const [tareaForm, setTareaForm] = useState({ 
@@ -151,10 +184,36 @@ const GestorGlobal = () => {
     }
   };
 
+  // Manejo de filas dinámicas de contactos en el modal de cliente
+  const handleContactChange = (index, field, value) => {
+    setClientForm(prev => {
+      const updated = [...prev.contactos];
+      updated[index] = { ...updated[index], [field]: value };
+      return { ...prev, contactos: updated };
+    });
+  };
+
+  const handleAddContactRow = () => {
+    setClientForm(prev => ({
+      ...prev,
+      contactos: [...prev.contactos, { persona: '', telefono: '' }]
+    }));
+  };
+
+  const handleRemoveContactRow = (index) => {
+    setClientForm(prev => {
+      const updated = prev.contactos.filter((_, i) => i !== index);
+      return {
+        ...prev,
+        contactos: updated.length > 0 ? updated : [{ persona: '', telefono: '' }]
+      };
+    });
+  };
+
   // Apertura de Modales
   const openAddModal = (type) => {
     if (type === 'cliente') {
-      setClientForm({ name: '', address: '', persona: '', telefono: '' });
+      setClientForm({ name: '', address: '', contactos: [{ persona: '', telefono: '' }] });
       setModalConfig({ isOpen: true, type: 'cliente', mode: 'add', item: null });
     } else {
       setTareaForm({ name: '', description: '' });
@@ -164,12 +223,11 @@ const GestorGlobal = () => {
 
   const openEditModal = (item, type) => {
     if (type === 'cliente') {
-      const { persona, telefono } = parseContact(item.contact);
+      const { contactos } = parseContact(item.contact);
       setClientForm({
         name: item.name || '',
         address: (item.address && item.address !== 'null') ? item.address : '',
-        persona: persona || '',
-        telefono: telefono || ''
+        contactos: contactos.length > 0 ? contactos : [{ persona: '', telefono: '' }]
       });
       setModalConfig({ isOpen: true, type: 'cliente', mode: 'edit', item });
     } else {
@@ -193,11 +251,17 @@ const GestorGlobal = () => {
       return;
     }
 
-    const personaTrim = clientForm.persona.trim();
-    const telTrim = clientForm.telefono.trim();
+    const validContactos = clientForm.contactos
+      .map(c => ({ persona: (c.persona || '').trim(), telefono: (c.telefono || '').trim() }))
+      .filter(c => c.persona || c.telefono);
+
     let contactString = null;
-    if (personaTrim || telTrim) {
-      contactString = JSON.stringify({ persona: personaTrim, telefono: telTrim });
+    if (validContactos.length > 0) {
+      contactString = JSON.stringify({
+        persona: validContactos[0].persona,
+        telefono: validContactos[0].telefono,
+        contactos: validContactos
+      });
     }
 
     const payload = {
@@ -291,12 +355,15 @@ const GestorGlobal = () => {
     if (!searchQuery.trim()) return clientes;
     const q = searchQuery.toLowerCase().trim();
     return clientes.filter(c => {
-      const { persona, telefono } = parseContact(c.contact);
+      const { contactos } = parseContact(c.contact);
+      const matchesContact = contactos.some(ct => 
+        (ct.persona && ct.persona.toLowerCase().includes(q)) || 
+        (ct.telefono && ct.telefono.toLowerCase().includes(q))
+      );
       return (
-        c.name?.toLowerCase().includes(q) ||
+        (c.name && c.name.toLowerCase().includes(q)) ||
         (c.address && c.address !== 'null' && c.address.toLowerCase().includes(q)) ||
-        persona.toLowerCase().includes(q) ||
-        telefono.toLowerCase().includes(q)
+        matchesContact
       );
     });
   }, [clientes, searchQuery]);
@@ -417,8 +484,9 @@ const GestorGlobal = () => {
           ) : (
             <div className="gg-grid animate-fade-in">
               {filteredClients.map(client => {
-                const { persona, telefono } = parseContact(client.contact);
+                const { contactos } = parseContact(client.contact);
                 const hasAddress = client.address && client.address !== 'null' && client.address.trim() !== '';
+                const phonesList = contactos.filter(c => c.telefono);
 
                 return (
                   <div key={client.id} className="gg-card client-card">
@@ -430,10 +498,14 @@ const GestorGlobal = () => {
                         </div>
                         <div className="gg-card-title-container">
                           <h3 className="gg-card-title" title={client.name}>{client.name}</h3>
-                          {persona && (
-                            <span className="gg-card-contact-badge" title={`Persona de contacto: ${persona}`}>
-                              <User size={12} /> {persona}
-                            </span>
+                          {contactos.length > 0 && contactos.some(c => c.persona) && (
+                            <div className="gg-card-contacts-badges">
+                              {contactos.map((ct, idx) => ct.persona ? (
+                                <span key={idx} className="gg-card-contact-badge" title={`Persona de contacto: ${ct.persona}${ct.telefono ? ' (' + ct.telefono + ')' : ''}`}>
+                                  <User size={11} /> {ct.persona}
+                                </span>
+                              ) : null)}
+                            </div>
                           )}
                         </div>
                       </div>
@@ -468,21 +540,35 @@ const GestorGlobal = () => {
                         </span>
                       </div>
 
-                      {/* Teléfono */}
-                      <div className={`gg-info-row ${telefono ? 'phone' : 'empty'}`}>
-                        <Phone size={15} className={`info-icon ${telefono ? 'text-success' : 'faint'}`} />
-                        {telefono ? (
-                          <a 
-                            href={`tel:${telefono.replace(/\s+/g, '')}`} 
-                            className="phone-link"
-                            title={`Llamar al ${telefono}`}
-                          >
-                            {telefono}
-                          </a>
-                        ) : (
+                      {/* Teléfono / Contactos */}
+                      {contactos.length === 0 ? (
+                        <div className="gg-info-row empty">
+                          <Phone size={15} className="info-icon faint" />
                           <span className="info-text">Sin teléfono guardado</span>
-                        )}
-                      </div>
+                        </div>
+                      ) : (
+                        <div className="gg-card-contacts-group">
+                          {contactos.map((ct, idx) => (
+                            <div key={idx} className={`gg-info-row ${ct.telefono ? 'phone' : 'empty'}`}>
+                              <Phone size={14} className={`info-icon ${ct.telefono ? 'text-success' : 'faint'}`} />
+                              <div className="gg-contact-cell">
+                                {ct.persona && <span className="gg-contact-label">{ct.persona}:</span>}
+                                {ct.telefono ? (
+                                  <a 
+                                    href={`tel:${ct.telefono.replace(/\s+/g, '')}`} 
+                                    className="phone-link"
+                                    title={`Llamar a ${ct.persona || client.name} (${ct.telefono})`}
+                                  >
+                                    {ct.telefono}
+                                  </a>
+                                ) : (
+                                  <span className="info-text faint">Sin teléfono</span>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     {/* Pie Tarjeta / Acciones directas */}
@@ -497,16 +583,7 @@ const GestorGlobal = () => {
                         <span>Cómo llegar</span>
                       </button>
 
-                      {telefono ? (
-                        <a 
-                          href={`tel:${telefono.replace(/\s+/g, '')}`} 
-                          className="btn-llamar-quick"
-                          title={`Llamar a ${client.name} (${telefono})`}
-                        >
-                          <Phone size={14} />
-                          <span>Llamar</span>
-                        </a>
-                      ) : (
+                      {phonesList.length === 0 ? (
                         <button
                           type="button"
                           className="btn-add-contact-hint"
@@ -515,6 +592,20 @@ const GestorGlobal = () => {
                         >
                           + Añadir contacto
                         </button>
+                      ) : (
+                        <div className="gg-card-footer-calls">
+                          {phonesList.map((ct, idx) => (
+                            <a 
+                              key={idx}
+                              href={`tel:${ct.telefono.replace(/\s+/g, '')}`} 
+                              className="btn-llamar-quick"
+                              title={`Llamar a ${ct.persona ? `${ct.persona} (${client.name})` : client.name} (${ct.telefono})`}
+                            >
+                              <Phone size={13} />
+                              <span>Llamar {ct.persona ? `(${ct.persona})` : ''}</span>
+                            </a>
+                          ))}
+                        </div>
                       )}
                     </div>
                   </div>
@@ -642,33 +733,53 @@ const GestorGlobal = () => {
                   </div>
                 </div>
 
-                <div className="gg-form-row">
-                  <div className="gg-form-group">
-                    <label htmlFor="client-persona">PERSONA DE CONTACTO</label>
-                    <div className="gg-input-wrapper">
-                      <User size={16} className="input-icon" />
-                      <input 
-                        id="client-persona"
-                        type="text" 
-                        placeholder="Ej. María / Encargado"
-                        value={clientForm.persona}
-                        onChange={e => setClientForm({ ...clientForm, persona: e.target.value })}
-                      />
-                    </div>
+                <div className="gg-contacts-form-section">
+                  <div className="gg-contacts-form-header">
+                    <label>PERSONAS DE CONTACTO Y TELÉFONOS</label>
+                    <button 
+                      type="button" 
+                      className="gg-btn-add-contact-row"
+                      onClick={handleAddContactRow}
+                      title="Añadir otra persona o teléfono de contacto"
+                    >
+                      <PlusCircle size={14} /> Añadir contacto
+                    </button>
                   </div>
 
-                  <div className="gg-form-group">
-                    <label htmlFor="client-tel">TELÉFONO</label>
-                    <div className="gg-input-wrapper">
-                      <Phone size={16} className="input-icon" />
-                      <input 
-                        id="client-tel"
-                        type="tel" 
-                        placeholder="Ej. 654 98 73 21"
-                        value={clientForm.telefono}
-                        onChange={e => setClientForm({ ...clientForm, telefono: e.target.value })}
-                      />
-                    </div>
+                  <div className="gg-contacts-rows-container">
+                    {clientForm.contactos.map((ct, idx) => (
+                      <div key={idx} className="gg-contact-form-row">
+                        <div className="gg-contact-row-num">#{idx + 1}</div>
+                        <div className="gg-input-wrapper flex-1">
+                          <User size={15} className="input-icon" />
+                          <input 
+                            type="text" 
+                            placeholder="Persona / Cargo (ej. María)"
+                            value={ct.persona}
+                            onChange={e => handleContactChange(idx, 'persona', e.target.value)}
+                          />
+                        </div>
+                        <div className="gg-input-wrapper flex-1">
+                          <Phone size={15} className="input-icon" />
+                          <input 
+                            type="tel" 
+                            placeholder="Teléfono (ej. 654 98 73 21)"
+                            value={ct.telefono}
+                            onChange={e => handleContactChange(idx, 'telefono', e.target.value)}
+                          />
+                        </div>
+                        {clientForm.contactos.length > 1 && (
+                          <button 
+                            type="button" 
+                            className="gg-btn-remove-contact-row"
+                            onClick={() => handleRemoveContactRow(idx)}
+                            title="Eliminar este contacto"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
 
