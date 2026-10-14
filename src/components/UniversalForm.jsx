@@ -568,7 +568,7 @@ const UniversalForm = () => {
       cliente_nombre: clienteNombre,
       tipo_muestra: tipoMuestra,
       fecha: fechaGuardar,
-      hora: data.hora,
+      hora: (data.hora && String(data.hora).trim()) ? String(data.hora).trim() : getHoraActual(),
       numero_muestra: data.numero_muestra,
       cod_envase: data.cod_envase,
       descripcion: data.descripcion,
@@ -650,11 +650,14 @@ const UniversalForm = () => {
     let savedOnline = false;
 
     try {
-      let res;
+      let onlinePayload = { ...record };
+      if (onlinePayload.id && (String(onlinePayload.id).startsWith('sample_') || String(onlinePayload.id).startsWith('offline_'))) {
+        delete onlinePayload.id;
+      }
       if (editingItem && editingItem.editType === 'muestra') {
-        res = await withTimeout(supabase.from('aquapp_muestras').update(record).eq('id', editingItem.id), 3500);
+        res = await withTimeout(supabase.from('aquapp_muestras').update(onlinePayload).eq('id', editingItem.id), 3500);
       } else {
-        res = await withTimeout(supabase.from('aquapp_muestras').insert([record]), 3500);
+        res = await withTimeout(supabase.from('aquapp_muestras').insert([onlinePayload]), 3500);
       }
       if (res?.error) {
         error = res.error;

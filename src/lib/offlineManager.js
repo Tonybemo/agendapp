@@ -150,22 +150,31 @@ export const syncAllOfflineData = async (toast) => {
             payload.id = id;
           }
 
-          const res = await withTimeout(supabase.from('aquapp_muestras').insert([payload]), 5500);
+          const res = await withTimeout(supabase.from('aquapp_muestras').insert([payload]), 6000);
           if (!res.error) {
             syncedMuestras++;
             autoCompleteMuestraTasks(cleanRecord).catch(() => {});
-          } else if (isNetworkFailure(res.error)) {
-            remainingMuestras.push(item);
-            break;
           } else {
             console.error("Error sincronizando muestra individual:", res.error, cleanRecord);
+            remainingMuestras.push({
+              ...item,
+              _lastSyncError: res.error?.message || 'Error al subir',
+              _lastAttempt: new Date().toISOString()
+            });
+            if (isNetworkFailure(res.error)) {
+              break;
+            }
           }
         } catch (err) {
+          console.error("Error en muestra (excepción):", err);
+          remainingMuestras.push({
+            ...item,
+            _lastSyncError: err?.message || 'Fallo de red',
+            _lastAttempt: new Date().toISOString()
+          });
           if (isNetworkFailure(err)) {
-            remainingMuestras.push(item);
             break;
           }
-          console.error("Error en muestra (excepción):", err);
         }
       }
       localStorage.setItem(QUEUE_MUESTRAS_KEY, JSON.stringify(remainingMuestras));
@@ -194,18 +203,28 @@ export const syncAllOfflineData = async (toast) => {
             continue;
           }
 
-          const res = await withTimeout(supabase.from('aquapp_tratamientos').insert([cleanRecord]), 5500);
+          const res = await withTimeout(supabase.from('aquapp_tratamientos').insert([cleanRecord]), 6000);
           if (!res.error) {
             syncedTratamientos++;
-          } else if (isNetworkFailure(res.error)) {
-            remainingTrat.push(item);
-            break;
           } else {
             console.error("Error sincronizando tratamiento:", res.error, cleanRecord);
+            remainingTrat.push({
+              ...item,
+              _lastSyncError: res.error?.message || 'Error al subir',
+              _lastAttempt: new Date().toISOString()
+            });
+            if (isNetworkFailure(res.error)) {
+              break;
+            }
           }
         } catch (err) {
+          console.error("Excepción sincronizando tratamiento:", err);
+          remainingTrat.push({
+            ...item,
+            _lastSyncError: err?.message || 'Fallo de red',
+            _lastAttempt: new Date().toISOString()
+          });
           if (isNetworkFailure(err)) {
-            remainingTrat.push(item);
             break;
           }
         }
@@ -234,16 +253,28 @@ export const syncAllOfflineData = async (toast) => {
             continue;
           }
 
-          const res = await withTimeout(supabase.from('avisomap_avisos').insert([cleanRecord]), 5500);
+          const res = await withTimeout(supabase.from('avisomap_avisos').insert([cleanRecord]), 6000);
           if (!res.error) {
             syncedAvisos++;
-          } else if (isNetworkFailure(res.error)) {
-            remainingAvisos.push(item);
-            break;
+          } else {
+            console.error("Error sincronizando aviso:", res.error, cleanRecord);
+            remainingAvisos.push({
+              ...item,
+              _lastSyncError: res.error?.message || 'Error al subir',
+              _lastAttempt: new Date().toISOString()
+            });
+            if (isNetworkFailure(res.error)) {
+              break;
+            }
           }
         } catch (err) {
+          console.error("Excepción sincronizando aviso:", err);
+          remainingAvisos.push({
+            ...item,
+            _lastSyncError: err?.message || 'Fallo de red',
+            _lastAttempt: new Date().toISOString()
+          });
           if (isNetworkFailure(err)) {
-            remainingAvisos.push(item);
             break;
           }
         }
