@@ -650,6 +650,7 @@ const UniversalForm = () => {
     let savedOnline = false;
 
     try {
+      let res;
       let onlinePayload = { ...record };
       if (onlinePayload.id && (String(onlinePayload.id).startsWith('sample_') || String(onlinePayload.id).startsWith('offline_'))) {
         delete onlinePayload.id;
