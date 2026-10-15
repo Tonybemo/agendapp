@@ -1943,9 +1943,10 @@ const Aquapp = () => {
   const GARRAFA_FIELDS = [
     { key: 'mat_f_8583', label: 'F-8583' },
     { key: 'mat_f_8580', label: 'F-8580' },
-    { key: 'mat_f_8481', label: 'F-8481' },
+    { key: 'mat_f_8481', label: 'Ferrocid 8441' },
     { key: 'mat_a_4170', label: 'A-4170' },
     { key: 'mat_a_645', label: 'A-645' },
+    { key: 'mat_a_645d', label: 'A-645D' },
   ];
 
   const renderTorresTab = () => {
