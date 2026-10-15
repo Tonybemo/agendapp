@@ -401,6 +401,7 @@ const Calculadora = () => {
   const [conversorCat, setConversorCat] = useState('conductividad');
 
   // 1. Conductividad (mS ↔ µS y TDS)
+  const [condInputUnit, setCondInputUnit] = useState('ms'); // 'ms' (sonda) o 'us' (programa)
   const [condMs, setCondMs] = useState('0.46');
   const [condUs, setCondUs] = useState('460');
 
@@ -448,6 +449,17 @@ const Calculadora = () => {
     }
   };
 
+  const changeVolUnit = (newUnit) => {
+    setVolInputUnit(newUnit);
+    let newVal = volBaseL;
+    if (newUnit === 'cm3' || newUnit === 'ml') newVal = volBaseL * 1000;
+    else if (newUnit === 'L') newVal = volBaseL;
+    else if (newUnit === 'm3') newVal = volBaseL / 1000;
+    else if (newUnit === 'garrafas') newVal = volBaseL / 25;
+    const formatted = Number.isInteger(newVal) ? newVal.toString() : parseFloat(newVal.toFixed(4)).toString();
+    setVolInputVal(formatted);
+  };
+
   // 3. Dureza del Agua (base en ºfH)
   const [durezaBaseFh, setDurezaBaseFh] = useState(25);
   const [durezaInputVal, setDurezaInputVal] = useState('25');
@@ -466,6 +478,17 @@ const Calculadora = () => {
       else if (unit === 'mmol') fh = n / 0.1;
       setDurezaBaseFh(fh);
     }
+  };
+
+  const changeDurezaUnit = (newUnit) => {
+    setDurezaInputUnit(newUnit);
+    let newVal = durezaBaseFh;
+    if (newUnit === 'fh') newVal = durezaBaseFh;
+    else if (newUnit === 'dh') newVal = durezaBaseFh * 0.56;
+    else if (newUnit === 'ppm') newVal = durezaBaseFh * 10;
+    else if (newUnit === 'mmol') newVal = durezaBaseFh * 0.1;
+    const formatted = Number.isInteger(newVal) ? newVal.toString() : parseFloat(newVal.toFixed(2)).toString();
+    setDurezaInputVal(formatted);
   };
 
   const clasificacionDureza = useMemo(() => {
@@ -497,6 +520,17 @@ const Calculadora = () => {
     }
   };
 
+  const changeConcUnit = (newUnit) => {
+    setConcInputUnit(newUnit);
+    let newVal = concBasePpm;
+    if (newUnit === 'pct') newVal = concBasePpm / 10000;
+    else if (newUnit === 'ppm') newVal = concBasePpm;
+    else if (newUnit === 'gl') newVal = concBasePpm / 1000;
+    else if (newUnit === 'gm3') newVal = concBasePpm;
+    const formatted = Number.isInteger(newVal) ? newVal.toString() : parseFloat(newVal.toFixed(4)).toString();
+    setConcInputVal(formatted);
+  };
+
   // 5. Presión & Temperatura
   const [presionBaseBar, setPresionBaseBar] = useState(2.5);
   const [presionInputVal, setPresionInputVal] = useState('2.5');
@@ -517,6 +551,17 @@ const Calculadora = () => {
     }
   };
 
+  const changePresionUnit = (newUnit) => {
+    setPresionInputUnit(newUnit);
+    let newVal = presionBaseBar;
+    if (newUnit === 'bar') newVal = presionBaseBar;
+    else if (newUnit === 'psi') newVal = presionBaseBar * 14.5038;
+    else if (newUnit === 'mca') newVal = presionBaseBar * 10.1972;
+    else if (newUnit === 'atm') newVal = presionBaseBar * 0.986923;
+    const formatted = Number.isInteger(newVal) ? newVal.toString() : parseFloat(newVal.toFixed(2)).toString();
+    setPresionInputVal(formatted);
+  };
+
   const [tempBaseC, setTempBaseC] = useState(60);
   const [tempInputVal, setTempInputVal] = useState('60');
   const [tempInputUnit, setTempInputUnit] = useState('c');
@@ -532,6 +577,15 @@ const Calculadora = () => {
       else if (unit === 'f') c = (n - 32) * (5 / 9);
       setTempBaseC(c);
     }
+  };
+
+  const changeTempUnit = (newUnit) => {
+    setTempInputUnit(newUnit);
+    let newVal = tempBaseC;
+    if (newUnit === 'c') newVal = tempBaseC;
+    else if (newUnit === 'f') newVal = (tempBaseC * 9/5) + 32;
+    const formatted = Number.isInteger(newVal) ? newVal.toString() : parseFloat(newVal.toFixed(1)).toString();
+    setTempInputVal(formatted);
   };
 
   const legionellaTempZona = useMemo(() => {
@@ -1178,23 +1232,23 @@ const Calculadora = () => {
       {activeTab === 'conversor' && (
         <div className="calc-tab-pane animate-fade-in">
           {/* Cabecera del Conversor */}
-          <div className="calc-intro-card conv-intro-card">
+          <div className="calc-intro-card">
             <div className="calc-intro-text">
-              <h3>Conversor Técnico de Unidades de Campo</h3>
-              <p>Herramienta rápida para mediciones de sondas, lectura de conductividad en mS o µS, dosificación de garrafas, volúmenes, dureza y concentraciones químicas.</p>
+              <h3>Factores de Conversión de Unidades de Campo</h3>
+              <p>Mismo criterio de cálculo directo: introduce el dato medido y obtén al instante su equivalencia en el programa o normativa.</p>
             </div>
-            <span className="calc-source-tag conv-badge-tag">Agua & Plagas</span>
+            <span className="calc-source-tag">Técnico de Campo</span>
           </div>
 
-          {/* Subnavegación de Categorías */}
+          {/* Subnavegación de Categorías (Píldoras limpias y accesibles) */}
           <div className="calc-conv-subnav">
             {[
-              { id: 'conductividad', label: '⚡ Conductividad & TDS', desc: 'mS ↔ µS y sólidos' },
-              { id: 'volumen', label: '🧪 Volumen & Dosis', desc: 'cm³, ml, L, m³, garrafas' },
-              { id: 'dureza', label: '💧 Dureza del Agua', desc: 'ºfH, ºdH, ppm CaCO3' },
-              { id: 'concentracion', label: '🔬 Concentración (%/ppm)', desc: '% ↔ ppm ↔ g/L' },
-              { id: 'presion_temp', label: '🌡️ Presión & Tª', desc: 'bar, psi, ºC ↔ ºF' },
-              { id: 'chuleta', label: '📋 Chuleta de Bolsillo', desc: 'Factores directos' },
+              { id: 'conductividad', label: '⚡ Conductividad (mS ↔ µS)' },
+              { id: 'volumen', label: '🧪 Volumen & Dosis (cm³, ml, L, garrafas)' },
+              { id: 'dureza', label: '💧 Dureza del Agua (ºfH, ºdH, ppm)' },
+              { id: 'concentracion', label: '🔬 Concentración (% ↔ ppm ↔ g/L)' },
+              { id: 'presion_temp', label: '🌡️ Presión & Temperatura' },
+              { id: 'chuleta', label: '📋 Chuleta de Bolsillo' },
             ].map(cat => (
               <button
                 key={cat.id}
@@ -1202,328 +1256,327 @@ const Calculadora = () => {
                 className={`calc-conv-subpill ${conversorCat === cat.id ? 'active' : ''}`}
                 onClick={() => setConversorCat(cat.id)}
               >
-                <span className="conv-subpill-title">{cat.label}</span>
-                <span className="conv-subpill-desc">{cat.desc}</span>
+                <span>{cat.label}</span>
               </button>
             ))}
           </div>
 
-          {/* 1. SECCIÓN CONDUCTIVIDAD & TDS */}
+          {/* 1. CONDUCTIVIDAD */}
           {conversorCat === 'conductividad' && (
-            <div className="calc-conv-section animate-fade-in">
-              <div className="calc-grid-2col">
-                {/* Calculador Bidireccional */}
-                <div className="calc-card">
-                  <div className="calc-card-header">
-                    <h4>Calculador Bidireccional de Conductividad</h4>
-                    <span className="calc-chip chip-cyan">Sondas y Programas</span>
+            <div className="calc-grid-2col animate-fade-in">
+              {/* Panel Izquierdo: Entradas */}
+              <div className="calc-panel-card">
+                <h4 className="calc-panel-title">
+                  <Sliders size={18} color="#059669" /> Medición de la Sonda / Entrada
+                </h4>
+
+                {/* Unidad de Origen */}
+                <div className="calc-field-group">
+                  <div className="calc-field-header">
+                    <label>Sentido de la conversión</label>
                   </div>
-
-                  <p className="calc-card-desc">
-                    Escribe en <strong>mS</strong> (como marca la sonda en campo) o en <strong>µS</strong> (como pide el programa) y se convertirá en tiempo real.
-                  </p>
-
-                  <div className="calc-conv-dual-box">
-                    <div className="calc-conv-field">
-                      <label>
-                        <span>MiliSiemens (mS o mS/cm)</span>
-                        <span className="calc-unit-pill blue">Medición de Sonda</span>
-                      </label>
-                      <div className="calc-input-wrapper">
-                        <input
-                          type="text"
-                          inputMode="decimal"
-                          value={condMs}
-                          onChange={e => updateCondFromMs(e.target.value)}
-                          placeholder="Ej. 0.46"
-                        />
-                        <span className="calc-input-unit">mS/cm</span>
-                      </div>
-                    </div>
-
-                    <div className="calc-conv-arrow-divider">
-                      <div className="conv-arrow-icon-circle">
-                        <ArrowLeftRight size={18} />
-                      </div>
-                      <span className="conv-arrow-legend">1 mS = 1.000 µS</span>
-                    </div>
-
-                    <div className="calc-conv-field">
-                      <label>
-                        <span>MicroSiemens (µS o µS/cm)</span>
-                        <span className="calc-unit-pill green">Registro / Informe</span>
-                      </label>
-                      <div className="calc-input-wrapper">
-                        <input
-                          type="text"
-                          inputMode="decimal"
-                          value={condUs}
-                          onChange={e => updateCondFromUs(e.target.value)}
-                          placeholder="Ej. 460"
-                        />
-                        <span className="calc-input-unit">µS/cm</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Banner de resultado destacado */}
-                  <div className="calc-conv-banner-res">
-                    <div className="conv-banner-top">
-                      <span className="conv-val-highlight">{condMs || '0'} mS/cm</span>
-                      <span className="conv-val-equals">=</span>
-                      <span className="conv-val-highlight accent">{condUs || '0'} µS/cm</span>
-                    </div>
-
-                    {/* Estimación TDS */}
-                    {(() => {
-                      const u = parseFloat(String(condUs).replace(',', '.')) || 0;
-                      const tdsAgua = (u * 0.67).toFixed(1);
-                      const tdsNacl = (u * 0.50).toFixed(1);
-                      return (
-                        <div className="conv-tds-grid">
-                          <div className="conv-tds-item">
-                            <span className="tds-title">TDS Estimado (Agua Potable/Red · factor 0.67):</span>
-                            <strong className="tds-number">{tdsAgua} ppm (mg/L)</strong>
-                          </div>
-                          <div className="conv-tds-item">
-                            <span className="tds-title">TDS Estándar NaCl (factor 0.50):</span>
-                            <strong className="tds-number">{tdsNacl} ppm (mg/L)</strong>
-                          </div>
-                        </div>
-                      );
-                    })()}
-                  </div>
-
-                  {/* Píldoras de valores rápidos */}
-                  <div className="calc-quick-pills-container">
-                    <span className="quick-pills-label">Valores habituales de campo:</span>
-                    <div className="quick-pills-flex">
-                      {[
-                        { label: '0.46 mS (Expal)', ms: '0.46' },
-                        { label: '0.35 mS (Red blanda)', ms: '0.35' },
-                        { label: '0.65 mS (Red media)', ms: '0.65' },
-                        { label: '1.50 mS (Torre recirc.)', ms: '1.50' },
-                        { label: '2.50 mS (Límite RD 3/2023)', ms: '2.50' },
-                      ].map(p => (
-                        <button
-                          key={p.label}
-                          type="button"
-                          className="conv-preset-btn"
-                          onClick={() => updateCondFromMs(p.ms)}
-                        >
-                          {p.label}
-                        </button>
-                      ))}
-                    </div>
+                  <div className="calc-chip-row">
+                    <button
+                      type="button"
+                      className={`calc-chip-btn ${condInputUnit === 'ms' ? 'active' : ''}`}
+                      onClick={() => setCondInputUnit('ms')}
+                    >
+                      ⚡ De Sonda (mS/cm) → A Programa (µS/cm)
+                    </button>
+                    <button
+                      type="button"
+                      className={`calc-chip-btn ${condInputUnit === 'us' ? 'active' : ''}`}
+                      onClick={() => setCondInputUnit('us')}
+                    >
+                      📝 De Programa (µS/cm) → A Sonda (mS/cm)
+                    </button>
                   </div>
                 </div>
 
-                {/* Tarjeta de Referencia Normativa */}
-                <div className="calc-card">
-                  <div className="calc-card-header">
-                    <h4>Escala de Conductividad en Aguas Reales</h4>
-                    <span className="calc-chip chip-amber">RD 3/2023 & RD 487/2022</span>
-                  </div>
-
-                  <div className="conv-ref-timeline">
-                    <div className="conv-ref-item">
-                      <div className="ref-status-circle blue" />
-                      <div className="ref-info-box">
-                        <div className="ref-info-head">
-                          <strong>Agua Desmineralizada / Ósmosis</strong>
-                          <span className="ref-range-badge">&lt; 20 µS/cm (&lt; 0.02 mS)</span>
-                        </div>
-                        <p>Agua muy pura, sin sales disueltas. Común en purgas de calderas de vapor.</p>
-                      </div>
-                    </div>
-
-                    <div className="conv-ref-item">
-                      <div className="ref-status-circle green" />
-                      <div className="ref-info-box">
-                        <div className="ref-info-head">
-                          <strong>Agua de Grifo / Red Potable</strong>
-                          <span className="ref-range-badge">200 – 800 µS/cm (0.2 – 0.8 mS)</span>
-                        </div>
-                        <p>Rangos habituales de abastecimiento público en Asturias y zona norte.</p>
-                      </div>
-                    </div>
-
-                    <div className="conv-ref-item">
-                      <div className="ref-status-circle amber" />
-                      <div className="ref-info-box">
-                        <div className="ref-info-head">
-                          <strong>Torres de Refrigeración (Agua en balsa)</strong>
-                          <span className="ref-range-badge">1.200 – 2.400 µS/cm (1.2 – 2.4 mS)</span>
-                        </div>
-                        <p>Ciclos de concentración normales. Si sube de 2.500 µS se activa la purga automática.</p>
-                      </div>
-                    </div>
-
-                    <div className="conv-ref-item">
-                      <div className="ref-status-circle red" />
-                      <div className="ref-info-box">
-                        <div className="ref-info-head">
-                          <strong>Límite Legal Parámetro RD 3/2023</strong>
-                          <span className="ref-range-badge alert">2.500 µS/cm (2.5 mS) a 20 ºC</span>
-                        </div>
-                        <p>Valor paramétrico máximo autorizado para agua de consumo humano.</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="calc-tip-box" style={{ marginTop: '16px' }}>
-                    <Info size={16} color="#0284c7" />
-                    <span>
-                      <strong>Regla rápida:</strong> Para pasar de <strong>mS a µS</strong> multiplica por <strong>1.000</strong> (0,46 × 1.000 = 460). Para pasar de <strong>µS a mS</strong> divide entre 1.000 (460 ÷ 1.000 = 0,46).
+                {/* Campo Principal de Entrada */}
+                <div className="calc-field-group">
+                  <div className="calc-field-header">
+                    <label>
+                      {condInputUnit === 'ms' ? 'Conductividad leída en sonda de campo' : 'Conductividad requerida en el programa'}
+                    </label>
+                    <span className="calc-unit-pill">
+                      {condInputUnit === 'ms' ? `${condMs || 0} mS/cm` : `${condUs || 0} µS/cm`}
                     </span>
                   </div>
+                  <div className="calc-input-wrapper">
+                    <input
+                      type="number"
+                      step="any"
+                      value={condInputUnit === 'ms' ? condMs : condUs}
+                      onChange={(e) => {
+                        if (condInputUnit === 'ms') updateCondFromMs(e.target.value);
+                        else updateCondFromUs(e.target.value);
+                      }}
+                      placeholder={condInputUnit === 'ms' ? 'Ej. 0.46' : 'Ej. 460'}
+                      className="calc-main-input"
+                    />
+                    <span className="calc-input-suffix">
+                      {condInputUnit === 'ms' ? 'mS/cm' : 'µS/cm'}
+                    </span>
+                  </div>
+
+                  {/* Chips de valores rápidos habituales */}
+                  <div className="calc-chip-row">
+                    {condInputUnit === 'ms'
+                      ? [
+                          { label: '0.46 mS (Torre Expal)', val: '0.46' },
+                          { label: '0.35 mS (Red blanda)', val: '0.35' },
+                          { label: '0.65 mS (Red media)', val: '0.65' },
+                          { label: '1.50 mS (Recirculación)', val: '1.50' },
+                          { label: '2.50 mS (Límite RD 3/2023)', val: '2.50' }
+                        ].map(c => (
+                          <button
+                            key={c.val}
+                            type="button"
+                            className={`calc-chip-btn ${condMs === c.val ? 'active' : ''}`}
+                            onClick={() => updateCondFromMs(c.val)}
+                          >
+                            {c.label}
+                          </button>
+                        ))
+                      : [
+                          { label: '460 µS (Torre Expal)', val: '460' },
+                          { label: '350 µS (Red blanda)', val: '350' },
+                          { label: '650 µS (Red media)', val: '650' },
+                          { label: '1.500 µS (Recirculación)', val: '1500' },
+                          { label: '2.500 µS (Límite RD 3/2023)', val: '2500' }
+                        ].map(c => (
+                          <button
+                            key={c.val}
+                            type="button"
+                            className={`calc-chip-btn ${condUs === c.val ? 'active' : ''}`}
+                            onClick={() => updateCondFromUs(c.val)}
+                          >
+                            {c.label}
+                          </button>
+                        ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Panel Derecho: Resultados */}
+              <div className="calc-panel-results">
+                {/* Tarjeta Hero de Resultado */}
+                <div className="calc-result-card border-optimo">
+                  <span className="calc-result-badge">VALOR CONVERTIDO RESULTANTE</span>
+                  <div className="calc-result-big-number">
+                    <strong>{condInputUnit === 'ms' ? (condUs || '0') : (condMs || '0')}</strong>
+                    <span>{condInputUnit === 'ms' ? 'µS/cm' : 'mS/cm'}</span>
+                  </div>
+                  <p className="calc-result-subtext">
+                    {condInputUnit === 'ms'
+                      ? `${condMs || 0} mS/cm leídos en la sonda equivalen a ${condUs || 0} µS/cm para registrar en el programa.`
+                      : `${condUs || 0} µS/cm solicitados en el programa equivalen a ${condMs || 0} mS/cm en la lectura de la sonda.`}
+                  </p>
+
+                  <div className="calc-compare-row">
+                    <div className="calc-compare-item">
+                      <span>TDS Estimado (Agua Red · factor 0.67):</span>
+                      <strong>
+                        {((parseFloat(String(condUs).replace(',', '.')) || 0) * 0.67).toFixed(1)} ppm (mg/L)
+                      </strong>
+                    </div>
+                    <div className="calc-compare-item">
+                      <span>Factor de Cálculo:</span>
+                      <strong className="calc-tag-factor state-optimo">
+                        {condInputUnit === 'ms' ? '× 1.000' : '÷ 1.000'}
+                      </strong>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Diagnóstico / Consejo Técnico */}
+                <div className="calc-diagnostic-card state-optimo">
+                  <div className="calc-diag-top">
+                    <div className="calc-diag-icon">
+                      <CheckCircle2 size={24} color="#16a34a" />
+                    </div>
+                    <div className="calc-diag-header">
+                      <h4>Regla Rápida de Campo</h4>
+                      <p>
+                        Para pasar de <strong>mS a µS</strong> (sonda al programa) multiplica por <strong>1.000</strong> (ej: 0,46 × 1.000 = <strong>460 µS</strong>). Para pasar de <strong>µS a mS</strong> divide entre <strong>1.000</strong> (ej: 460 ÷ 1.000 = <strong>0,46 mS</strong>).
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tabla de Referencia Rápida */}
+                <div className="calc-ph-table-card">
+                  <h5>Rangos de Conductividad en Aguas Reales (RD 3/2023 & RD 487/2022)</h5>
+                  <div className="calc-ph-mini-table">
+                    <div className="calc-ph-row highlight">
+                      <span className="col-ph">&lt; 20 µS</span>
+                      <span className="col-factor">&lt; 0.02 mS</span>
+                      <span className="col-eff opt">Ósmosis / Desmin.</span>
+                      <span className="col-desc">Purgas calderas</span>
+                    </div>
+                    <div className="calc-ph-row">
+                      <span className="col-ph">200-800 µS</span>
+                      <span className="col-factor">0.2-0.8 mS</span>
+                      <span className="col-eff good">Red de Consumo</span>
+                      <span className="col-desc">Agua potable habitual</span>
+                    </div>
+                    <div className="calc-ph-row">
+                      <span className="col-ph">1.200-2.400 µS</span>
+                      <span className="col-factor">1.2-2.4 mS</span>
+                      <span className="col-eff warn">Torres de Refrig.</span>
+                      <span className="col-desc">Ciclos de balsa</span>
+                    </div>
+                    <div className="calc-ph-row">
+                      <span className="col-ph">2.500 µS</span>
+                      <span className="col-factor">2.5 mS</span>
+                      <span className="col-eff bad">Límite RD 3/2023</span>
+                      <span className="col-desc">Purga obligatoria</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* 2. SECCIÓN VOLUMEN & DOSIFICACIÓN */}
+          {/* 2. VOLUMEN & DOSIS */}
           {conversorCat === 'volumen' && (
-            <div className="calc-conv-section animate-fade-in">
-              <div className="calc-grid-2col">
-                <div className="calc-card">
-                  <div className="calc-card-header">
-                    <h4>Conversor de Volumen y Dosis</h4>
-                    <span className="calc-chip chip-blue">Dosificación y Garrafas</span>
+            <div className="calc-grid-2col animate-fade-in">
+              {/* Panel Izquierdo: Entradas */}
+              <div className="calc-panel-card">
+                <h4 className="calc-panel-title">
+                  <Sliders size={18} color="#0284c7" /> Cantidad y Unidad de Volumen
+                </h4>
+
+                {/* Unidad de Origen */}
+                <div className="calc-field-group">
+                  <div className="calc-field-header">
+                    <label>Unidad que tienes en mano o en el envase</label>
+                  </div>
+                  <div className="calc-chip-row">
+                    {[
+                      { id: 'cm3', label: 'cm³ / cc (Centímetros cúbicos)' },
+                      { id: 'ml', label: 'ml (Mililitros)' },
+                      { id: 'L', label: 'L (Litros)' },
+                      { id: 'garrafas', label: 'Garrafas (25 L)' },
+                      { id: 'm3', label: 'm³ (Metros cúbicos)' }
+                    ].map(u => (
+                      <button
+                        key={u.id}
+                        type="button"
+                        className={`calc-chip-btn ${volInputUnit === u.id ? 'active' : ''}`}
+                        onClick={() => changeVolUnit(u.id)}
+                      >
+                        {u.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Campo Principal de Entrada */}
+                <div className="calc-field-group">
+                  <div className="calc-field-header">
+                    <label>Cantidad a convertir</label>
+                    <span className="calc-unit-pill">
+                      {volInputVal} {volInputUnit}
+                    </span>
+                  </div>
+                  <div className="calc-input-wrapper">
+                    <input
+                      type="number"
+                      step="any"
+                      value={volInputVal}
+                      onChange={(e) => handleVolInputChange(e.target.value, volInputUnit)}
+                      placeholder="Ej. 10"
+                      className="calc-main-input"
+                    />
+                    <span className="calc-input-suffix">{volInputUnit}</span>
                   </div>
 
-                  <p className="calc-card-desc">
-                    Introduce cualquier cantidad y selecciona su unidad para ver al instante la equivalencia en centímetros cúbicos, mililitros, litros, metros cúbicos y garrafas estándar.
+                  {/* Chips de valores rápidos */}
+                  <div className="calc-chip-row">
+                    {[
+                      { label: '10 cm³ (probeta)', val: '10', unit: 'cm3' },
+                      { label: '50 ml (dosis plagas)', val: '50', unit: 'ml' },
+                      { label: '250 ml (1/4 L)', val: '250', unit: 'ml' },
+                      { label: '1 L (1.000 ml)', val: '1', unit: 'L' },
+                      { label: '25 L (1 garrafa Ferrocid)', val: '25', unit: 'L' },
+                      { label: '1 m³ (1.000 L / IBC)', val: '1', unit: 'm3' },
+                      { label: '25 m³ (aljibe / torre)', val: '25', unit: 'm3' }
+                    ].map(p => (
+                      <button
+                        key={p.label}
+                        type="button"
+                        className={`calc-chip-btn ${volInputVal == p.val && volInputUnit === p.unit ? 'active' : ''}`}
+                        onClick={() => handleVolInputChange(p.val, p.unit)}
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Panel Derecho: Resultados */}
+              <div className="calc-panel-results">
+                <div className="calc-result-card border-optimo">
+                  <span className="calc-result-badge">EQUIVALENCIAS SIMULTÁNEAS</span>
+                  <div className="calc-result-big-number">
+                    <strong>
+                      {volInputUnit === 'cm3' || volInputUnit === 'ml'
+                        ? (volBaseL >= 1 ? volBaseL.toLocaleString('es-ES', { maximumFractionDigits: 3 }) : (volBaseL * 1000).toLocaleString('es-ES'))
+                        : volInputUnit === 'L'
+                        ? (volBaseL / 25).toLocaleString('es-ES', { maximumFractionDigits: 2 })
+                        : volBaseL.toLocaleString('es-ES', { maximumFractionDigits: 2 })}
+                    </strong>
+                    <span>
+                      {volInputUnit === 'cm3' || volInputUnit === 'ml'
+                        ? (volBaseL >= 1 ? 'Litros (L)' : 'ml (cm³)')
+                        : volInputUnit === 'L'
+                        ? 'Garrafas (25 L)'
+                        : 'Litros (L)'}
+                    </span>
+                  </div>
+                  <p className="calc-result-subtext">
+                    {volInputVal} {volInputUnit} corresponden a las siguientes medidas estándar:
                   </p>
 
-                  <div className="conv-input-control-row">
-                    <div className="calc-input-wrapper flex-2">
-                      <input
-                        type="text"
-                        inputMode="decimal"
-                        value={volInputVal}
-                        onChange={e => handleVolInputChange(e.target.value, volInputUnit)}
-                        placeholder="Introduce cantidad..."
-                      />
+                  <div className="calc-compare-row">
+                    <div className="calc-compare-item">
+                      <span>Mililitros (ml) = cm³:</span>
+                      <strong>{(volBaseL * 1000).toLocaleString('es-ES', { maximumFractionDigits: 2 })} ml</strong>
                     </div>
-                    <select
-                      className="calc-select-styled flex-1"
-                      value={volInputUnit}
-                      onChange={e => handleVolInputChange(volInputVal, e.target.value)}
-                    >
-                      <option value="cm3">Centímetros cúbicos (cm³ / cc)</option>
-                      <option value="ml">Mililitros (ml)</option>
-                      <option value="L">Litros (L)</option>
-                      <option value="m3">Metros cúbicos (m³)</option>
-                      <option value="garrafas">Garrafas (25 L)</option>
-                    </select>
-                  </div>
-
-                  {/* Tabla de Resultados Sincronizados */}
-                  <div className="conv-results-cards-grid">
-                    <div className="conv-res-mini-card">
-                      <span className="mini-card-label">Centímetros Cúbicos (cm³ / cc)</span>
-                      <strong className="mini-card-number">
-                        {(volBaseL * 1000).toLocaleString('es-ES', { maximumFractionDigits: 2 })}
-                        <span className="mini-card-unit">cm³</span>
-                      </strong>
-                    </div>
-
-                    <div className="conv-res-mini-card highlight">
-                      <span className="mini-card-label">Mililitros (ml)</span>
-                      <strong className="mini-card-number">
-                        {(volBaseL * 1000).toLocaleString('es-ES', { maximumFractionDigits: 2 })}
-                        <span className="mini-card-unit">ml</span>
-                      </strong>
-                    </div>
-
-                    <div className="conv-res-mini-card highlight-green">
-                      <span className="mini-card-label">Litros (L)</span>
-                      <strong className="mini-card-number">
-                        {volBaseL.toLocaleString('es-ES', { maximumFractionDigits: 4 })}
-                        <span className="mini-card-unit">L</span>
-                      </strong>
-                    </div>
-
-                    <div className="conv-res-mini-card">
-                      <span className="mini-card-label">Metros Cúbicos (m³)</span>
-                      <strong className="mini-card-number">
-                        {(volBaseL / 1000).toLocaleString('es-ES', { maximumFractionDigits: 6 })}
-                        <span className="mini-card-unit">m³</span>
-                      </strong>
-                    </div>
-
-                    <div className="conv-res-mini-card col-span-2">
-                      <span className="mini-card-label">Equivalencia en Garrafas Estándar (25 L)</span>
-                      <strong className="mini-card-number">
-                        {(volBaseL / 25).toLocaleString('es-ES', { maximumFractionDigits: 3 })}
-                        <span className="mini-card-unit">garrafas de 25 L</span>
-                      </strong>
+                    <div className="calc-compare-item">
+                      <span>Litros (L):</span>
+                      <strong>{volBaseL.toLocaleString('es-ES', { maximumFractionDigits: 4 })} L</strong>
                     </div>
                   </div>
 
-                  {/* Botones de Preselección */}
-                  <div className="calc-quick-pills-container">
-                    <span className="quick-pills-label">Volúmenes típicos de trabajo:</span>
-                    <div className="quick-pills-flex">
-                      {[
-                        { label: '10 cm³ (probeta)', val: '10', unit: 'cm3' },
-                        { label: '50 ml (dosis)', val: '50', unit: 'ml' },
-                        { label: '1 L (1.000 ml)', val: '1', unit: 'L' },
-                        { label: '25 L (1 garrafa)', val: '25', unit: 'L' },
-                        { label: '1 m³ (1.000 L / IBC)', val: '1', unit: 'm3' },
-                        { label: '25 m³ (torre/vaso)', val: '25', unit: 'm3' },
-                      ].map(p => (
-                        <button
-                          key={p.label}
-                          type="button"
-                          className="conv-preset-btn"
-                          onClick={() => handleVolInputChange(p.val, p.unit)}
-                        >
-                          {p.label}
-                        </button>
-                      ))}
+                  <div className="calc-compare-row" style={{ marginTop: '10px' }}>
+                    <div className="calc-compare-item">
+                      <span>Garrafas Estándar (25 L):</span>
+                      <strong>{(volBaseL / 25).toLocaleString('es-ES', { maximumFractionDigits: 3 })} garrafas</strong>
+                    </div>
+                    <div className="calc-compare-item">
+                      <span>Metros Cúbicos (m³):</span>
+                      <strong>{(volBaseL / 1000).toLocaleString('es-ES', { maximumFractionDigits: 6 })} m³</strong>
                     </div>
                   </div>
                 </div>
 
-                <div className="calc-card">
-                  <div className="calc-card-header">
-                    <h4>Equivalencias Directas de Capacidad</h4>
-                    <span className="calc-chip chip-green">Guía Rápida</span>
-                  </div>
-
-                  <div className="conv-rule-box">
-                    <div className="conv-rule-item">
-                      <span className="conv-rule-bullet">💧</span>
-                      <div>
-                        <strong>1 centímetro cúbico (cm³) = 1 mililitro (ml)</strong>
-                        <p>Son exactamente el mismo volumen. 10 cm³ son exactamente 10 ml.</p>
-                      </div>
+                {/* Diagnóstico / Consejo */}
+                <div className="calc-diagnostic-card state-optimo">
+                  <div className="calc-diag-top">
+                    <div className="calc-diag-icon">
+                      <CheckCircle2 size={24} color="#16a34a" />
                     </div>
-
-                    <div className="conv-rule-item">
-                      <span className="conv-rule-bullet">🧪</span>
-                      <div>
-                        <strong>1 Litro (L) = 1.000 ml = 1.000 cm³</strong>
-                        <p>Para pasar de ml a Litros divide entre 1.000 (ej: 250 ml = 0,25 L).</p>
-                      </div>
-                    </div>
-
-                    <div className="conv-rule-item">
-                      <span className="conv-rule-bullet">📦</span>
-                      <div>
-                        <strong>1 metro cúbico (m³) = 1.000 Litros</strong>
-                        <p>Un depósito IBC estándar cúbico suele albergar exactamente 1 m³ (1.000 L).</p>
-                      </div>
-                    </div>
-
-                    <div className="conv-rule-item">
-                      <span className="conv-rule-bullet">⚖️</span>
-                      <div>
-                        <strong>1 Litro de agua pura = 1 Kilogramo (kg)</strong>
-                        <p>En biocidas densos (ácidos, cloro) 1 L suele pesar entre 1,15 kg y 1,25 kg.</p>
-                      </div>
+                    <div className="calc-diag-header">
+                      <h4>Equivalencia Exacta de Volumen</h4>
+                      <p>
+                        <strong>1 centímetro cúbico (cm³) es EXACTAMENTE 1 mililitro (ml)</strong> (10 cm³ = 10 ml). 
+                        1 Litro = 1.000 ml = 1.000 cm³. 
+                        1 m³ = 1.000 Litros = 40 garrafas de 25 L.
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -1531,145 +1584,168 @@ const Calculadora = () => {
             </div>
           )}
 
-          {/* 3. SECCIÓN DUREZA DEL AGUA */}
+          {/* 3. DUREZA DEL AGUA */}
           {conversorCat === 'dureza' && (
-            <div className="calc-conv-section animate-fade-in">
-              <div className="calc-grid-2col">
-                <div className="calc-card">
-                  <div className="calc-card-header">
-                    <h4>Conversor de Dureza del Agua</h4>
-                    <span className="calc-chip chip-amber">Incrustación & Cal</span>
+            <div className="calc-grid-2col animate-fade-in">
+              {/* Panel Izquierdo: Entradas */}
+              <div className="calc-panel-card">
+                <h4 className="calc-panel-title">
+                  <Sliders size={18} color="#d97706" /> Medición de Dureza del Agua
+                </h4>
+
+                {/* Unidad de Origen */}
+                <div className="calc-field-group">
+                  <div className="calc-field-header">
+                    <label>Unidad de la analítica o kit</label>
+                  </div>
+                  <div className="calc-chip-row">
+                    {[
+                      { id: 'fh', label: 'ºfH (Grados Franceses)' },
+                      { id: 'dh', label: 'ºdH (Grados Alemanes)' },
+                      { id: 'ppm', label: 'ppm CaCO3 (mg/L)' },
+                      { id: 'mmol', label: 'mmol/L (Ca²⁺+Mg²⁺)' }
+                    ].map(u => (
+                      <button
+                        key={u.id}
+                        type="button"
+                        className={`calc-chip-btn ${durezaInputUnit === u.id ? 'active' : ''}`}
+                        onClick={() => changeDurezaUnit(u.id)}
+                      >
+                        {u.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Campo Principal de Entrada */}
+                <div className="calc-field-group">
+                  <div className="calc-field-header">
+                    <label>Valor de dureza analizado</label>
+                    <span className="calc-unit-pill">
+                      {durezaInputVal} {durezaInputUnit === 'fh' ? 'ºfH' : durezaInputUnit === 'dh' ? 'ºdH' : durezaInputUnit === 'ppm' ? 'ppm' : 'mmol/L'}
+                    </span>
+                  </div>
+                  <div className="calc-input-wrapper">
+                    <input
+                      type="number"
+                      step="any"
+                      value={durezaInputVal}
+                      onChange={(e) => handleDurezaChange(e.target.value, durezaInputUnit)}
+                      placeholder="Ej. 25"
+                      className="calc-main-input"
+                    />
+                    <span className="calc-input-suffix">
+                      {durezaInputUnit === 'fh' ? 'ºfH' : durezaInputUnit === 'dh' ? 'ºdH' : durezaInputUnit === 'ppm' ? 'ppm' : 'mmol/L'}
+                    </span>
                   </div>
 
-                  <p className="calc-card-desc">
-                    Convierte entre grados franceses (ºfH, habitual en analíticas españolas), alemanes (ºdH) y concentración en ppm de CaCO3.
+                  {/* Chips de valores de referencia */}
+                  <div className="calc-chip-row">
+                    {[
+                      { label: '5 ºfH (Muy blanda)', val: '5', unit: 'fh' },
+                      { label: '12 ºfH (Red suave)', val: '12', unit: 'fh' },
+                      { label: '25 ºfH (Red media)', val: '25', unit: 'fh' },
+                      { label: '35 ºfH (Agua dura)', val: '35', unit: 'fh' },
+                      { label: '50 ºfH (Muy dura)', val: '50', unit: 'fh' }
+                    ].map(p => (
+                      <button
+                        key={p.label}
+                        type="button"
+                        className={`calc-chip-btn ${durezaBaseFh == p.val ? 'active' : ''}`}
+                        onClick={() => handleDurezaChange(p.val, p.unit)}
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Panel Derecho: Resultados */}
+              <div className="calc-panel-results">
+                <div className="calc-result-card border-optimo">
+                  <span className="calc-result-badge">CLASIFICACIÓN OFICIAL DE DUREZA</span>
+                  <div className="calc-result-big-number">
+                    <strong>{durezaBaseFh.toFixed(1)}</strong>
+                    <span style={{ color: clasificacionDureza.color }}>ºfH</span>
+                  </div>
+                  <p className="calc-result-subtext">
+                    <strong>{clasificacionDureza.label}:</strong> {clasificacionDureza.desc}
                   </p>
 
-                  <div className="conv-input-control-row">
-                    <div className="calc-input-wrapper flex-2">
-                      <input
-                        type="text"
-                        inputMode="decimal"
-                        value={durezaInputVal}
-                        onChange={e => handleDurezaChange(e.target.value, durezaInputUnit)}
-                        placeholder="Introduce valor de dureza..."
-                      />
+                  <div className="calc-compare-row">
+                    <div className="calc-compare-item">
+                      <span>ppm CaCO3 (mg/L):</span>
+                      <strong>{(durezaBaseFh * 10).toFixed(0)} mg/L</strong>
                     </div>
-                    <select
-                      className="calc-select-styled flex-1"
-                      value={durezaInputUnit}
-                      onChange={e => handleDurezaChange(durezaInputVal, e.target.value)}
-                    >
-                      <option value="fh">Grados franceses (ºfH)</option>
-                      <option value="dh">Grados alemanes (ºdH)</option>
-                      <option value="ppm">ppm CaCO3 (mg/L)</option>
-                      <option value="mmol">mmol/L (Ca²⁺ + Mg²⁺)</option>
-                    </select>
-                  </div>
-
-                  {/* Resultados de Dureza */}
-                  <div className="conv-results-cards-grid">
-                    <div className="conv-res-mini-card highlight-amber">
-                      <span className="mini-card-label">Grados Franceses (ºfH)</span>
-                      <strong className="mini-card-number">
-                        {durezaBaseFh.toFixed(1)}
-                        <span className="mini-card-unit">ºfH</span>
-                      </strong>
-                    </div>
-
-                    <div className="conv-res-mini-card">
-                      <span className="mini-card-label">Grados Alemanes (ºdH)</span>
-                      <strong className="mini-card-number">
-                        {(durezaBaseFh * 0.56).toFixed(1)}
-                        <span className="mini-card-unit">ºdH</span>
-                      </strong>
-                    </div>
-
-                    <div className="conv-res-mini-card highlight">
-                      <span className="mini-card-label">ppm CaCO3 (mg/L)</span>
-                      <strong className="mini-card-number">
-                        {(durezaBaseFh * 10).toFixed(0)}
-                        <span className="mini-card-unit">mg/L</span>
-                      </strong>
-                    </div>
-
-                    <div className="conv-res-mini-card">
-                      <span className="mini-card-label">mmol/L</span>
-                      <strong className="mini-card-number">
-                        {(durezaBaseFh * 0.1).toFixed(2)}
-                        <span className="mini-card-unit">mmol/L</span>
-                      </strong>
+                    <div className="calc-compare-item">
+                      <span>Grados Alemanes (ºdH):</span>
+                      <strong>{(durezaBaseFh * 0.56).toFixed(1)} ºdH</strong>
                     </div>
                   </div>
 
-                  {/* Diagnóstico en color de la dureza */}
-                  <div 
-                    className="conv-dureza-badge-card" 
-                    style={{ background: clasificacionDureza.bg, borderColor: clasificacionDureza.color }}
-                  >
-                    <div className="dureza-badge-header">
-                      <span className="dureza-tag-pill" style={{ background: clasificacionDureza.color }}>
-                        {clasificacionDureza.label}
-                      </span>
+                  <div className="calc-compare-row" style={{ marginTop: '10px' }}>
+                    <div className="calc-compare-item">
+                      <span>mmol/L:</span>
+                      <strong>{(durezaBaseFh * 0.1).toFixed(2)} mmol/L</strong>
                     </div>
-                    <p style={{ margin: '6px 0 0', fontSize: '0.86rem', color: 'var(--text-main)' }}>
-                      {clasificacionDureza.desc}
-                    </p>
-                  </div>
-
-                  {/* Botones Rápidos */}
-                  <div className="calc-quick-pills-container">
-                    <span className="quick-pills-label">Valores de referencia:</span>
-                    <div className="quick-pills-flex">
-                      {[
-                        { label: '5 ºfH (Muy blanda)', val: '5', unit: 'fh' },
-                        { label: '12 ºfH (Red suave)', val: '12', unit: 'fh' },
-                        { label: '25 ºfH (Moderada)', val: '25', unit: 'fh' },
-                        { label: '35 ºfH (Dura)', val: '35', unit: 'fh' },
-                        { label: '50 ºfH (Muy dura)', val: '50', unit: 'fh' },
-                      ].map(p => (
-                        <button
-                          key={p.label}
-                          type="button"
-                          className="conv-preset-btn"
-                          onClick={() => handleDurezaChange(p.val, p.unit)}
-                        >
-                          {p.label}
-                        </button>
-                      ))}
+                    <div className="calc-compare-item">
+                      <span>Regla directa:</span>
+                      <strong className="calc-tag-factor state-optimo">1 ºfH = 10 ppm CaCO3</strong>
                     </div>
                   </div>
                 </div>
 
-                <div className="calc-card">
-                  <div className="calc-card-header">
-                    <h4>Factores Exactos de Dureza</h4>
-                    <span className="calc-chip chip-cyan">Fórmulas Oficiales</span>
+                {/* Diagnóstico */}
+                <div className={`calc-diagnostic-card ${durezaBaseFh > 30 ? 'state-insuficiente' : 'state-optimo'}`}>
+                  <div className="calc-diag-top">
+                    <div className="calc-diag-icon">
+                      {durezaBaseFh > 30 ? <AlertTriangle size={24} color="#d97706" /> : <CheckCircle2 size={24} color="#16a34a" />}
+                    </div>
+                    <div className="calc-diag-header">
+                      <h4>{durezaBaseFh > 30 ? 'Atención en Circuitos Térmicos' : 'Estado Químico Favorable'}</h4>
+                      <p>
+                        {durezaBaseFh > 30
+                          ? 'A partir de 30 ºfH se acelera la formación de incrustaciones de carbonato en intercambiadores y relleno de torres si no se añade antiincrustante (tipo Aktiphos) o se purga con mayor frecuencia.'
+                          : 'Rango de dureza controlado para calderas y circuitos cerrados, con menor tendencia a la precipitación de cal.'}
+                      </p>
+                    </div>
                   </div>
+                </div>
 
-                  <div className="conv-rule-box">
-                    <div className="conv-rule-item">
-                      <span className="conv-rule-bullet">🔹</span>
-                      <div>
-                        <strong>1 ºfH = 10 mg/L de CaCO3 (ppm)</strong>
-                        <p>Para pasar de grados franceses a ppm solo hay que multiplicar por 10.</p>
-                      </div>
+                {/* Tabla Escala Dureza */}
+                <div className="calc-ph-table-card">
+                  <h5>Escala de Dureza del Agua (ºfH)</h5>
+                  <div className="calc-ph-mini-table">
+                    <div className={`calc-ph-row ${durezaBaseFh < 7 ? 'highlight' : ''}`}>
+                      <span className="col-ph">&lt; 7 ºfH</span>
+                      <span className="col-factor">&lt; 70 ppm</span>
+                      <span className="col-eff opt">Muy Blanda</span>
+                      <span className="col-desc">Baja mineralización (corrosiva)</span>
                     </div>
-
-                    <div className="conv-rule-item">
-                      <span className="conv-rule-bullet">🔹</span>
-                      <div>
-                        <strong>1 ºfH = 0,56 ºdH (alemanes)</strong>
-                        <p>1 grado alemán equivale a 1,786 grados franceses (1 ºdH = 17,86 mg/L CaCO3).</p>
-                      </div>
+                    <div className={`calc-ph-row ${durezaBaseFh >= 7 && durezaBaseFh <= 15 ? 'highlight' : ''}`}>
+                      <span className="col-ph">7 - 15 ºfH</span>
+                      <span className="col-factor">70-150 ppm</span>
+                      <span className="col-eff good">Blanda</span>
+                      <span className="col-desc">Óptima de consumo y calderas</span>
                     </div>
-
-                    <div className="conv-rule-item">
-                      <span className="conv-rule-bullet">⚠️</span>
-                      <div>
-                        <strong>Impacto en Torres de Refrigeración:</strong>
-                        <p>A partir de 30 ºfH se acelera la cristalización de carbonato en el condensador si no se dosifica antiincrustante (tipo Aktiphos) o se aumentan las purgas.</p>
-                      </div>
+                    <div className={`calc-ph-row ${durezaBaseFh > 15 && durezaBaseFh <= 30 ? 'highlight' : ''}`}>
+                      <span className="col-ph">15 - 30 ºfH</span>
+                      <span className="col-factor">150-300 ppm</span>
+                      <span className="col-eff warn">Moderada</span>
+                      <span className="col-desc">Red estándar habitual</span>
+                    </div>
+                    <div className={`calc-ph-row ${durezaBaseFh > 30 && durezaBaseFh <= 45 ? 'highlight' : ''}`}>
+                      <span className="col-ph">30 - 45 ºfH</span>
+                      <span className="col-factor">300-450 ppm</span>
+                      <span className="col-eff bad">Dura</span>
+                      <span className="col-desc">Incrustante en torres</span>
+                    </div>
+                    <div className={`calc-ph-row ${durezaBaseFh > 45 ? 'highlight' : ''}`}>
+                      <span className="col-ph">&gt; 45 ºfH</span>
+                      <span className="col-factor">&gt; 450 ppm</span>
+                      <span className="col-eff crit">Muy Dura</span>
+                      <span className="col-desc">Alto riesgo de cal</span>
                     </div>
                   </div>
                 </div>
@@ -1677,130 +1753,136 @@ const Calculadora = () => {
             </div>
           )}
 
-          {/* 4. SECCIÓN CONCENTRACIÓN (% Y PPM) */}
+          {/* 4. CONCENTRACIÓN (% Y PPM) */}
           {conversorCat === 'concentracion' && (
-            <div className="calc-conv-section animate-fade-in">
-              <div className="calc-grid-2col">
-                <div className="calc-card">
-                  <div className="calc-card-header">
-                    <h4>Concentración Química y Biocidas</h4>
-                    <span className="calc-chip chip-rose">% y ppm</span>
+            <div className="calc-grid-2col animate-fade-in">
+              {/* Panel Izquierdo: Entradas */}
+              <div className="calc-panel-card">
+                <h4 className="calc-panel-title">
+                  <Sliders size={18} color="#e11d48" /> Concentración Química y Dilución
+                </h4>
+
+                {/* Unidad de Origen */}
+                <div className="calc-field-group">
+                  <div className="calc-field-header">
+                    <label>Unidad expresada en ficha técnica o analítica</label>
+                  </div>
+                  <div className="calc-chip-row">
+                    {[
+                      { id: 'pct', label: '% (Porcentaje)' },
+                      { id: 'ppm', label: 'ppm (mg/L)' },
+                      { id: 'gl', label: 'g/L (Gramos/Litro)' },
+                      { id: 'gm3', label: 'g/m³ (Gramos/m³)' }
+                    ].map(u => (
+                      <button
+                        key={u.id}
+                        type="button"
+                        className={`calc-chip-btn ${concInputUnit === u.id ? 'active' : ''}`}
+                        onClick={() => changeConcUnit(u.id)}
+                      >
+                        {u.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Campo Principal de Entrada */}
+                <div className="calc-field-group">
+                  <div className="calc-field-header">
+                    <label>Concentración a convertir</label>
+                    <span className="calc-unit-pill">
+                      {concInputVal} {concInputUnit === 'pct' ? '%' : concInputUnit === 'ppm' ? 'ppm' : concInputUnit === 'gl' ? 'g/L' : 'g/m³'}
+                    </span>
+                  </div>
+                  <div className="calc-input-wrapper">
+                    <input
+                      type="number"
+                      step="any"
+                      value={concInputVal}
+                      onChange={(e) => handleConcChange(e.target.value, concInputUnit)}
+                      placeholder="Ej. 15"
+                      className="calc-main-input"
+                    />
+                    <span className="calc-input-suffix">
+                      {concInputUnit === 'pct' ? '%' : concInputUnit === 'ppm' ? 'ppm' : concInputUnit === 'gl' ? 'g/L' : 'g/m³'}
+                    </span>
                   </div>
 
-                  <p className="calc-card-desc">
-                    Convierte concentraciones entre porcentaje (%), partes por millón (ppm / mg/L), gramos por litro (g/L) y gramos por metro cúbico.
+                  {/* Chips rápidos */}
+                  <div className="calc-chip-row">
+                    {[
+                      { label: '0.2 ppm (mín. ACS)', val: '0.2', unit: 'ppm' },
+                      { label: '2.0 ppm (máx. consumo)', val: '2.0', unit: 'ppm' },
+                      { label: '20 ppm (choque torre)', val: '20', unit: 'ppm' },
+                      { label: '50 ppm (choque Legionella)', val: '50', unit: 'ppm' },
+                      { label: '1% (10.000 ppm)', val: '1', unit: 'pct' },
+                      { label: '15% (Lejía comercial)', val: '15', unit: 'pct' }
+                    ].map(p => (
+                      <button
+                        key={p.label}
+                        type="button"
+                        className={`calc-chip-btn ${concBasePpm == (p.unit === 'pct' ? p.val * 10000 : p.val) ? 'active' : ''}`}
+                        onClick={() => handleConcChange(p.val, p.unit)}
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Panel Derecho: Resultados */}
+              <div className="calc-panel-results">
+                <div className="calc-result-card border-optimo">
+                  <span className="calc-result-badge">CONCENTRACIÓN EQUIVALENTE</span>
+                  <div className="calc-result-big-number">
+                    <strong>
+                      {concInputUnit === 'pct'
+                        ? concBasePpm.toLocaleString('es-ES')
+                        : (concBasePpm / 10000).toLocaleString('es-ES', { maximumFractionDigits: 4 })}
+                    </strong>
+                    <span>{concInputUnit === 'pct' ? 'ppm (mg/L)' : '%'}</span>
+                  </div>
+                  <p className="calc-result-subtext">
+                    {concInputVal} {concInputUnit === 'pct' ? '%' : concInputUnit} equivalen en disolución acuosa a:
                   </p>
 
-                  <div className="conv-input-control-row">
-                    <div className="calc-input-wrapper flex-2">
-                      <input
-                        type="text"
-                        inputMode="decimal"
-                        value={concInputVal}
-                        onChange={e => handleConcChange(e.target.value, concInputUnit)}
-                        placeholder="Introduce valor de concentración..."
-                      />
+                  <div className="calc-compare-row">
+                    <div className="calc-compare-item">
+                      <span>Porcentaje (%):</span>
+                      <strong>{(concBasePpm / 10000).toLocaleString('es-ES', { maximumFractionDigits: 4 })} %</strong>
                     </div>
-                    <select
-                      className="calc-select-styled flex-1"
-                      value={concInputUnit}
-                      onChange={e => handleConcChange(concInputVal, e.target.value)}
-                    >
-                      <option value="pct">Porcentaje (%)</option>
-                      <option value="ppm">ppm (Partes por millón / mg/L)</option>
-                      <option value="gl">Gramos por Litro (g/L)</option>
-                      <option value="gm3">Gramos por m³ (g/m³)</option>
-                    </select>
-                  </div>
-
-                  {/* Resultados */}
-                  <div className="conv-results-cards-grid">
-                    <div className="conv-res-mini-card highlight-rose">
-                      <span className="mini-card-label">Porcentaje (%)</span>
-                      <strong className="mini-card-number">
-                        {(concBasePpm / 10000).toLocaleString('es-ES', { maximumFractionDigits: 4 })}
-                        <span className="mini-card-unit">%</span>
-                      </strong>
-                    </div>
-
-                    <div className="conv-res-mini-card highlight">
-                      <span className="mini-card-label">Partes por Millón (ppm / mg/L)</span>
-                      <strong className="mini-card-number">
-                        {concBasePpm.toLocaleString('es-ES', { maximumFractionDigits: 1 })}
-                        <span className="mini-card-unit">ppm</span>
-                      </strong>
-                    </div>
-
-                    <div className="conv-res-mini-card">
-                      <span className="mini-card-label">Gramos por Litro (g/L)</span>
-                      <strong className="mini-card-number">
-                        {(concBasePpm / 1000).toLocaleString('es-ES', { maximumFractionDigits: 3 })}
-                        <span className="mini-card-unit">g/L</span>
-                      </strong>
-                    </div>
-
-                    <div className="conv-res-mini-card">
-                      <span className="mini-card-label">Gramos por m³ (g/m³)</span>
-                      <strong className="mini-card-number">
-                        {concBasePpm.toLocaleString('es-ES', { maximumFractionDigits: 1 })}
-                        <span className="mini-card-unit">g/m³</span>
-                      </strong>
+                    <div className="calc-compare-item">
+                      <span>Partes por Millón (ppm):</span>
+                      <strong>{concBasePpm.toLocaleString('es-ES')} ppm</strong>
                     </div>
                   </div>
 
-                  {/* Botones Rápidos */}
-                  <div className="calc-quick-pills-container">
-                    <span className="quick-pills-label">Concentraciones frecuentes:</span>
-                    <div className="quick-pills-flex">
-                      {[
-                        { label: '0.2 ppm (mín. ACS)', val: '0.2', unit: 'ppm' },
-                        { label: '2.0 ppm (máx. consumo)', val: '2.0', unit: 'ppm' },
-                        { label: '50 ppm (choque Legionella)', val: '50', unit: 'ppm' },
-                        { label: '1% (10.000 ppm)', val: '1', unit: 'pct' },
-                        { label: '15% (Lejía comercial)', val: '15', unit: 'pct' },
-                      ].map(p => (
-                        <button
-                          key={p.label}
-                          type="button"
-                          className="conv-preset-btn"
-                          onClick={() => handleConcChange(p.val, p.unit)}
-                        >
-                          {p.label}
-                        </button>
-                      ))}
+                  <div className="calc-compare-row" style={{ marginTop: '10px' }}>
+                    <div className="calc-compare-item">
+                      <span>Gramos por Litro (g/L):</span>
+                      <strong>{(concBasePpm / 1000).toLocaleString('es-ES', { maximumFractionDigits: 3 })} g/L</strong>
+                    </div>
+                    <div className="calc-compare-item">
+                      <span>Gramos por m³ (g/m³):</span>
+                      <strong>{concBasePpm.toLocaleString('es-ES')} g/m³</strong>
                     </div>
                   </div>
                 </div>
 
-                <div className="calc-card">
-                  <div className="calc-card-header">
-                    <h4>Regla de Oro en Diluciones</h4>
-                    <span className="calc-chip chip-green">Fórmula</span>
-                  </div>
-
-                  <div className="conv-rule-box">
-                    <div className="conv-rule-item">
-                      <span className="conv-rule-bullet">🎯</span>
-                      <div>
-                        <strong>1% = 10.000 ppm = 10 g/L = 10.000 mg/L</strong>
-                        <p>Cada 1% de riqueza equivale a 10.000 partes por millón.</p>
-                      </div>
+                {/* Diagnóstico */}
+                <div className="calc-diagnostic-card state-optimo">
+                  <div className="calc-diag-top">
+                    <div className="calc-diag-icon">
+                      <CheckCircle2 size={24} color="#16a34a" />
                     </div>
-
-                    <div className="conv-rule-item">
-                      <span className="conv-rule-bullet">🧪</span>
-                      <div>
-                        <strong>Lejía comercial al 15% (150 g/L):</strong>
-                        <p>15% × 10.000 = <strong>150.000 ppm</strong> de cloro libre disponible.</p>
-                      </div>
-                    </div>
-
-                    <div className="conv-rule-item">
-                      <span className="conv-rule-bullet">💡</span>
-                      <div>
-                        <strong>1 ppm en agua = 1 g por cada metro cúbico (m³)</strong>
-                        <p>Para subir 1 ppm en un aljibe de 100 m³ necesitas 100 g de cloro puro activo.</p>
-                      </div>
+                    <div className="calc-diag-header">
+                      <h4>Regla de Oro en Diluciones</h4>
+                      <p>
+                        <strong>1% = 10.000 ppm = 10 g/L = 10.000 mg/L</strong>.<br />
+                        Lejía comercial al 15% (150 g/L) = <strong>150.000 ppm</strong> de cloro disponible.<br />
+                        1 ppm en agua equivale exactamente a <strong>1 g por cada metro cúbico (m³)</strong>.
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -1808,226 +1890,266 @@ const Calculadora = () => {
             </div>
           )}
 
-          {/* 5. SECCIÓN PRESIÓN & TEMPERATURA */}
+          {/* 5. PRESIÓN & TEMPERATURA */}
           {conversorCat === 'presion_temp' && (
-            <div className="calc-conv-section animate-fade-in">
-              <div className="calc-grid-2col">
+            <div className="calc-grid-2col animate-fade-in">
+              {/* Panel Izquierdo: Entradas */}
+              <div className="calc-panel-card">
+                <h4 className="calc-panel-title">
+                  <Sliders size={18} color="#0284c7" /> Circuitos Hidráulicos & Temperatura
+                </h4>
+
                 {/* Presión */}
-                <div className="calc-card">
-                  <div className="calc-card-header">
-                    <h4>Presión en Circuitos Hidráulicos</h4>
-                    <span className="calc-chip chip-blue">bar, psi, m.c.a.</span>
+                <div className="calc-field-group">
+                  <div className="calc-field-header">
+                    <label>Presión en circuito o manómetro</label>
+                    <span className="calc-unit-pill">{presionInputVal} {presionInputUnit}</span>
                   </div>
-
-                  <div className="conv-input-control-row">
-                    <div className="calc-input-wrapper flex-2">
-                      <input
-                        type="text"
-                        inputMode="decimal"
-                        value={presionInputVal}
-                        onChange={e => handlePresionChange(e.target.value, presionInputUnit)}
-                        placeholder="Introduce presión..."
-                      />
-                    </div>
-                    <select
-                      className="calc-select-styled flex-1"
-                      value={presionInputUnit}
-                      onChange={e => handlePresionChange(presionInputVal, e.target.value)}
-                    >
-                      <option value="bar">Bar (bar)</option>
-                      <option value="psi">PSI (libras/pulgada²)</option>
-                      <option value="mca">m.c.a. (metros columna agua)</option>
-                      <option value="atm">Atmósferas (atm)</option>
-                    </select>
+                  <div className="calc-chip-row" style={{ marginBottom: '8px' }}>
+                    {[
+                      { id: 'bar', label: 'Bar' },
+                      { id: 'psi', label: 'PSI' },
+                      { id: 'mca', label: 'm.c.a. (metros agua)' },
+                      { id: 'atm', label: 'Atmósferas' }
+                    ].map(u => (
+                      <button
+                        key={u.id}
+                        type="button"
+                        className={`calc-chip-btn ${presionInputUnit === u.id ? 'active' : ''}`}
+                        onClick={() => changePresionUnit(u.id)}
+                      >
+                        {u.label}
+                      </button>
+                    ))}
                   </div>
-
-                  <div className="conv-results-cards-grid">
-                    <div className="conv-res-mini-card highlight-cyan">
-                      <span className="mini-card-label">Bar</span>
-                      <strong className="mini-card-number">{presionBaseBar.toFixed(2)} <span className="mini-card-unit">bar</span></strong>
-                    </div>
-                    <div className="conv-res-mini-card">
-                      <span className="mini-card-label">PSI (lb/in²)</span>
-                      <strong className="mini-card-number">{(presionBaseBar * 14.5038).toFixed(1)} <span className="mini-card-unit">psi</span></strong>
-                    </div>
-                    <div className="conv-res-mini-card">
-                      <span className="mini-card-label">m.c.a.</span>
-                      <strong className="mini-card-number">{(presionBaseBar * 10.1972).toFixed(1)} <span className="mini-card-unit">mca</span></strong>
-                    </div>
-                    <div className="conv-res-mini-card">
-                      <span className="mini-card-label">Atmósferas</span>
-                      <strong className="mini-card-number">{(presionBaseBar * 0.986923).toFixed(2)} <span className="mini-card-unit">atm</span></strong>
-                    </div>
+                  <div className="calc-input-wrapper">
+                    <input
+                      type="number"
+                      step="any"
+                      value={presionInputVal}
+                      onChange={(e) => handlePresionChange(e.target.value, presionInputUnit)}
+                      className="calc-main-input"
+                    />
+                    <span className="calc-input-suffix">{presionInputUnit}</span>
                   </div>
-
-                  <div className="calc-tip-box" style={{ marginTop: '14px' }}>
-                    <Info size={16} color="#0284c7" />
-                    <span><strong>1 bar ≈ 10 metros de altura de agua (m.c.a.)</strong> y aprox. 14,5 psi. Presión típica de red en edificios: 2,5 a 4,5 bar.</span>
+                  <div className="calc-chip-row">
+                    {[
+                      { label: '1.5 bar (circuito)', val: '1.5', unit: 'bar' },
+                      { label: '2.5 bar (red edificio)', val: '2.5', unit: 'bar' },
+                      { label: '4.0 bar (alta presión)', val: '4.0', unit: 'bar' },
+                      { label: '6.0 bar (bomba presión)', val: '6.0', unit: 'bar' }
+                    ].map(p => (
+                      <button
+                        key={p.label}
+                        type="button"
+                        className={`calc-chip-btn ${presionBaseBar == p.val ? 'active' : ''}`}
+                        onClick={() => handlePresionChange(p.val, p.unit)}
+                      >
+                        {p.label}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
                 {/* Temperatura */}
-                <div className="calc-card">
-                  <div className="calc-card-header">
-                    <h4>Temperatura y Rangos de Legionella</h4>
-                    <span className="calc-chip chip-amber">RD 487/2022</span>
+                <div className="calc-field-group" style={{ marginTop: '24px' }}>
+                  <div className="calc-field-header">
+                    <label>Temperatura del agua</label>
+                    <span className="calc-unit-pill">{tempInputVal} º{tempInputUnit.toUpperCase()}</span>
                   </div>
+                  <div className="calc-chip-row" style={{ marginBottom: '8px' }}>
+                    {[
+                      { id: 'c', label: 'Celsius (ºC)' },
+                      { id: 'f', label: 'Fahrenheit (ºF)' }
+                    ].map(u => (
+                      <button
+                        key={u.id}
+                        type="button"
+                        className={`calc-chip-btn ${tempInputUnit === u.id ? 'active' : ''}`}
+                        onClick={() => changeTempUnit(u.id)}
+                      >
+                        {u.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="calc-input-wrapper">
+                    <input
+                      type="number"
+                      step="any"
+                      value={tempInputVal}
+                      onChange={(e) => handleTempChange(e.target.value, tempInputUnit)}
+                      className="calc-main-input"
+                    />
+                    <span className="calc-input-suffix">º{tempInputUnit.toUpperCase()}</span>
+                  </div>
+                  <div className="calc-chip-row">
+                    {[
+                      { label: '18 ºC (red fría)', val: '18', unit: 'c' },
+                      { label: '37 ºC (óptimo Legionella)', val: '37', unit: 'c' },
+                      { label: '50 ºC (ACS retorno)', val: '50', unit: 'c' },
+                      { label: '60 ºC (ACS acumulador)', val: '60', unit: 'c' },
+                      { label: '70 ºC (choque térmico)', val: '70', unit: 'c' }
+                    ].map(p => (
+                      <button
+                        key={p.label}
+                        type="button"
+                        className={`calc-chip-btn ${tempBaseC == p.val ? 'active' : ''}`}
+                        onClick={() => handleTempChange(p.val, p.unit)}
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
 
-                  <div className="conv-input-control-row">
-                    <div className="calc-input-wrapper flex-2">
-                      <input
-                        type="text"
-                        inputMode="decimal"
-                        value={tempInputVal}
-                        onChange={e => handleTempChange(e.target.value, tempInputUnit)}
-                        placeholder="Introduce temperatura..."
-                      />
-                    </div>
-                    <select
-                      className="calc-select-styled flex-1"
-                      value={tempInputUnit}
-                      onChange={e => handleTempChange(tempInputVal, e.target.value)}
-                    >
-                      <option value="c">Grados Celsius (ºC)</option>
-                      <option value="f">Grados Fahrenheit (ºF)</option>
-                    </select>
+              {/* Panel Derecho: Resultados */}
+              <div className="calc-panel-results">
+                {/* Resultado Presión */}
+                <div className="calc-result-card border-optimo">
+                  <span className="calc-result-badge">PRESIÓN CONVERTIDA</span>
+                  <div className="calc-result-big-number">
+                    <strong>{presionBaseBar.toFixed(2)}</strong>
+                    <span>bar</span>
                   </div>
+                  <div className="calc-compare-row">
+                    <div className="calc-compare-item">
+                      <span>PSI (lb/in²):</span>
+                      <strong>{(presionBaseBar * 14.5038).toFixed(1)} psi</strong>
+                    </div>
+                    <div className="calc-compare-item">
+                      <span>m.c.a. (altura agua):</span>
+                      <strong>{(presionBaseBar * 10.1972).toFixed(1)} mca</strong>
+                    </div>
+                  </div>
+                  <div className="calc-compare-row" style={{ marginTop: '10px' }}>
+                    <div className="calc-compare-item">
+                      <span>Atmósferas:</span>
+                      <strong>{(presionBaseBar * 0.986923).toFixed(2)} atm</strong>
+                    </div>
+                    <div className="calc-compare-item">
+                      <span>Regla rápida:</span>
+                      <strong className="calc-tag-factor state-optimo">1 bar ≈ 10 mca ≈ 14,5 psi</strong>
+                    </div>
+                  </div>
+                </div>
 
-                  <div className="conv-results-cards-grid">
-                    <div className="conv-res-mini-card highlight-amber">
-                      <span className="mini-card-label">Celsius (ºC)</span>
-                      <strong className="mini-card-number">{tempBaseC.toFixed(1)} <span className="mini-card-unit">ºC</span></strong>
-                    </div>
-                    <div className="conv-res-mini-card">
-                      <span className="mini-card-label">Fahrenheit (ºF)</span>
-                      <strong className="mini-card-number">{((tempBaseC * 9/5) + 32).toFixed(1)} <span className="mini-card-unit">ºF</span></strong>
-                    </div>
+                {/* Resultado Temperatura & Legionella */}
+                <div className="calc-result-card border-optimo">
+                  <span className="calc-result-badge">TEMPERATURA & RD 487/2022</span>
+                  <div className="calc-result-big-number">
+                    <strong>{tempBaseC.toFixed(1)}</strong>
+                    <span>ºC ({((tempBaseC * 9/5) + 32).toFixed(1)} ºF)</span>
                   </div>
-
-                  {/* Diagnóstico Legionella */}
-                  <div 
-                    className="conv-dureza-badge-card" 
-                    style={{ background: legionellaTempZona.bg, borderColor: legionellaTempZona.color, marginTop: '14px' }}
-                  >
-                    <div className="dureza-badge-header">
-                      <span className="dureza-tag-pill" style={{ background: legionellaTempZona.color }}>
-                        {legionellaTempZona.label}
-                      </span>
-                    </div>
-                    <p style={{ margin: '6px 0 0', fontSize: '0.86rem', color: 'var(--text-main)' }}>
-                      {legionellaTempZona.desc}
-                    </p>
-                  </div>
+                  <p className="calc-result-subtext" style={{ color: legionellaTempZona.color, fontWeight: 700 }}>
+                    {legionellaTempZona.label}: {legionellaTempZona.desc}
+                  </p>
                 </div>
               </div>
             </div>
           )}
 
-          {/* 6. SECCIÓN CHULETA DE BOLSILLO */}
+          {/* 6. CHULETA DE BOLSILLO */}
           {conversorCat === 'chuleta' && (
-            <div className="calc-conv-section animate-fade-in">
-              <div className="calc-card">
-                <div className="calc-card-header">
-                  <h4>Chuleta Rápida de Campo (Factores Directos)</h4>
-                  <span className="calc-chip chip-green">Consulta Inmediata</span>
-                </div>
+            <div className="calc-panel-card animate-fade-in" style={{ width: '100%' }}>
+              <h4 className="calc-panel-title">
+                <CheckCircle2 size={18} color="#16a34a" /> Chuleta Rápida de Bolsillo (Factores Directos)
+              </h4>
+              <p style={{ margin: '0 0 16px 0', fontSize: '0.88rem', color: 'var(--text-muted)' }}>
+                Fórmulas directas para realizar conversiones mentales al instante en visitas técnicas e inspecciones.
+              </p>
 
-                <p className="calc-card-desc">
-                  Tabla de bolsillo con todas las fórmulas de conversión directa para aplicar mentalmente en las visitas técnicas.
-                </p>
-
-                <div className="conv-table-wrapper">
-                  <table className="conv-table">
-                    <thead>
-                      <tr>
-                        <th>Magnitud</th>
-                        <th>Conversión</th>
-                        <th>Operación Directa</th>
-                        <th>Ejemplo Práctico</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td><strong>Conductividad</strong></td>
-                        <td>mS/cm → µS/cm</td>
-                        <td><span className="conv-op-badge mult">× 1.000</span></td>
-                        <td>0,46 mS/cm = <strong>460 µS/cm</strong></td>
-                      </tr>
-                      <tr>
-                        <td><strong>Conductividad</strong></td>
-                        <td>µS/cm → mS/cm</td>
-                        <td><span className="conv-op-badge div">÷ 1.000</span></td>
-                        <td>460 µS/cm = <strong>0,46 mS/cm</strong></td>
-                      </tr>
-                      <tr>
-                        <td><strong>TDS Sólidos</strong></td>
-                        <td>µS/cm → ppm (mg/L)</td>
-                        <td><span className="conv-op-badge mult">× 0,67</span></td>
-                        <td>460 µS/cm ≈ <strong>308 ppm TDS</strong></td>
-                      </tr>
-                      <tr>
-                        <td><strong>Volumen</strong></td>
-                        <td>cm³ (cc) → ml</td>
-                        <td><span className="conv-op-badge eq">= Idéntico</span></td>
-                        <td>10 cm³ = <strong>10 ml</strong></td>
-                      </tr>
-                      <tr>
-                        <td><strong>Volumen</strong></td>
-                        <td>ml → Litros (L)</td>
-                        <td><span className="conv-op-badge div">÷ 1.000</span></td>
-                        <td>500 ml = <strong>0,5 Litros</strong></td>
-                      </tr>
-                      <tr>
-                        <td><strong>Volumen</strong></td>
-                        <td>Litros → m³</td>
-                        <td><span className="conv-op-badge div">÷ 1.000</span></td>
-                        <td>1.000 L = <strong>1 m³</strong></td>
-                      </tr>
-                      <tr>
-                        <td><strong>Garrafas (25 L)</strong></td>
-                        <td>Garrafas → Litros</td>
-                        <td><span className="conv-op-badge mult">× 25</span></td>
-                        <td>2 garrafas = <strong>50 Litros</strong></td>
-                      </tr>
-                      <tr>
-                        <td><strong>Dureza Agua</strong></td>
-                        <td>ºfH (francés) → ppm CaCO3</td>
-                        <td><span className="conv-op-badge mult">× 10</span></td>
-                        <td>25 ºfH = <strong>250 ppm CaCO3</strong></td>
-                      </tr>
-                      <tr>
-                        <td><strong>Dureza Agua</strong></td>
-                        <td>ºfH → ºdH (alemán)</td>
-                        <td><span className="conv-op-badge mult">× 0,56</span></td>
-                        <td>25 ºfH = <strong>14,0 ºdH</strong></td>
-                      </tr>
-                      <tr>
-                        <td><strong>Concentración</strong></td>
-                        <td>% → ppm (mg/L)</td>
-                        <td><span className="conv-op-badge mult">× 10.000</span></td>
-                        <td>15% = <strong>150.000 ppm</strong></td>
-                      </tr>
-                      <tr>
-                        <td><strong>Concentración</strong></td>
-                        <td>ppm → g/L</td>
-                        <td><span className="conv-op-badge div">÷ 1.000</span></td>
-                        <td>50 ppm = <strong>0,05 g/L</strong></td>
-                      </tr>
-                      <tr>
-                        <td><strong>Presión</strong></td>
-                        <td>bar → psi</td>
-                        <td><span className="conv-op-badge mult">× 14,50</span></td>
-                        <td>2,5 bar = <strong>36,3 psi</strong></td>
-                      </tr>
-                      <tr>
-                        <td><strong>Presión</strong></td>
-                        <td>bar → m.c.a. (altura agua)</td>
-                        <td><span className="conv-op-badge mult">× 10,20</span></td>
-                        <td>3,0 bar ≈ <strong>30,6 m.c.a.</strong></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
+              <div className="conv-table-wrapper">
+                <table className="conv-table">
+                  <thead>
+                    <tr>
+                      <th>Magnitud</th>
+                      <th>Conversión</th>
+                      <th>Operación Directa</th>
+                      <th>Ejemplo Práctico en Campo</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><strong>Conductividad</strong></td>
+                      <td>mS/cm → µS/cm</td>
+                      <td><span className="conv-op-badge mult">× 1.000</span></td>
+                      <td>0,46 mS/cm (sonda) = <strong>460 µS/cm</strong> (programa)</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Conductividad</strong></td>
+                      <td>µS/cm → mS/cm</td>
+                      <td><span className="conv-op-badge div">÷ 1.000</span></td>
+                      <td>460 µS/cm = <strong>0,46 mS/cm</strong></td>
+                    </tr>
+                    <tr>
+                      <td><strong>TDS Sólidos</strong></td>
+                      <td>µS/cm → ppm (mg/L)</td>
+                      <td><span className="conv-op-badge mult">× 0,67</span></td>
+                      <td>460 µS/cm ≈ <strong>308 ppm TDS</strong></td>
+                    </tr>
+                    <tr>
+                      <td><strong>Volumen</strong></td>
+                      <td>cm³ (cc) → ml</td>
+                      <td><span className="conv-op-badge eq">= Idéntico</span></td>
+                      <td>10 cm³ = <strong>10 ml</strong></td>
+                    </tr>
+                    <tr>
+                      <td><strong>Volumen</strong></td>
+                      <td>ml → Litros (L)</td>
+                      <td><span className="conv-op-badge div">÷ 1.000</span></td>
+                      <td>500 ml = <strong>0,5 Litros</strong></td>
+                    </tr>
+                    <tr>
+                      <td><strong>Volumen</strong></td>
+                      <td>Litros → m³</td>
+                      <td><span className="conv-op-badge div">÷ 1.000</span></td>
+                      <td>1.000 L = <strong>1 m³</strong></td>
+                    </tr>
+                    <tr>
+                      <td><strong>Garrafas (25 L)</strong></td>
+                      <td>Garrafas → Litros</td>
+                      <td><span className="conv-op-badge mult">× 25</span></td>
+                      <td>2 garrafas Ferrocid = <strong>50 Litros</strong></td>
+                    </tr>
+                    <tr>
+                      <td><strong>Dureza Agua</strong></td>
+                      <td>ºfH (francés) → ppm CaCO3</td>
+                      <td><span className="conv-op-badge mult">× 10</span></td>
+                      <td>25 ºfH = <strong>250 ppm CaCO3</strong></td>
+                    </tr>
+                    <tr>
+                      <td><strong>Dureza Agua</strong></td>
+                      <td>ºfH → ºdH (alemán)</td>
+                      <td><span className="conv-op-badge mult">× 0,56</span></td>
+                      <td>25 ºfH = <strong>14,0 ºdH</strong></td>
+                    </tr>
+                    <tr>
+                      <td><strong>Concentración</strong></td>
+                      <td>% → ppm (mg/L)</td>
+                      <td><span className="conv-op-badge mult">× 10.000</span></td>
+                      <td>15% = <strong>150.000 ppm</strong></td>
+                    </tr>
+                    <tr>
+                      <td><strong>Concentración</strong></td>
+                      <td>ppm → g/L</td>
+                      <td><span className="conv-op-badge div">÷ 1.000</span></td>
+                      <td>50 ppm = <strong>0,05 g/L</strong> (1 ppm = 1 g/m³)</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Presión</strong></td>
+                      <td>bar → psi</td>
+                      <td><span className="conv-op-badge mult">× 14,50</span></td>
+                      <td>2,5 bar = <strong>36,3 psi</strong></td>
+                    </tr>
+                    <tr>
+                      <td><strong>Presión</strong></td>
+                      <td>bar → m.c.a. (altura agua)</td>
+                      <td><span className="conv-op-badge mult">× 10,20</span></td>
+                      <td>3,0 bar ≈ <strong>30,6 m.c.a.</strong></td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
           )}
