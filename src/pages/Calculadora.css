@@ -116,7 +116,7 @@
 /* ── TARJETA INTRODUCTORIA ─────────────────────────────────────────── */
 .calc-intro-card {
   background: var(--bg-card);
-  border: 1px solid var(--border-light);
+  border: 1px solid #F1F5F9;
   border-radius: var(--radius-md);
   padding: 16px 20px;
   display: flex;
@@ -124,14 +124,14 @@
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 24px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
 }
 
 .calc-intro-text h3 {
   margin: 0 0 4px 0;
   font-size: 1.08rem;
   font-weight: 800;
-  color: var(--text-main);
+  color: #0F172A;
 }
 
 .calc-intro-text p {
@@ -162,10 +162,10 @@
 /* Panel de Entradas */
 .calc-panel-card {
   background: var(--bg-card);
-  border: 1px solid var(--border-light);
+  border: 1px solid #F1F5F9;
   border-radius: var(--radius-lg);
   padding: 24px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
 }
 
 .calc-panel-title {
@@ -175,7 +175,7 @@
   margin: 0 0 20px 0;
   font-size: 1.15rem;
   font-weight: 800;
-  color: var(--text-main);
+  color: #0F172A;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--border-light);
 }
@@ -420,7 +420,7 @@
   background: var(--bg-card);
   border-radius: var(--radius-lg);
   padding: 24px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
   border: 2px solid var(--border-light);
   position: relative;
   overflow: hidden;
@@ -578,17 +578,17 @@
 /* Tabla Mini de Referencia pH */
 .calc-ph-table-card {
   background: var(--bg-card);
-  border: 1px solid var(--border-light);
+  border: 1px solid #F1F5F9;
   border-radius: var(--radius-md);
   padding: 16px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
 }
 
 .calc-ph-table-card h5 {
   margin: 0 0 10px 0;
   font-size: 0.85rem;
   font-weight: 800;
-  color: var(--text-muted);
+  color: #0F172A;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -637,8 +637,8 @@
   background: var(--bg-card);
   border-radius: var(--radius-md);
   padding: 20px;
-  border: 1.5px solid var(--border-light);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+  border: 1.5px solid #F1F5F9;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
 }
 
 .calc-neutral-card.primary { border-color: #8b5cf6; }
@@ -692,10 +692,10 @@
 /* Info Card */
 .calc-info-card {
   background: var(--bg-card);
-  border: 1px solid var(--border-light);
+  border: 1px solid #F1F5F9;
   border-radius: var(--radius-md);
   padding: 18px 20px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
 }
 
 .calc-info-title {
@@ -709,7 +709,7 @@
   margin: 0;
   font-size: 0.95rem;
   font-weight: 800;
-  color: var(--text-main);
+  color: #0F172A;
 }
 
 .calc-info-list {
@@ -863,10 +863,10 @@
 /* Ejemplo práctico */
 .calc-example-card {
   background: var(--bg-card);
-  border: 1px solid var(--border-light);
+  border: 1px solid #F1F5F9;
   border-radius: var(--radius-md);
   padding: 18px 20px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
 }
 
 .calc-example-title {
@@ -880,7 +880,7 @@
   margin: 0;
   font-size: 0.95rem;
   font-weight: 800;
-  color: var(--text-main);
+  color: #0F172A;
 }
 
 .calc-example-steps {
@@ -982,8 +982,8 @@
 .calc-param-card {
   background: var(--bg-card);
   border-radius: var(--radius-md);
-  border: 1px solid var(--border-light);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid #F1F5F9;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
   overflow: hidden;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
@@ -1024,7 +1024,7 @@
   margin: 0;
   font-size: 1.05rem;
   font-weight: 900;
-  color: var(--text-main);
+  color: #0F172A;
 }
 
 .calc-param-freq-badge {

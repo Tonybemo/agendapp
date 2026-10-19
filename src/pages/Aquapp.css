@@ -146,10 +146,11 @@
 
 .stat-card {
   background-color: var(--bg-card);
+  border: 1px solid #F1F5F9;
   border-radius: var(--radius-sm);
   padding: 16px;
   text-align: center;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -274,13 +275,13 @@
   background: var(--bg-card);
   backdrop-filter: var(--backdrop-blur);
   -webkit-backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border);
+  border: 1px solid #F1F5F9;
   border-radius: var(--radius-md);
   padding: 16px;
   display: flex;
   align-items: center;
   gap: 16px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
   cursor: pointer;
   transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -311,7 +312,7 @@
 .client-info h3 {
   font-size: 1rem;
   font-weight: 700;
-  color: var(--text-main);
+  color: #0F172A;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -699,13 +700,15 @@
 /* ---- Estadisticas View ---- */
 .chart-card-aq {
   background-color: var(--bg-card);
+  border: 1px solid #F1F5F9;
   border-radius: var(--radius-sm);
   padding: 20px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
 }
 
 .chart-card-aq h3 {
   font-size: 1rem;
+  color: #0F172A;
   margin-bottom: 20px;
   text-align: center;
 }
@@ -793,9 +796,10 @@
 
 .tratamiento-record-card {
   background-color: var(--bg-card);
+  border: 1px solid #F1F5F9;
   border-radius: var(--radius-sm);
   padding: 20px;
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
   transition: transform 0.15s, box-shadow 0.15s;
 }
 
@@ -821,7 +825,7 @@
 .trat-card-title h4 {
   font-size: 1rem;
   font-weight: 700;
-  color: var(--text-main);
+  color: #0F172A;
   margin: 0;
 }
 
@@ -1477,10 +1481,10 @@
 }
 .torres-info-card {
   background: var(--bg-card);
-  border: 1px solid var(--border);
+  border: 1px solid #F1F5F9;
   border-radius: 14px;
   padding: 16px 18px;
-  box-shadow: 0 2px 6px rgba(15,40,80,0.03);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
 }
 .torres-info-card-title {
   display: flex;
@@ -1488,7 +1492,7 @@
   gap: 8px;
   font-size: 0.88rem;
   font-weight: 800;
-  color: var(--text-main);
+  color: #0F172A;
   margin: 0 0 12px;
 }
 .torres-info-empty {
@@ -1541,10 +1545,10 @@
 /* Evolution Chart Card */
 .torres-chart-card {
   background: var(--bg-card);
-  border: 1px solid var(--border);
+  border: 1px solid #F1F5F9;
   border-radius: 16px;
   padding: 20px 22px;
-  box-shadow: 0 2px 8px rgba(15,40,80,0.04);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
 }
 .torres-chart-header {
   display: flex;
@@ -1557,7 +1561,7 @@
 .torres-chart-title {
   font-size: 1rem;
   font-weight: 800;
-  color: var(--text-main);
+  color: #0F172A;
   margin: 0;
 }
 .torres-param-chips {
@@ -1671,11 +1675,11 @@
 
 .unified-card {
   background: var(--bg-card);
-  border: 1px solid var(--border);
+  border: 1px solid #F1F5F9;
   border-radius: 18px;
   padding: 16px 18px;
   margin-bottom: 0;
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
   position: relative;
   transition: all 0.2s ease;
   display: flex;
@@ -1775,7 +1779,7 @@
 .unified-card-title {
   font-size: 1.3rem;
   font-weight: 900;
-  color: var(--text-main);
+  color: #0F172A;
   margin: 4px 0 6px 0;
   line-height: 1.25;
   letter-spacing: -0.01em;
@@ -2314,7 +2318,7 @@
 /* Hero Client Card */
 .aq-detail-hero-card {
   background: var(--bg-card);
-  border: 1px solid var(--border-light);
+  border: 1px solid #F1F5F9;
   border-radius: var(--radius-lg);
   padding: 24px 20px;
   display: flex;
@@ -2323,7 +2327,7 @@
   justify-content: center;
   text-align: center;
   gap: 12px;
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
@@ -2846,10 +2850,10 @@
 /* Tratamiento Bento Card */
 .aq-trat-card {
   background: var(--bg-card);
-  border: 1px solid var(--border);
+  border: 1px solid #F1F5F9;
   border-radius: 18px;
   overflow: hidden;
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
   transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   flex-direction: column;
@@ -2895,7 +2899,7 @@
   margin: 0;
   font-size: 1.05rem;
   font-weight: 800;
-  color: var(--text-main);
+  color: #0F172A;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

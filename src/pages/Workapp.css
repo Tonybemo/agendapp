@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   height: calc(100vh - 40px);
-  background-color: var(--bg-card-hover);
+  background-color: var(--bg-main);
   margin: -24px;
   font-family: 'Inter', system-ui, sans-serif;
 }
@@ -400,8 +400,8 @@
 .wa-card {
   background-color: var(--bg-card);
   border-radius: var(--radius-md);
-  border: 1px solid rgba(148, 180, 218, 0.7);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+  border: 1px solid #F1F5F9;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   flex-direction: column;
@@ -752,8 +752,8 @@
 .wa-nomina-card {
   background: var(--bg-card);
   border-radius: var(--radius-md);
-  border: 1px solid var(--border-light);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid #F1F5F9;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   flex-direction: column;
@@ -778,7 +778,7 @@
   margin: 0 0 4px 0;
   font-size: 1.15rem;
   font-weight: 800;
-  color: var(--text-main);
+  color: #0F172A;
 }
 
 .wa-nom-title p {
