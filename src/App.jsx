@@ -10,7 +10,6 @@ import Tareasapp from './pages/Tareasapp';
 import Avisomap from './pages/Avisomap';
 import Workapp from './pages/Workapp';
 import Dashboard from './pages/Dashboard';
-import Inicio from './pages/Inicio';
 import Estadisticas from './pages/Estadisticas';
 import Calendario from './pages/Calendario';
 import GestorGlobal from './pages/GestorGlobal';
@@ -78,8 +77,8 @@ function AppContent() {
           <Route path="/login" element={<Login />} />
           
           {/* Public Routes (Read-only for guests) */}
-          <Route path="/" element={<Inicio />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Navigate to="/" replace />} />
           <Route path="/aquapp" element={<Aquapp />} />
           <Route path="/avisomap" element={<Avisomap />} />
           <Route path="/calendario" element={<Calendario />} />

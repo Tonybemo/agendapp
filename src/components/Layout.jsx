@@ -128,8 +128,7 @@ const Layout = ({ children }) => {
   };
 
   const navItems = [
-    { path: '/', label: 'Inicio', icon: <LayoutDashboard size={20} />, public: true },
-    { path: '/dashboard', label: 'Dashboard Mensual', icon: <BarChart2 size={20} />, public: true },
+    { path: '/', label: 'Dashboard', icon: <LayoutDashboard size={20} />, public: true },
     { path: '/calendario', label: 'Calendario Global', icon: <CalendarIcon size={20} />, public: true },
     { path: '/aquapp', label: 'Muestras y Tratamientos', icon: <Droplet size={20} />, public: true },
     { path: '/avisomap', label: 'Avisos Mapfre', icon: <MapPin size={20} />, public: true },
@@ -144,8 +143,9 @@ const Layout = ({ children }) => {
   const visibleNavItems = isAdmin ? navItems : navItems.filter(item => item.public);
 
   const bottomNavItems = [
-    { path: '/dashboard', label: 'Dashboard', icon: <BarChart2 size={24} /> },
-    { path: '/', label: 'Inicio', icon: <LayoutDashboard size={24} /> },
+    { path: '/', label: 'Dashboard', icon: <LayoutDashboard size={24} /> },
+    { path: '/aquapp', label: 'Aquapp', icon: <Droplet size={24} /> },
+    { path: '/calculadora', label: 'Calculadora', icon: <Calculator size={24} /> },
     { path: '/calendario', label: 'Calendario', icon: <CalendarIcon size={24} /> },
   ];
 
@@ -280,6 +280,7 @@ const Layout = ({ children }) => {
             <NavLink
               key={item.path}
               to={item.path}
+              end={item.path === '/'}
               className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
               onClick={() => isMobile && setSidebarOpen(false)}
             >
@@ -339,6 +340,7 @@ const Layout = ({ children }) => {
             <NavLink
               key={item.path}
               to={item.path}
+              end={item.path === '/'}
               className={({ isActive }) => `bottom-nav-link ${isActive ? 'active' : ''}`}
             >
               {item.icon}
