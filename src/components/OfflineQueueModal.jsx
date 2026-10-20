@@ -58,9 +58,12 @@ const OfflineQueueModal = ({ isOpen, onClose }) => {
     }
     if (isSyncing) return;
     setIsSyncing(true);
-    await syncAllOfflineData();
+    const res = await syncAllOfflineData();
     setIsSyncing(false);
     loadRecords();
+    if (res && res.totalFailed > 0) {
+      window.__toast?.error(`⚠️ No se pudo subir (${res.lastError || 'Revisa tu conexión e inténtalo de nuevo'}).`);
+    }
   };
 
   return (
