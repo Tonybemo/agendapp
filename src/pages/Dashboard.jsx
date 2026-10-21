@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { 
   Droplet, MapPin, Briefcase, CalendarCheck, ChevronRight, ChevronLeft, 
-  FlaskConical, Clock, TrendingUp, Settings, Search, User, X, Navigation,
+  FlaskConical, Settings, Search, User, X, Navigation,
   Calculator, BookOpen, Calendar, BarChart2
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
@@ -20,7 +20,6 @@ const Dashboard = () => {
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
   const [monthStats, setMonthStats] = useState(null);
-  const [loadingStats, setLoadingStats] = useState(false);
 
   // Estado del buscador rápido de clientes
   const [searchQuery, setSearchQuery] = useState('');
@@ -162,7 +161,6 @@ const Dashboard = () => {
   };
 
   const fetchMonthStats = useCallback(async (year, month) => {
-    setLoadingStats(true);
     try {
       const [tratRes, muestrasRes, avisosRes, jornadasRes, tareasRes] = await Promise.all([
         supabase.from('aquapp_tratamientos').select('fecha'),
@@ -220,7 +218,6 @@ const Dashboard = () => {
     } catch (e) {
       console.error('Error fetching month stats', e);
     }
-    setLoadingStats(false);
   }, []);
 
   useEffect(() => {
@@ -237,85 +234,120 @@ const Dashboard = () => {
   };
   const goToday = () => { setSelectedYear(now.getFullYear()); setSelectedMonth(now.getMonth()); };
 
-  const statCards = [
+  // Cuadrícula unificada 3x3: todas las tarjetas con el mismo tamaño y su propio tono pastel único
+  const allModuleCards = [
     {
       id: 'muestras',
       title: 'Muestras',
+      subtitle: 'Recogida y analíticas de agua',
       value: monthStats ? monthStats.muestras : '...',
-      icon: <Droplet size={28} color="#059669" />,
+      icon: <Droplet size={24} color="#0284c7" />,
       path: '/aquapp',
-      bgColor: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)',
-      badgeColor: '#059669'
+      cardBg: 'linear-gradient(145deg, #f0f9ff 0%, #e0f2fe 100%)',
+      cardBorder: '#bae6fd',
+      accentColor: '#0284c7',
+      public: true
     },
     {
       id: 'tratamientos',
       title: 'Tratamientos',
+      subtitle: 'Desinfección, limpiezas y torres',
       value: monthStats ? monthStats.tratamientos : '...',
-      icon: <FlaskConical size={28} color="#0284c7" />,
+      icon: <FlaskConical size={24} color="#059669" />,
       path: '/aquapp?tab=tratamientos',
-      bgColor: 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)',
-      badgeColor: '#0284c7'
+      cardBg: 'linear-gradient(145deg, #ecfdf5 0%, #d1fae5 100%)',
+      cardBorder: '#a7f3d0',
+      accentColor: '#059669',
+      public: true
     },
     {
       id: 'avisomap',
       title: 'Avisos Mapfre',
+      subtitle: 'Avisos de control de plagas',
       value: monthStats ? monthStats.avisos : '...',
-      icon: <MapPin size={28} color="#16a34a" />,
+      icon: <MapPin size={24} color="#dc2626" />,
       path: '/avisomap',
-      bgColor: 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)',
-      badgeColor: '#16a34a'
+      cardBg: 'linear-gradient(145deg, #fef2f2 0%, #fee2e2 100%)',
+      cardBorder: '#fecaca',
+      accentColor: '#dc2626',
+      public: true
     },
     {
       id: 'tareas',
       title: 'Tareas',
+      subtitle: monthStats ? `${monthStats.tareasCompletadas} de ${monthStats.tareasTotal} completadas` : 'Visitas mensuales',
       value: monthStats ? `${monthStats.tareasPct}%` : '...',
-      icon: <CalendarCheck size={28} color="var(--accent-tareas)" />,
+      icon: <CalendarCheck size={24} color="#4f46e5" />,
       path: '/tareas',
-      bgColor: 'linear-gradient(135deg, #ffe4e6 0%, #fecdd3 100%)',
-      badgeColor: '#e11d48'
-    }
-  ];
-
-  const toolCards = [
+      cardBg: 'linear-gradient(145deg, #eef2ff 0%, #e0e7ff 100%)',
+      cardBorder: '#c7d2fe',
+      accentColor: '#4f46e5',
+      public: false
+    },
+    {
+      id: 'workapp',
+      title: 'Workapp · Jornada',
+      isWorkapp: true,
+      subtitle: 'Jornada laboral y horas extras',
+      value: monthStats ? `${monthStats.jornadasDias}d` : '...',
+      icon: <Briefcase size={24} color="#7c3aed" />,
+      path: '/workapp',
+      cardBg: 'linear-gradient(145deg, #f5f3ff 0%, #ede9fe 100%)',
+      cardBorder: '#ddd6fe',
+      accentColor: '#7c3aed',
+      public: false
+    },
     {
       id: 'calculadora',
       title: 'Calculadora Técnica',
       subtitle: 'Cloro, neutralización y conversor',
-      icon: <Calculator size={24} color="#0284c7" />,
+      value: null,
+      icon: <Calculator size={24} color="#0d9488" />,
       path: '/calculadora',
-      bgColor: 'linear-gradient(135deg, #cffafe 0%, #a5f3fc 100%)',
+      cardBg: 'linear-gradient(145deg, #f0fdfa 0%, #ccfbf1 100%)',
+      cardBorder: '#99f6E4',
+      accentColor: '#0d9488',
       public: true
     },
     {
       id: 'catalogo',
       title: 'Productos',
       subtitle: 'Catálogo, fichas y registros',
-      icon: <BookOpen size={24} color="var(--accent-catalogo)" />,
+      value: null,
+      icon: <BookOpen size={24} color="#d97706" />,
       path: '/catalogo',
-      bgColor: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+      cardBg: 'linear-gradient(145deg, #fffbeb 0%, #fef3c7 100%)',
+      cardBorder: '#fde68a',
+      accentColor: '#d97706',
       public: false
     },
     {
       id: 'calendario',
       title: 'Calendario Global',
-      subtitle: 'Agenda y actividad diaria',
-      icon: <Calendar size={24} color="var(--accent-calendario)" />,
+      subtitle: 'Agenda y actividad por día',
+      value: null,
+      icon: <Calendar size={24} color="#db2777" />,
       path: '/calendario',
-      bgColor: 'linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%)',
+      cardBg: 'linear-gradient(145deg, #fdf2f8 0%, #fce7f3 100%)',
+      cardBorder: '#fbcfe8',
+      accentColor: '#db2777',
       public: true
     },
     {
       id: 'estadisticas',
       title: 'Estadísticas',
       subtitle: 'Gráficas y métricas anuales',
-      icon: <BarChart2 size={24} color="var(--accent-estadisticas)" />,
+      value: null,
+      icon: <BarChart2 size={24} color="#9333ea" />,
       path: '/estadisticas',
-      bgColor: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)',
+      cardBg: 'linear-gradient(145deg, #faf5ff 0%, #f3e8ff 100%)',
+      cardBorder: '#e9d5ff',
+      accentColor: '#9333ea',
       public: false
     }
   ];
 
-  const visibleToolCards = isAdmin ? toolCards : toolCards.filter(t => t.public);
+  const visibleCards = isAdmin ? allModuleCards : allModuleCards.filter(c => c.public);
 
   return (
     <div className="dashboard-container animate-fade-in">
@@ -411,100 +443,51 @@ const Dashboard = () => {
         )}
       </div>
 
-      {/* Grid of 4 Monthly KPI Cards + Workapp Wide Card */}
-      <div className="dashboard-grid-summary">
-        {statCards.map((card) => (
+      {/* Cuadrícula Uniforme 3x3 de Módulos con Color Tenue Diferenciado */}
+      <div className="dashboard-unified-grid">
+        {visibleCards.map((card) => (
           <div
             key={card.id}
-            className="dash-card dash-card-stat"
+            className="dash-card dash-unified-card"
+            style={{
+              background: card.cardBg,
+              borderColor: card.cardBorder
+            }}
             onClick={() => navigate(card.path)}
           >
-            <div className="dash-card-header-stat">
-              <div className="dash-card-icon-wrapper" style={{ background: card.bgColor }}>
+            <div className="dash-unified-top">
+              <div
+                className="dash-unified-icon-box"
+                style={{ borderColor: card.cardBorder }}
+              >
                 {card.icon}
               </div>
-              <div className="dash-stat-number" style={{ color: card.badgeColor }}>
-                {card.value}
-              </div>
+
+              {card.value !== null ? (
+                <div className="dash-unified-stat" style={{ color: card.accentColor }}>
+                  {card.value}
+                </div>
+              ) : (
+                <div className="dash-unified-arrow" style={{ color: card.accentColor }}>
+                  <ChevronRight size={20} strokeWidth={2.5} />
+                </div>
+              )}
             </div>
-            <div className="dash-card-content">
+
+            <div className="dash-unified-bottom">
               <h3>{card.title}</h3>
+              {card.isWorkapp && monthStats ? (
+                <div className="dash-workapp-compact-pills">
+                  <span className="dash-wa-pill">{monthStats.totalHoras}h trab.</span>
+                  <span className="dash-wa-pill extras">+{monthStats.totalExtras}h ext.</span>
+                  <span className="dash-wa-pill money">{monthStats.importe}€</span>
+                </div>
+              ) : (
+                <p>{card.subtitle}</p>
+              )}
             </div>
           </div>
         ))}
-
-        {/* Featured Wide Card: Workapp & Hours Summary */}
-        <div
-          className="dash-card dash-card-workapp-banner"
-          onClick={() => navigate('/workapp')}
-        >
-          <div className="dash-card-workapp-top">
-            <div className="dash-card-icon-wrapper" style={{ background: 'linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%)' }}>
-              <Briefcase size={28} color="var(--accent-workapp)" />
-            </div>
-            <div className="dash-card-content" style={{ flex: 1 }}>
-              <h3 style={{ margin: 0, fontSize: '1.25rem' }}>Workapp · Jornada</h3>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span className="dash-stat-number" style={{ color: '#7c3aed', fontSize: '1.5rem', fontWeight: 900 }}>
-                {monthStats ? `${monthStats.jornadasDias} días` : '...'}
-              </span>
-              <ChevronRight size={20} color="var(--text-muted)" strokeWidth={2.5} />
-            </div>
-          </div>
-
-          {/* Detailed Hours Row */}
-          {monthStats && (
-            <div className="dash-workapp-metrics-row">
-              <div className="dash-metric-chip">
-                <Clock size={16} color="var(--text-muted)" />
-                <div>
-                  <span className="dash-metric-value">{monthStats.totalHoras}h</span>
-                  <span className="dash-metric-label">Trabajadas</span>
-                </div>
-              </div>
-
-              <div className="dash-metric-chip dash-metric-chip-extras">
-                <TrendingUp size={16} color="#f43f5e" />
-                <div>
-                  <span className="dash-metric-value text-extras">{monthStats.totalExtras}h</span>
-                  <span className="dash-metric-label label-extras">Horas Extras</span>
-                </div>
-              </div>
-
-              <div className="dash-metric-chip dash-metric-chip-money">
-                <span className="dash-metric-euro">€</span>
-                <div>
-                  <span className="dash-metric-value text-money">{monthStats.importe}€</span>
-                  <span className="dash-metric-label label-money">Importe Extras</span>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Sección de Herramientas y Consulta Rápida */}
-      <div className="dashboard-tools-section">
-        <div className="dashboard-section-label">Herramientas y Consulta</div>
-        <div className="dashboard-tools-grid">
-          {visibleToolCards.map((tool) => (
-            <div
-              key={tool.id}
-              className="dash-card dash-card-tool"
-              onClick={() => navigate(tool.path)}
-            >
-              <div className="dash-card-icon-wrapper dash-tool-icon" style={{ background: tool.bgColor }}>
-                {tool.icon}
-              </div>
-              <div className="dash-card-content dash-tool-content">
-                <h3>{tool.title}</h3>
-                <p>{tool.subtitle}</p>
-              </div>
-              <ChevronRight size={18} color="var(--text-faint)" className="dash-tool-chevron" />
-            </div>
-          ))}
-        </div>
       </div>
 
       {/* Modal Ficha Rápida de Cliente */}

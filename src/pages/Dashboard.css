@@ -936,89 +936,141 @@
   color: #ffffff;
 }
 
-/* ── Sección de Herramientas y Consulta ───────────────────────────────── */
-.dashboard-tools-section {
-  margin-top: 28px;
-}
-
-.dashboard-section-label {
-  font-size: 0.78rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-muted);
-  margin-bottom: 12px;
-  padding-left: 4px;
-}
-
-.dashboard-tools-grid {
+/* ── Cuadrícula Unificada 3x3 (todas las tarjetas de igual tamaño y color pastel propio) ── */
+.dashboard-unified-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
+  gap: 16px;
 }
 
 @media (min-width: 768px) {
-  .dashboard-tools-grid {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 18px;
+  .dashboard-unified-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
   }
 }
 
-.dash-card-tool {
-  flex-direction: row !important;
-  align-items: center !important;
-  gap: 14px;
-  padding: 16px;
+.dash-unified-card {
+  min-height: 146px;
+  padding: 20px 20px 18px 20px;
+  justify-content: space-between;
+  border-width: 1.5px;
+  border-style: solid;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
 }
 
-.dash-tool-icon {
-  width: 44px !important;
-  height: 44px !important;
-  margin-bottom: 0 !important;
+.dash-unified-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07);
+}
+
+.dash-unified-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.dash-unified-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
   flex-shrink: 0;
-  border-radius: 12px;
 }
 
-.dash-tool-content {
-  flex: 1;
-  min-width: 0;
+.dash-unified-stat {
+  font-size: 1.9rem;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.5px;
 }
 
-.dash-tool-content h3 {
-  font-size: 0.98rem !important;
+.dash-unified-arrow {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dash-unified-bottom h3 {
+  font-size: 1.08rem;
   font-weight: 800;
   color: #0F172A;
-  margin: 0 0 2px 0 !important;
+  margin: 0 0 4px 0;
   line-height: 1.25;
 }
 
-.dash-tool-content p {
-  font-size: 0.76rem !important;
-  color: var(--text-muted);
+.dash-unified-bottom p {
+  font-size: 0.8rem;
+  color: #475569;
+  font-weight: 500;
   margin: 0;
-  line-height: 1.3;
+  line-height: 1.35;
 }
 
-.dash-tool-chevron {
-  flex-shrink: 0;
+.dash-workapp-compact-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 4px;
+}
+
+.dash-wa-pill {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(124, 58, 237, 0.2);
+  color: #4c1d95;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.73rem;
+  font-weight: 700;
+}
+
+.dash-wa-pill.extras {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(244, 63, 94, 0.3);
+  color: #e11d48;
+}
+
+.dash-wa-pill.money {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #059669;
 }
 
 @media (max-width: 600px) {
-  .dash-card-tool {
-    padding: 14px 12px;
-    gap: 10px;
+  .dashboard-unified-grid {
+    gap: 12px;
   }
-  .dash-tool-icon {
-    width: 38px !important;
-    height: 38px !important;
+  .dash-unified-card {
+    min-height: 132px;
+    padding: 15px 14px;
   }
-  .dash-tool-content h3 {
-    font-size: 0.88rem !important;
+  .dash-unified-icon-box {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
   }
-  .dash-tool-content p {
-    font-size: 0.7rem !important;
+  .dash-unified-stat {
+    font-size: 1.55rem;
   }
-  .dash-tool-chevron {
-    display: none;
+  .dash-unified-bottom h3 {
+    font-size: 0.95rem;
+  }
+  .dash-unified-bottom p {
+    font-size: 0.73rem;
+  }
+  .dash-wa-pill {
+    font-size: 0.68rem;
+    padding: 2px 6px;
   }
 }
