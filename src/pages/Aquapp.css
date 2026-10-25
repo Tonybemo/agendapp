@@ -146,7 +146,7 @@
 
 .stat-card {
   background-color: var(--bg-card);
-  border: 1px solid #F1F5F9;
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 16px;
   text-align: center;
@@ -275,7 +275,7 @@
   background: var(--bg-card);
   backdrop-filter: var(--backdrop-blur);
   -webkit-backdrop-filter: var(--backdrop-blur);
-  border: 1px solid #F1F5F9;
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 16px;
   display: flex;
@@ -312,7 +312,7 @@
 .client-info h3 {
   font-size: 1rem;
   font-weight: 700;
-  color: #0F172A;
+  color: var(--text-main);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -700,7 +700,7 @@
 /* ---- Estadisticas View ---- */
 .chart-card-aq {
   background-color: var(--bg-card);
-  border: 1px solid #F1F5F9;
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 20px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
@@ -708,7 +708,7 @@
 
 .chart-card-aq h3 {
   font-size: 1rem;
-  color: #0F172A;
+  color: var(--text-main);
   margin-bottom: 20px;
   text-align: center;
 }
@@ -796,7 +796,7 @@
 
 .tratamiento-record-card {
   background-color: var(--bg-card);
-  border: 1px solid #F1F5F9;
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 20px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
@@ -825,7 +825,7 @@
 .trat-card-title h4 {
   font-size: 1rem;
   font-weight: 700;
-  color: #0F172A;
+  color: var(--text-main);
   margin: 0;
 }
 
@@ -1481,7 +1481,7 @@
 }
 .torres-info-card {
   background: var(--bg-card);
-  border: 1px solid #F1F5F9;
+  border: 1px solid var(--border);
   border-radius: 14px;
   padding: 16px 18px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
@@ -1492,7 +1492,7 @@
   gap: 8px;
   font-size: 0.88rem;
   font-weight: 800;
-  color: #0F172A;
+  color: var(--text-main);
   margin: 0 0 12px;
 }
 .torres-info-empty {
@@ -1545,7 +1545,7 @@
 /* Evolution Chart Card */
 .torres-chart-card {
   background: var(--bg-card);
-  border: 1px solid #F1F5F9;
+  border: 1px solid var(--border);
   border-radius: 16px;
   padding: 20px 22px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
@@ -1561,7 +1561,7 @@
 .torres-chart-title {
   font-size: 1rem;
   font-weight: 800;
-  color: #0F172A;
+  color: var(--text-main);
   margin: 0;
 }
 .torres-param-chips {
@@ -1675,7 +1675,7 @@
 
 .unified-card {
   background: var(--bg-card);
-  border: 1px solid #F1F5F9;
+  border: 1px solid var(--border);
   border-radius: 18px;
   padding: 16px 18px;
   margin-bottom: 0;
@@ -1779,7 +1779,7 @@
 .unified-card-title {
   font-size: 1.3rem;
   font-weight: 900;
-  color: #0F172A;
+  color: var(--text-main);
   margin: 4px 0 6px 0;
   line-height: 1.25;
   letter-spacing: -0.01em;
@@ -2318,7 +2318,7 @@
 /* Hero Client Card */
 .aq-detail-hero-card {
   background: var(--bg-card);
-  border: 1px solid #F1F5F9;
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 24px 20px;
   display: flex;
@@ -2468,6 +2468,17 @@
   border-color: #0f172a;
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);
   transform: translateY(-1px);
+}
+
+[data-theme='dark'] .aq-year-pill.active,
+[data-theme='dark'] .aq-trat-year-pill.active {
+  background: #334155;
+  border-color: #38bdf8;
+  color: #ffffff;
+}
+
+[data-theme='dark'] .aq-month-pill.active {
+  outline-color: #ffffff;
 }
 
 .aq-year-badge {
@@ -2850,7 +2861,7 @@
 /* Tratamiento Bento Card */
 .aq-trat-card {
   background: var(--bg-card);
-  border: 1px solid #F1F5F9;
+  border: 1px solid var(--border);
   border-radius: 18px;
   overflow: hidden;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);

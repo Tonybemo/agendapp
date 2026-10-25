@@ -245,7 +245,7 @@
 /* ── Tarjetas Individuales (Cards) ── */
 .gg-card {
   background: var(--bg-card);
-  border: 1px solid #F1F5F9;
+  border: 1px solid var(--border);
   border-radius: 16px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
   display: flex;
@@ -258,7 +258,7 @@
 .gg-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-  border-color: #cbd5e1;
+  border-color: var(--border-input);
 }
 
 .gg-card.client-card {
@@ -316,7 +316,7 @@
   margin: 0;
   font-size: 0.98rem;
   font-weight: 700;
-  color: #0F172A;
+  color: var(--text-main);
   line-height: 1.3;
   word-break: break-word;
 }

@@ -212,7 +212,7 @@
 .cat-card {
   background: var(--bg-card);
   border-radius: var(--radius-md);
-  border: 1px solid #F1F5F9;
+  border: 1px solid var(--border);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
   overflow: hidden;
   display: flex;

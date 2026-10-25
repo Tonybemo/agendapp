@@ -423,7 +423,7 @@ const Dashboard = () => {
                 >
                   <div style={{ display: 'flex', alignItems: 'center', minWidth: 0, flex: 1 }}>
                     <User size={18} color="var(--text-muted)" style={{marginRight: '12px', flexShrink: 0}} />
-                    <span style={{fontWeight: '700', color: '#0F172A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{c.name}</span>
+                    <span style={{fontWeight: '700', color: 'var(--text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{c.name}</span>
                   </div>
                   <button
                     type="button"
@@ -501,7 +501,7 @@ const Dashboard = () => {
           <div style={{
             background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', width: '100%', maxWidth: '600px',
             maxHeight: '85vh', overflowY: 'auto', boxShadow: 'var(--shadow-xl)',
-            border: '1px solid #F1F5F9',
+            border: '1px solid var(--border)',
             display: 'flex', flexDirection: 'column'
           }} onClick={e => e.stopPropagation()}>
             <div style={{
@@ -510,7 +510,7 @@ const Dashboard = () => {
               background: 'var(--bg-card)', zIndex: 10, borderRadius: 'var(--radius-lg) var(--radius-lg) 0 0'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                <h2 style={{margin: 0, fontSize: '1.25rem', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '10px'}}>
+                <h2 style={{margin: 0, fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '10px'}}>
                   <User size={22} color="var(--accent-aquapp)" />
                   {selectedClient.name}
                 </h2>
@@ -550,7 +550,7 @@ const Dashboard = () => {
                       <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
                         {clientDetails.tratamientos.map(t => (
                           <div key={t.id} style={{background: 'var(--bg-card-hover)', padding: '12px 16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', fontSize: '0.9rem'}}>
-                            <strong style={{color: '#0F172A'}}>{formatDatePretty(t.fecha)}</strong> - <span style={{color: 'var(--text-secondary)'}}>{(t.tipo_tratamiento || '').replace(/_/g, ' ')}</span>
+                            <strong style={{color: 'var(--text-main)'}}>{formatDatePretty(t.fecha)}</strong> - <span style={{color: 'var(--text-secondary)'}}>{(t.tipo_tratamiento || '').replace(/_/g, ' ')}</span>
                           </div>
                         ))}
                       </div>
@@ -572,7 +572,7 @@ const Dashboard = () => {
                                   cursor: 'pointer', background: isExpanded ? 'var(--bg-main)' : 'transparent', transition: 'background 0.2s'
                                 }}
                               >
-                                <strong style={{color: '#0F172A'}}>Año {yearGroup.year}</strong>
+                                <strong style={{color: 'var(--text-main)'}}>Año {yearGroup.year}</strong>
                                 <span style={{display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 'bold'}}>
                                   {yearGroup.months.reduce((acc, curr) => acc + curr.count, 0)} muestras
                                   <ChevronRight size={18} style={{transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s'}} />

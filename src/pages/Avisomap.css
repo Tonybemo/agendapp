@@ -325,7 +325,7 @@
 /* 7. Tarjeta de Aviso con Velo Azul Tenue en Cabecera */
 .aviso-map-card {
   background: var(--bg-card);
-  border: 1px solid #F1F5F9;
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
@@ -583,7 +583,7 @@
 .stats-card {
   background: var(--bg-card);
   border-radius: var(--radius-md);
-  border: 1px solid #F1F5F9;
+  border: 1px solid var(--border);
   padding: 24px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
 }
@@ -609,7 +609,7 @@
   margin: 0;
   font-size: 1.1rem;
   font-weight: 800;
-  color: #0F172A;
+  color: var(--text-main);
 }
 
 .stats-card-title p {

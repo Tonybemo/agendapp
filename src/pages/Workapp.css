@@ -400,7 +400,7 @@
 .wa-card {
   background-color: var(--bg-card);
   border-radius: var(--radius-md);
-  border: 1px solid #F1F5F9;
+  border: 1px solid var(--border);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
@@ -752,7 +752,7 @@
 .wa-nomina-card {
   background: var(--bg-card);
   border-radius: var(--radius-md);
-  border: 1px solid #F1F5F9;
+  border: 1px solid var(--border);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
@@ -760,6 +760,12 @@
   justify-content: space-between;
   overflow: hidden;
   margin-bottom: 0;
+}
+
+[data-theme='dark'] .wa-pill-year.active {
+  background: #334155;
+  border-color: #a78bfa;
+  color: #ffffff;
 }
 
 .wa-nomina-card:hover {

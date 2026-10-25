@@ -142,7 +142,7 @@
   padding: 24px;
   border-radius: var(--radius-md);
   background: var(--bg-card);
-  border: 1px solid #F1F5F9;
+  border: 1px solid var(--border);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
@@ -174,7 +174,7 @@
 .uf-option-info h4 {
   font-size: 1.1rem;
   font-weight: 800;
-  color: #0F172A;
+  color: var(--text-main);
   margin-bottom: 6px;
 }
 

@@ -116,7 +116,7 @@
 /* ── TARJETA INTRODUCTORIA ─────────────────────────────────────────── */
 .calc-intro-card {
   background: var(--bg-card);
-  border: 1px solid #F1F5F9;
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 16px 20px;
   display: flex;
@@ -131,7 +131,7 @@
   margin: 0 0 4px 0;
   font-size: 1.08rem;
   font-weight: 800;
-  color: #0F172A;
+  color: var(--text-main);
 }
 
 .calc-intro-text p {
@@ -162,7 +162,7 @@
 /* Panel de Entradas */
 .calc-panel-card {
   background: var(--bg-card);
-  border: 1px solid #F1F5F9;
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 24px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
@@ -175,7 +175,7 @@
   margin: 0 0 20px 0;
   font-size: 1.15rem;
   font-weight: 800;
-  color: #0F172A;
+  color: var(--text-main);
   padding-bottom: 12px;
   border-bottom: 1px solid var(--border-light);
 }
@@ -578,7 +578,7 @@
 /* Tabla Mini de Referencia pH */
 .calc-ph-table-card {
   background: var(--bg-card);
-  border: 1px solid #F1F5F9;
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 16px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
@@ -588,7 +588,7 @@
   margin: 0 0 10px 0;
   font-size: 0.85rem;
   font-weight: 800;
-  color: #0F172A;
+  color: var(--text-main);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -637,7 +637,7 @@
   background: var(--bg-card);
   border-radius: var(--radius-md);
   padding: 20px;
-  border: 1.5px solid #F1F5F9;
+  border: 1.5px solid var(--border);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
 }
 
@@ -692,7 +692,7 @@
 /* Info Card */
 .calc-info-card {
   background: var(--bg-card);
-  border: 1px solid #F1F5F9;
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 18px 20px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
@@ -709,7 +709,7 @@
   margin: 0;
   font-size: 0.95rem;
   font-weight: 800;
-  color: #0F172A;
+  color: var(--text-main);
 }
 
 .calc-info-list {
@@ -863,7 +863,7 @@
 /* Ejemplo práctico */
 .calc-example-card {
   background: var(--bg-card);
-  border: 1px solid #F1F5F9;
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 18px 20px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
@@ -880,7 +880,7 @@
   margin: 0;
   font-size: 0.95rem;
   font-weight: 800;
-  color: #0F172A;
+  color: var(--text-main);
 }
 
 .calc-example-steps {
@@ -982,7 +982,7 @@
 .calc-param-card {
   background: var(--bg-card);
   border-radius: var(--radius-md);
-  border: 1px solid #F1F5F9;
+  border: 1px solid var(--border);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
   overflow: hidden;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -1024,7 +1024,7 @@
   margin: 0;
   font-size: 1.05rem;
   font-weight: 900;
-  color: #0F172A;
+  color: var(--text-main);
 }
 
 .calc-param-freq-badge {
@@ -1309,4 +1309,79 @@
   background: #f1f5f9;
   color: #475569;
 }
+
+/* ── AJUSTES MODO OSCURO PARA CALCULADORA ─────────────────────────── */
+[data-theme='dark'] .calc-chip-btn:hover {
+  background: var(--bg-card);
+}
+
+[data-theme='dark'] .calc-biocide-btn.active {
+  background: rgba(124, 58, 237, 0.16);
+  border-color: #8b5cf6;
+}
+
+[data-theme='dark'] .calc-diagnostic-card.state-optimo,
+[data-theme='dark'] .calc-diagnostic-card.state-bueno {
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.35);
+}
+
+[data-theme='dark'] .calc-diagnostic-card.state-insuficiente {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+[data-theme='dark'] .calc-diagnostic-card.state-muy_deficiente,
+[data-theme='dark'] .calc-diagnostic-card.state-ineficaz {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+[data-theme='dark'] .calc-acid-callout,
+[data-theme='dark'] .calc-cierre-alert {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+}
+
+[data-theme='dark'] .calc-ph-row.highlight {
+  background: rgba(14, 165, 233, 0.14);
+  border-color: rgba(56, 189, 248, 0.4);
+  color: #38bdf8;
+}
+
+[data-theme='dark'] .calc-plagas-stat-box.product {
+  background: rgba(244, 63, 94, 0.12);
+  border-color: rgba(244, 63, 94, 0.3);
+}
+[data-theme='dark'] .calc-plagas-stat-box.product .stat-val {
+  color: #fb7185;
+}
+
+[data-theme='dark'] .calc-plagas-stat-box.water {
+  background: rgba(14, 165, 233, 0.12);
+  border-color: rgba(14, 165, 233, 0.3);
+}
+[data-theme='dark'] .calc-plagas-stat-box.water .stat-val {
+  color: #38bdf8;
+}
+
+[data-theme='dark'] .calc-metric-box.ok {
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.3);
+}
+[data-theme='dark'] .calc-metric-box.ok .lbl,
+[data-theme='dark'] .calc-metric-box.ok .val {
+  color: #4ade80;
+}
+
+[data-theme='dark'] .calc-metric-box.alarm {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+[data-theme='dark'] .calc-metric-box.alarm .lbl,
+[data-theme='dark'] .calc-metric-box.alarm .val-text {
+  color: #fbbf24;
+}
+
 
