@@ -1,12 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, CalendarCheck, Droplet, MapPin, BookOpen, Clock, Menu, X, BarChart2, Calendar as CalendarIcon, Database, ArrowLeft, LogOut, LogIn, Bell, CheckCircle2, Moon, Sun, Calculator, QrCode } from 'lucide-react';
+import { LayoutDashboard, CalendarCheck, Droplet, MapPin, BookOpen, Clock, Menu, X, BarChart2, Calendar as CalendarIcon, Database, ArrowLeft, LogOut, LogIn, Bell, CheckCircle2, Moon, Sun, Calculator, QrCode, Type } from 'lucide-react';
 import UniversalForm from './UniversalForm';
 import OfflineBanner from './OfflineBanner';
 import BarcodeScannerModal from './BarcodeScannerModal';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import './Layout.css';
+
+const FONT_OPTIONS = [
+  { id: 'inter', name: 'Inter', desc: 'Neutra y equilibrada (Original)', family: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" },
+  { id: 'jakarta', name: 'Plus Jakarta Sans', desc: 'Moderna, nítida y elegante', family: "'Plus Jakarta Sans', sans-serif" },
+  { id: 'outfit', name: 'Outfit', desc: 'Redondeada, suave y muy legible en móvil', family: "'Outfit', sans-serif" },
+  { id: 'poppins', name: 'Poppins', desc: 'Con más cuerpo y presencia en títulos', family: "'Poppins', sans-serif" },
+  { id: 'montserrat', name: 'Montserrat', desc: 'Geométrica clásica con carácter', family: "'Montserrat', sans-serif" },
+  { id: 'space', name: 'Space Grotesk', desc: 'Estilo técnico de laboratorio y analíticas', family: "'Space Grotesk', sans-serif" },
+  { id: 'jetbrains', name: 'JetBrains Mono', desc: 'Pantalla digital / consola de instrumentos', family: "'JetBrains Mono', monospace" },
+  { id: 'merriweather', name: 'Merriweather', desc: 'Estilo editorial clásico (con serifa)', family: "'Merriweather', serif" },
+];
+
+const FONT_SIZE_OPTIONS = [
+  { id: 'small', label: 'Compacto', sub: '90%' },
+  { id: 'normal', label: 'Normal', sub: '100%' },
+  { id: 'large', label: 'Grande', sub: '110%' },
+  { id: 'xlarge', label: 'Extra', sub: '120%' },
+];
 
 const Layout = ({ children }) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
@@ -15,6 +33,7 @@ const Layout = ({ children }) => {
   const [showNotifPanel, setShowNotifPanel] = useState(false);
   const [showResueltos, setShowResueltos] = useState(false);
   const [showGlobalScanner, setShowGlobalScanner] = useState(false);
+  const [showFontModal, setShowFontModal] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { isAdmin, signOut } = useAuth();
@@ -35,6 +54,26 @@ const Layout = ({ children }) => {
     document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
     localStorage.setItem('agendapp-theme', isDark ? 'dark' : 'light');
   }, [isDark]);
+
+  // Font family & font size state with localStorage persistence
+  const [selectedFont, setSelectedFont] = useState(() => {
+    return localStorage.getItem('agendapp-font') || 'inter';
+  });
+
+  const [selectedFontSize, setSelectedFontSize] = useState(() => {
+    return localStorage.getItem('agendapp-font-size') || 'normal';
+  });
+
+  useEffect(() => {
+    const fontObj = FONT_OPTIONS.find(f => f.id === selectedFont) || FONT_OPTIONS[0];
+    document.documentElement.style.setProperty('--font-main', fontObj.family);
+    localStorage.setItem('agendapp-font', selectedFont);
+  }, [selectedFont]);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-font-size', selectedFontSize);
+    localStorage.setItem('agendapp-font-size', selectedFontSize);
+  }, [selectedFontSize]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -291,6 +330,21 @@ const Layout = ({ children }) => {
         </nav>
         
         <div style={{ padding: '20px', marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {/* Selector de Fuente y Tamaño */}
+          <button 
+            onClick={() => { setShowFontModal(true); isMobile && setSidebarOpen(false); }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '12px',
+              background: 'var(--bg-card-hover)',
+              color: 'var(--text-muted)', border: '1px solid var(--border)',
+              borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontWeight: '600',
+              transition: 'all var(--transition-normal)'
+            }}
+          >
+            <Type size={20} />
+            <span>Fuente y Tamaño</span>
+          </button>
+
           {/* Dark Mode Toggle */}
           <button 
             onClick={() => setIsDark(prev => !prev)}
@@ -423,6 +477,138 @@ const Layout = ({ children }) => {
         mode="general"
         title="Lector QR y Código de Barras"
       />
+
+      {/* Modal de Tipografía y Tamaño de Letra */}
+      {showFontModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+          backgroundColor: 'var(--bg-modal-overlay)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 10000, padding: '16px'
+        }} onClick={() => setShowFontModal(false)}>
+          <div style={{
+            background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', padding: '24px',
+            width: '100%', maxWidth: '520px', maxHeight: '85vh', overflowY: 'auto',
+            boxShadow: 'var(--shadow-xl)', border: '1px solid var(--border)'
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{
+                  width: '36px', height: '36px', borderRadius: '10px',
+                  background: 'var(--primary-light)', color: 'var(--primary)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>
+                  <Type size={20} />
+                </div>
+                <div>
+                  <h2 style={{ fontSize: '1.15rem', fontWeight: '800', color: 'var(--text-main)', margin: 0 }}>Apariencia de Texto</h2>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>Elige la fuente y el tamaño para toda la app</p>
+                </div>
+              </div>
+              <button onClick={() => setShowFontModal(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: 'var(--text-faint)', lineHeight: 1 }}>&times;</button>
+            </div>
+
+            {/* Selector de Tamaño */}
+            <div style={{ marginBottom: '22px' }}>
+              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', marginBottom: '8px' }}>
+                Tamaño de letra
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+                {FONT_SIZE_OPTIONS.map(sizeOpt => {
+                  const active = selectedFontSize === sizeOpt.id;
+                  return (
+                    <button
+                      key={sizeOpt.id}
+                      onClick={() => setSelectedFontSize(sizeOpt.id)}
+                      style={{
+                        padding: '10px 6px',
+                        borderRadius: 'var(--radius-sm)',
+                        border: active ? '2px solid var(--primary)' : '1px solid var(--border)',
+                        background: active ? 'var(--primary-light)' : 'var(--bg-body)',
+                        color: active ? 'var(--primary)' : 'var(--text-main)',
+                        fontWeight: active ? '800' : '600',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '2px',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <span style={{ fontSize: '0.85rem' }}>{sizeOpt.label}</span>
+                      <span style={{ fontSize: '0.68rem', opacity: 0.75 }}>{sizeOpt.scale}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Selector de Fuente */}
+            <div>
+              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', marginBottom: '8px' }}>
+                Tipografía (8 fuentes)
+              </label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {FONT_OPTIONS.map(font => {
+                  const active = selectedFont === font.id;
+                  return (
+                    <button
+                      key={font.id}
+                      onClick={() => setSelectedFont(font.id)}
+                      style={{
+                        fontFamily: font.family,
+                        textAlign: 'left',
+                        padding: '12px 14px',
+                        borderRadius: 'var(--radius-md)',
+                        border: active ? '2px solid var(--primary)' : '1px solid var(--border)',
+                        background: active ? 'var(--primary-light)' : 'var(--bg-body)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: '12px',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
+                          <span style={{ fontSize: '0.98rem', fontWeight: '700', color: active ? 'var(--primary)' : 'var(--text-main)' }}>
+                            {font.name}
+                          </span>
+                          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: '500' }}>
+                            · {font.desc}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          Orovalle Mina Boinas · 0,46 mS = 460 µS/cm · 123456
+                        </div>
+                      </div>
+                      <div style={{
+                        width: '20px', height: '20px', borderRadius: '50%',
+                        border: active ? '6px solid var(--primary)' : '2px solid var(--border)',
+                        background: 'var(--bg-card)', flexShrink: 0
+                      }} />
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setShowFontModal(false)}
+                style={{
+                  padding: '10px 20px', borderRadius: 'var(--radius-sm)',
+                  background: 'var(--primary)', color: '#fff', border: 'none',
+                  fontWeight: '700', cursor: 'pointer', fontSize: '0.9rem'
+                }}
+              >
+                Listo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
