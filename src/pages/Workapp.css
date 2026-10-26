@@ -789,7 +789,7 @@
 
 .wa-nom-title p {
   margin: 0;
-  color: var(--text-muted);
+  color: #475569;
   font-size: 0.8rem;
   font-weight: 600;
   display: flex;
@@ -810,11 +810,329 @@
 
 .wa-nom-total p {
   margin: 0;
-  color: var(--text-secondary);
+  color: #334155;
   font-size: 0.74rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3px;
+}
+
+/* ── Panel de Resumen Anual y Fiscal de Nóminas (Renta / IRPF) ────── */
+.wa-fiscal-summary-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+}
+
+.wa-fiscal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.wa-fiscal-title-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.wa-fiscal-icon-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+  color: #6d28d9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid #c4b5fd;
+}
+
+[data-theme='dark'] .wa-fiscal-icon-badge {
+  background: rgba(139, 92, 246, 0.18);
+  color: #c4b5fd;
+  border-color: rgba(167, 139, 250, 0.35);
+}
+
+.wa-fiscal-title-group h3 {
+  margin: 0 0 2px 0;
+  font-size: 1.12rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.wa-fiscal-title-group p {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.wa-btn-breakdown-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-card-hover);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.wa-btn-breakdown-toggle:hover,
+.wa-btn-breakdown-toggle.active {
+  background: rgba(124, 58, 237, 0.12);
+  border-color: rgba(124, 58, 237, 0.35);
+  color: #7c3aed;
+}
+
+[data-theme='dark'] .wa-btn-breakdown-toggle:hover,
+[data-theme='dark'] .wa-btn-breakdown-toggle.active {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: rgba(167, 139, 250, 0.4);
+  color: #c4b5fd;
+}
+
+/* Grid de 5 KPIs Fiscales */
+.wa-fiscal-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.wa-fiscal-kpi {
+  border-radius: var(--radius-md);
+  padding: 15px 16px;
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 6px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.wa-fiscal-kpi:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.wa-fiscal-kpi.kpi-liquido {
+  background: linear-gradient(145deg, #ecfdf5 0%, #d1fae5 100%);
+  border-color: #a7f3d0;
+}
+.wa-fiscal-kpi.kpi-base {
+  background: linear-gradient(145deg, #eef2ff 0%, #e0e7ff 100%);
+  border-color: #c7d2fe;
+}
+.wa-fiscal-kpi.kpi-irpf {
+  background: linear-gradient(145deg, #fff1f2 0%, #ffe4e6 100%);
+  border-color: #fecdd3;
+}
+.wa-fiscal-kpi.kpi-ss {
+  background: linear-gradient(145deg, #fffbeb 0%, #fef3c7 100%);
+  border-color: #fde68a;
+}
+.wa-fiscal-kpi.kpi-extras {
+  background: linear-gradient(145deg, #f5f3ff 0%, #ede9fe 100%);
+  border-color: #ddd6fe;
+}
+
+/* Modo Oscuro para las 5 tarjetas KPI Fiscales */
+[data-theme='dark'] .wa-fiscal-kpi.kpi-liquido {
+  background: linear-gradient(145deg, rgba(16, 185, 129, 0.14) 0%, rgba(16, 185, 129, 0.06) 100%);
+  border-color: rgba(52, 211, 153, 0.3);
+}
+[data-theme='dark'] .wa-fiscal-kpi.kpi-base {
+  background: linear-gradient(145deg, rgba(99, 102, 241, 0.14) 0%, rgba(99, 102, 241, 0.06) 100%);
+  border-color: rgba(129, 140, 248, 0.3);
+}
+[data-theme='dark'] .wa-fiscal-kpi.kpi-irpf {
+  background: linear-gradient(145deg, rgba(244, 63, 94, 0.14) 0%, rgba(244, 63, 94, 0.06) 100%);
+  border-color: rgba(251, 113, 133, 0.3);
+}
+[data-theme='dark'] .wa-fiscal-kpi.kpi-ss {
+  background: linear-gradient(145deg, rgba(245, 158, 11, 0.14) 0%, rgba(245, 158, 11, 0.06) 100%);
+  border-color: rgba(251, 191, 36, 0.3);
+}
+[data-theme='dark'] .wa-fiscal-kpi.kpi-extras {
+  background: linear-gradient(145deg, rgba(139, 92, 246, 0.14) 0%, rgba(139, 92, 246, 0.06) 100%);
+  border-color: rgba(167, 139, 250, 0.3);
+}
+
+.wa-fiscal-kpi-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.wa-fiscal-kpi-label {
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #334155;
+}
+
+[data-theme='dark'] .wa-fiscal-kpi-label {
+  color: var(--text-secondary);
+}
+
+.wa-fiscal-kpi-tag {
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.wa-fiscal-kpi-tag.tag-green { background: rgba(255, 255, 255, 0.85); color: #047857; }
+.wa-fiscal-kpi-tag.tag-indigo { background: rgba(255, 255, 255, 0.85); color: #4338ca; }
+.wa-fiscal-kpi-tag.tag-rose { background: rgba(255, 255, 255, 0.85); color: #be123c; }
+.wa-fiscal-kpi-tag.tag-amber { background: rgba(255, 255, 255, 0.85); color: #b45309; }
+.wa-fiscal-kpi-tag.tag-purple { background: rgba(255, 255, 255, 0.85); color: #6d28d9; }
+
+[data-theme='dark'] .wa-fiscal-kpi-tag.tag-green { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; }
+[data-theme='dark'] .wa-fiscal-kpi-tag.tag-indigo { background: rgba(99, 102, 241, 0.2); color: #a5b4fc; }
+[data-theme='dark'] .wa-fiscal-kpi-tag.tag-rose { background: rgba(244, 63, 94, 0.2); color: #fda4af; }
+[data-theme='dark'] .wa-fiscal-kpi-tag.tag-amber { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
+[data-theme='dark'] .wa-fiscal-kpi-tag.tag-purple { background: rgba(139, 92, 246, 0.2); color: #c4b5fd; }
+
+.wa-fiscal-kpi-value {
+  font-size: 1.55rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.wa-fiscal-kpi-value.val-green { color: #065f46; }
+.wa-fiscal-kpi-value.val-indigo { color: #3730a3; }
+.wa-fiscal-kpi-value.val-rose { color: #9f1239; }
+.wa-fiscal-kpi-value.val-amber { color: #92400e; }
+.wa-fiscal-kpi-value.val-purple { color: #5b21b6; }
+
+[data-theme='dark'] .wa-fiscal-kpi-value.val-green { color: #34d399; }
+[data-theme='dark'] .wa-fiscal-kpi-value.val-indigo { color: #818cf8; }
+[data-theme='dark'] .wa-fiscal-kpi-value.val-rose { color: #fb7185; }
+[data-theme='dark'] .wa-fiscal-kpi-value.val-amber { color: #fbbf24; }
+[data-theme='dark'] .wa-fiscal-kpi-value.val-purple { color: #a78bfa; }
+
+.wa-fiscal-kpi-sub {
+  font-size: 0.76rem;
+  color: #475569;
+  font-weight: 600;
+}
+
+.wa-fiscal-kpi-sub strong {
+  color: #0f172a;
+  font-weight: 800;
+}
+
+[data-theme='dark'] .wa-fiscal-kpi-sub {
+  color: var(--text-muted);
+}
+
+[data-theme='dark'] .wa-fiscal-kpi-sub strong {
+  color: var(--text-main);
+}
+
+/* Tabla Desglose Mes a Mes */
+.wa-fiscal-table-wrap {
+  margin-top: 18px;
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+}
+
+.wa-fiscal-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 680px;
+  font-size: 0.85rem;
+}
+
+.wa-fiscal-table th {
+  background: var(--bg-card-hover);
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 11px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.wa-fiscal-table th.num,
+.wa-fiscal-table td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.wa-fiscal-table td {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.wa-fiscal-table tbody tr:hover {
+  background: var(--bg-card-hover);
+}
+
+.wa-table-subrange {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.wa-table-pct-pill {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  background: rgba(244, 63, 94, 0.1);
+  color: #e11d48;
+}
+
+[data-theme='dark'] .wa-table-pct-pill {
+  background: rgba(244, 63, 94, 0.2);
+  color: #fda4af;
+}
+
+.wa-fiscal-table .text-green { color: #059669; }
+.wa-fiscal-table .text-rose { color: #e11d48; }
+.wa-fiscal-table .text-amber { color: #d97706; }
+.wa-fiscal-table .text-purple { color: #7c3aed; }
+
+[data-theme='dark'] .wa-fiscal-table .text-green { color: #34d399; }
+[data-theme='dark'] .wa-fiscal-table .text-rose { color: #fb7185; }
+[data-theme='dark'] .wa-fiscal-table .text-amber { color: #fbbf24; }
+[data-theme='dark'] .wa-fiscal-table .text-purple { color: #a78bfa; }
+
+.wa-fiscal-table tfoot td {
+  background: var(--bg-card-hover);
+  font-weight: 900;
+  font-size: 0.9rem;
+  border-top: 2px solid var(--border);
+  border-bottom: none;
+  padding: 13px 14px;
 }
 
 .wa-nom-grid {

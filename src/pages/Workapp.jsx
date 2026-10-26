@@ -135,6 +135,7 @@ const Workapp = () => {
 
   // Nóminas year filter
   const [nominaYearFilter, setNominaYearFilter] = useState(new Date().getFullYear().toString());
+  const [showNominaBreakdown, setShowNominaBreakdown] = useState(false);
 
   // Edit Jornada State
   const [editForm, setEditForm] = useState({});
@@ -182,6 +183,15 @@ const Workapp = () => {
       
       if (data) {
         setNominas(data);
+        if (data.length > 0) {
+          const availableYears = [...new Set(data.map(n => {
+            const m = (n.mes || '').match(/\d{4}/);
+            return m ? m[0] : (n.fecha_cierre ? n.fecha_cierre.substring(0, 4) : null);
+          }).filter(Boolean))].sort().reverse();
+          if (availableYears.length > 0 && !availableYears.includes(nominaYearFilter) && nominaYearFilter !== 'all') {
+            setNominaYearFilter(availableYears[0]);
+          }
+        }
       }
       if (error) {
         console.error("Error fetching nominas:", error);
@@ -973,7 +983,7 @@ const Workapp = () => {
         const monthOrder = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
         let filteredNominas = nominaYearFilter === 'all' 
           ? [...nominas] 
-          : nominas.filter(n => (n.mes || '').includes(nominaYearFilter));
+          : nominas.filter(n => (n.mes || '').includes(nominaYearFilter) || (n.fecha_cierre || '').startsWith(nominaYearFilter));
         filteredNominas.sort((a, b) => {
           const extractYear = (m) => { const match = (m || '').match(/\d{4}/); return match ? parseInt(match[0]) : 0; };
           const extractMonth = (m) => { const name = (m || '').split(' ')[0]; return monthOrder.indexOf(name); };
@@ -989,9 +999,210 @@ const Workapp = () => {
               ? 'Pulsa el botón CUADRAR para añadir la primera.'
               : `No se encontraron nóminas para el año ${nominaYearFilter}.`}</p>
           </div>
-        ) : (
-          <div className="wa-nominas-grid animate-fade-in">
-            {filteredNominas.map((nom, idx) => (
+        ) : (() => {
+          const parseMoney = (val) => {
+            if (val === null || val === undefined || val === '') return 0;
+            let s = String(val).replace(/[€$\s]/g, '').trim();
+            if (!s) return 0;
+            if (s.includes('.') && s.includes(',')) {
+              if (s.lastIndexOf(',') > s.lastIndexOf('.')) {
+                s = s.replace(/\./g, '').replace(',', '.');
+              } else {
+                s = s.replace(/,/g, '');
+              }
+            } else if (s.includes(',')) {
+              s = s.replace(',', '.');
+            }
+            const num = parseFloat(s);
+            return isNaN(num) ? 0 : num;
+          };
+
+          const fmtEuro = (num) =>
+            (Number(num) || 0).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+
+          const count = filteredNominas.length;
+          let sumBase = 0;
+          let sumLiquido = 0;
+          let sumIrpf = 0;
+          let sumSs = 0;
+          let sumExtra = 0;
+
+          filteredNominas.forEach(n => {
+            sumBase += parseMoney(n.base);
+            sumLiquido += parseMoney(n.liquido);
+            sumIrpf += parseMoney(n.irpf);
+            sumSs += parseMoney(n.ss);
+            sumExtra += parseMoney(n.total_extra);
+          });
+
+          const avgLiquido = count > 0 ? sumLiquido / count : 0;
+          const avgBase = count > 0 ? sumBase / count : 0;
+          const irpfPct = sumBase > 0 ? ((sumIrpf / sumBase) * 100).toFixed(1) : '0.0';
+          const ssPct = sumBase > 0 ? ((sumSs / sumBase) * 100).toFixed(1) : '0.0';
+          const extraPct = sumLiquido > 0 ? ((sumExtra / sumLiquido) * 100).toFixed(1) : '0.0';
+
+          // Chronological order (Enero -> Diciembre) for the breakdown table
+          const chronologicalNominas = [...filteredNominas].reverse();
+
+          return (
+            <>
+              {/* Panel de Resumen Anual y Fiscal (Renta / IRPF) */}
+              <div className="wa-fiscal-summary-card animate-fade-in">
+                <div className="wa-fiscal-header">
+                  <div className="wa-fiscal-title-group">
+                    <div className="wa-fiscal-icon-badge">
+                      <TrendingUp size={20} />
+                    </div>
+                    <div>
+                      <h3>
+                        Resumen Anual y Fiscal · {nominaYearFilter === 'all' ? 'Histórico Total' : `Ejercicio ${nominaYearFilter}`}
+                      </h3>
+                      <p>
+                        {count} {count === 1 ? 'nómina computada' : 'nóminas computadas'} · Datos acumulados para declaración de la Renta (IRPF)
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    className={`wa-btn-breakdown-toggle ${showNominaBreakdown ? 'active' : ''}`}
+                    onClick={() => setShowNominaBreakdown(prev => !prev)}
+                  >
+                    <span>{showNominaBreakdown ? 'Ocultar tabla mes a mes' : 'Ver tabla desglose mes a mes'}</span>
+                    <ChevronDown
+                      size={16}
+                      style={{
+                        transform: showNominaBreakdown ? 'rotate(180deg)' : 'rotate(0deg)',
+                        transition: 'transform 0.2s ease'
+                      }}
+                    />
+                  </button>
+                </div>
+
+                {/* Grid de 5 KPIs Fiscales */}
+                <div className="wa-fiscal-kpi-grid">
+                  {/* 1. Líquido Total */}
+                  <div className="wa-fiscal-kpi kpi-liquido">
+                    <div className="wa-fiscal-kpi-top">
+                      <span className="wa-fiscal-kpi-label">Líquido Total Cobrado (Neto)</span>
+                      <span className="wa-fiscal-kpi-tag tag-green">Neto anual</span>
+                    </div>
+                    <div className="wa-fiscal-kpi-value val-green">{fmtEuro(sumLiquido)}</div>
+                    <div className="wa-fiscal-kpi-sub">
+                      Media mensual: <strong>{fmtEuro(avgLiquido)}</strong> / nómina
+                    </div>
+                  </div>
+
+                  {/* 2. Base Imponible */}
+                  <div className="wa-fiscal-kpi kpi-base">
+                    <div className="wa-fiscal-kpi-top">
+                      <span className="wa-fiscal-kpi-label">Suma Bases Imponibles (Bruto)</span>
+                      <span className="wa-fiscal-kpi-tag tag-indigo">Casilla Renta</span>
+                    </div>
+                    <div className="wa-fiscal-kpi-value val-indigo">{fmtEuro(sumBase)}</div>
+                    <div className="wa-fiscal-kpi-sub">
+                      Media bruta: <strong>{fmtEuro(avgBase)}</strong> / nómina
+                    </div>
+                  </div>
+
+                  {/* 3. Retenciones IRPF */}
+                  <div className="wa-fiscal-kpi kpi-irpf">
+                    <div className="wa-fiscal-kpi-top">
+                      <span className="wa-fiscal-kpi-label">Total Retenciones IRPF</span>
+                      <span className="wa-fiscal-kpi-tag tag-rose">{irpfPct}% medio</span>
+                    </div>
+                    <div className="wa-fiscal-kpi-value val-rose">{fmtEuro(sumIrpf)}</div>
+                    <div className="wa-fiscal-kpi-sub">
+                      Retención media aplicada: <strong>{irpfPct}%</strong> s/ base
+                    </div>
+                  </div>
+
+                  {/* 4. Seguridad Social */}
+                  <div className="wa-fiscal-kpi kpi-ss">
+                    <div className="wa-fiscal-kpi-top">
+                      <span className="wa-fiscal-kpi-label">Total Seguridad Social</span>
+                      <span className="wa-fiscal-kpi-tag tag-amber">Gasto deducible</span>
+                    </div>
+                    <div className="wa-fiscal-kpi-value val-amber">{fmtEuro(sumSs)}</div>
+                    <div className="wa-fiscal-kpi-sub">
+                      Cotización acumulada: <strong>{ssPct}%</strong> s/ base
+                    </div>
+                  </div>
+
+                  {/* 5. Horas Extras */}
+                  <div className="wa-fiscal-kpi kpi-extras">
+                    <div className="wa-fiscal-kpi-top">
+                      <span className="wa-fiscal-kpi-label">Total Horas Extras Cobradas</span>
+                      <span className="wa-fiscal-kpi-tag tag-purple">{extraPct}% del neto</span>
+                    </div>
+                    <div className="wa-fiscal-kpi-value val-purple">{fmtEuro(sumExtra)}</div>
+                    <div className="wa-fiscal-kpi-sub">
+                      Media extras: <strong>{fmtEuro(count > 0 ? sumExtra / count : 0)}</strong> / nómina
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tabla Desglose Mes a Mes (Desplegable) */}
+                {showNominaBreakdown && (
+                  <div className="wa-fiscal-table-wrap animate-fade-in">
+                    <table className="wa-fiscal-table">
+                      <thead>
+                        <tr>
+                          <th>Mes / Periodo</th>
+                          <th className="num">Base Imponible</th>
+                          <th className="num">Retención IRPF</th>
+                          <th className="num">% IRPF</th>
+                          <th className="num">Seg. Social</th>
+                          <th className="num">Horas Extras</th>
+                          <th className="num">Líquido a Cobrar</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {chronologicalNominas.map(n => {
+                          const b = parseMoney(n.base);
+                          const l = parseMoney(n.liquido);
+                          const i = parseMoney(n.irpf);
+                          const s = parseMoney(n.ss);
+                          const ex = parseMoney(n.total_extra);
+                          const rowIrpfPct = b > 0 ? ((i / b) * 100).toFixed(1) + '%' : '-';
+                          return (
+                            <tr key={n.id}>
+                              <td>
+                                <strong>{n.mes}</strong>
+                                {n.rango && <span className="wa-table-subrange">{n.rango}</span>}
+                              </td>
+                              <td className="num">{fmtEuro(b)}</td>
+                              <td className="num text-rose">{fmtEuro(i)}</td>
+                              <td className="num">
+                                <span className="wa-table-pct-pill">{rowIrpfPct}</span>
+                              </td>
+                              <td className="num text-amber">{fmtEuro(s)}</td>
+                              <td className="num text-purple">{fmtEuro(ex)}</td>
+                              <td className="num text-green"><strong>{fmtEuro(l)}</strong></td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                      <tfoot>
+                        <tr>
+                          <td>TOTAL ({count} {count === 1 ? 'MES' : 'MESES'})</td>
+                          <td className="num">{fmtEuro(sumBase)}</td>
+                          <td className="num text-rose">{fmtEuro(sumIrpf)}</td>
+                          <td className="num">
+                            <span className="wa-table-pct-pill">{irpfPct}%</span>
+                          </td>
+                          <td className="num text-amber">{fmtEuro(sumSs)}</td>
+                          <td className="num text-purple">{fmtEuro(sumExtra)}</td>
+                          <td className="num text-green">{fmtEuro(sumLiquido)}</td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                )}
+              </div>
+
+              <div className="wa-nominas-grid animate-fade-in">
+                {filteredNominas.map((nom, idx) => (
               <div key={nom.id} className="wa-nomina-card">
                 <div className="wa-nom-header" style={{
                   background: NOMINA_ACCENTS[idx % NOMINA_ACCENTS.length].bg,
@@ -1047,7 +1258,9 @@ const Workapp = () => {
               </div>
             ))}
           </div>
-        );
+            </>
+          );
+        })();
       })()}
     </div>
   );
