@@ -88,6 +88,25 @@ const formatHoursDisplay = (val) => {
   return `${hours}:${mins.toString().padStart(2, '0')}`;
 };
 
+// Normaliza fechas "DD/MM/YYYY" o "YYYY-MM-DD" al formato ISO que exige la columna date de Supabase.
+// Devuelve null si el valor no es una fecha válida (p. ej. "No hay suficientes horas").
+const toIsoDate = (val) => {
+  if (!val) return null;
+  const s = String(val).trim();
+  let y, m, d;
+  if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(s)) {
+    [d, m, y] = s.split('/');
+  } else if (/^\d{4}-\d{1,2}-\d{1,2}/.test(s)) {
+    [y, m, d] = s.substring(0, 10).split('-');
+  } else {
+    return null;
+  }
+  const yi = parseInt(y, 10), mi = parseInt(m, 10), di = parseInt(d, 10);
+  const dt = new Date(yi, mi - 1, di);
+  if (isNaN(dt.getTime()) || dt.getMonth() !== mi - 1 || dt.getDate() !== di) return null;
+  return `${yi}-${String(mi).padStart(2, '0')}-${String(di).padStart(2, '0')}`;
+};
+
 // Pastel accent colors for nómina cards
 const NOMINA_ACCENTS = [
   { bg: 'linear-gradient(135deg, #dbeafe, #e0e7ff)', border: '#93c5fd' },  // pastel blue
@@ -403,8 +422,8 @@ const Workapp = () => {
     const payload = {
       mes: cuadrarForm.mes || 'Sin especificar',
       rango: prediccion?.rango || '',
-      fecha_cierre: cuadrarForm.fechaCierre || null,
-      fecha_inicio_rango: prediccion?.inicio_estimado || null,
+      fecha_cierre: toIsoDate(cuadrarForm.fechaCierre),
+      fecha_inicio_rango: toIsoDate(prediccion?.inicio_estimado),
       total_extra: cuadrarForm.importe + ' €',
       base: cuadrarForm.base + ' €',
       liquido: cuadrarForm.liquido + ' €',
