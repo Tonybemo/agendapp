@@ -704,9 +704,13 @@ const Aquapp = () => {
       const isTorreLimpieza = tTipo.includes('torre') || tTipo === 'limptorres' || tTipo === 'limpieza_torre' || tNotas.includes('torre');
       if (isTorreLimpieza) {
         const mIdx = getMonthIdx(t.fecha);
+        // Quitar el bloque oculto de fotos (<!-- FOTOS: {...} -->) para que no aparezca el enlace en las notas
+        const notasLimpias = (t.notas && t.notas !== 'null')
+          ? t.notas.replace(/<!--\s*FOTOS:[\s\S]*?-->/g, '').trim()
+          : '';
         const cObj = {
           source: 'tratamiento',
-          text: t.notas && t.notas !== 'null' && t.notas.trim() !== '' ? t.notas : (t.tipo_tratamiento || 'Limpieza de Torre'),
+          text: notasLimpias !== '' ? notasLimpias : (t.tipo_tratamiento || 'Limpieza de Torre'),
           fecha: t.fecha,
           motivo: t.motivo || 'prevencion',
           tratamiento: t,

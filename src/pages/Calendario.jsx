@@ -459,11 +459,15 @@ const Calendario = () => {
                                     )}
                                   </div>
 
-                                  {item.notas && (
-                                    <div className="unified-card-notes">
-                                      <strong>Notas:</strong> {item.notas}
-                                    </div>
-                                  )}
+                                  {(() => {
+                                    // Ocultar el bloque técnico de fotos (<!-- FOTOS: {...} -->) guardado en las notas
+                                    const notasVisibles = (item.notas || '').replace(/<!--\s*FOTOS:[\s\S]*?-->/g, '').trim();
+                                    return notasVisibles && notasVisibles !== 'null' ? (
+                                      <div className="unified-card-notes">
+                                        <strong>Notas:</strong> {notasVisibles}
+                                      </div>
+                                    ) : null;
+                                  })()}
 
                                   {isAdmin && (
                                     <div className="unified-card-footer admin-only">
