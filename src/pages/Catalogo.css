@@ -1078,6 +1078,32 @@
     width: 64px;
     height: 64px;
   }
+
+  .cat-excel-table {
+    min-width: 650px;
+  }
+
+  .cat-excel-table thead th.th-prod,
+  .cat-excel-table td.td-prod {
+    min-width: 150px;
+    max-width: 180px;
+    padding: 10px 12px;
+  }
+
+  .cat-mini-thumb,
+  .cat-mini-thumb-placeholder {
+    width: 32px;
+    height: 32px;
+  }
+
+  .cat-prod-name {
+    font-size: 0.84rem;
+  }
+
+  .cat-excel-table thead th,
+  .cat-excel-table td {
+    padding: 10px 12px;
+  }
 }
 
 /* ═════════════════════════════════════════════════════════════════════
@@ -1199,8 +1225,9 @@
 
 .cat-excel-table {
   width: 100%;
-  border-collapse: collapse;
-  min-width: 860px;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 720px;
   text-align: left;
 }
 
@@ -1211,27 +1238,33 @@
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  background: rgba(0, 0, 0, 0.02);
+  background: var(--bg-card);
   border-bottom: 1.5px solid var(--border);
   white-space: nowrap;
 }
 
-.cat-excel-table thead th.th-prod { width: 24%; }
-.cat-excel-table thead th.th-type { width: 13%; }
-.cat-excel-table thead th.th-comp { width: 22%; }
-.cat-excel-table thead th.th-reg { width: 16%; }
-.cat-excel-table thead th.th-lote { width: 12%; }
-.cat-excel-table thead th.th-cad { width: 8%; }
-.cat-excel-table thead th.th-actions { width: 5%; text-align: right; }
-
-.cat-excel-row {
-  border-bottom: 1px solid var(--border);
-  transition: background-color 0.15s ease;
-  cursor: pointer;
+/* Columna de Producto Inmovilizada / Sticky a la izquierda */
+.cat-excel-table thead th.th-prod {
+  width: 30%;
+  min-width: 180px;
+  max-width: 240px;
+  position: sticky;
+  left: 0;
+  z-index: 10;
+  background: var(--bg-card);
+  border-right: 2px solid var(--border);
+  box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.08);
 }
 
-.cat-excel-row:last-child {
-  border-bottom: none;
+.cat-excel-table thead th.th-comp { width: 28%; }
+.cat-excel-table thead th.th-reg { width: 19%; }
+.cat-excel-table thead th.th-lote { width: 13%; }
+.cat-excel-table thead th.th-cad { width: 6%; }
+.cat-excel-table thead th.th-actions { width: 4%; text-align: right; }
+
+.cat-excel-row {
+  transition: background-color 0.15s ease;
+  cursor: pointer;
 }
 
 .cat-excel-row:hover {
@@ -1242,6 +1275,24 @@
   padding: 12px 18px;
   vertical-align: middle;
   font-size: 0.88rem;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Celda de Producto Inmovilizada / Sticky a la izquierda */
+.cat-excel-table td.td-prod {
+  position: sticky;
+  left: 0;
+  z-index: 5;
+  min-width: 180px;
+  max-width: 240px;
+  background: var(--bg-card);
+  border-right: 2px solid var(--border);
+  box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.15s ease;
+}
+
+.cat-excel-row:hover td.td-prod {
+  background-color: var(--bg-card-hover);
 }
 
 /* ── CELDAS ESPECÍFICAS ───────────────────────────────────────────── */
@@ -1487,7 +1538,18 @@
 }
 
 [data-theme='dark'] .cat-excel-table thead th {
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--bg-card);
+}
+
+[data-theme='dark'] .cat-excel-table thead th.th-prod,
+[data-theme='dark'] .cat-excel-table td.td-prod {
+  background: var(--bg-card);
+  border-right-color: var(--border);
+  box-shadow: 4px 0 10px -2px rgba(0, 0, 0, 0.45);
+}
+
+[data-theme='dark'] .cat-excel-row:hover td.td-prod {
+  background-color: var(--bg-card-hover);
 }
 
 [data-theme='dark'] .cat-badge-mini {

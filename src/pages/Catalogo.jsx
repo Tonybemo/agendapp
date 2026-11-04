@@ -762,7 +762,6 @@ const Catalogo = () => {
                     <thead>
                       <tr>
                         <th className="th-prod">Producto</th>
-                        <th className="th-type">Tipo</th>
                         <th className="th-comp">Composición / Materia Activa</th>
                         <th className="th-reg">Nº Registro Oficial ⭐</th>
                         <th className="th-lote">Lote</th>
@@ -774,7 +773,6 @@ const Catalogo = () => {
                       {group.items.map(prod => {
                         const expiring = isExpiringSoon(prod.caducidad);
                         const catDef = getCategoryDef(prod.categoryId);
-                        const CatIcon = catDef.icon || Package;
                         const regKey = `reg-${prod.id}`;
                         const loteKey = `lote-${prod.id}`;
                         const isCopiedReg = copiedKey === regKey;
@@ -787,7 +785,7 @@ const Catalogo = () => {
                             onClick={() => setSelectedProduct(prod)}
                             title="Clic para ver la ficha completa de este producto"
                           >
-                            {/* 1. Producto */}
+                            {/* 1. Producto (Fila inmovilizada / Sticky) */}
                             <td className="td-prod">
                               <div className="cat-prod-cell">
                                 {prod.image ? (
@@ -807,18 +805,7 @@ const Catalogo = () => {
                               </div>
                             </td>
 
-                            {/* 2. Tipo */}
-                            <td className="td-type">
-                              <span 
-                                className="cat-type-pill"
-                                style={{ background: catDef.bgBadge, color: catDef.badgeText }}
-                              >
-                                <CatIcon size={12} />
-                                <span>{catDef.title}</span>
-                              </span>
-                            </td>
-
-                            {/* 3. Composición */}
+                            {/* 2. Composición */}
                             <td className="td-comp">
                               {prod.materiaActiva ? (
                                 <div className="cat-comp-cell" title={prod.materiaActiva}>
