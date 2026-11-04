@@ -3,7 +3,7 @@ import {
   Search, Bug, Mouse, ShieldAlert, CalendarClock, Plus, 
   CheckCircle2, AlertTriangle, BookOpen, FileText, Edit3, 
   Trash2, X, Package, Target, Layers, FlaskConical, ExternalLink,
-  Calendar, Eye
+  Calendar, Eye, LayoutGrid, Table, Copy, Check
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import './Catalogo.css';
@@ -70,6 +70,8 @@ const Catalogo = () => {
   const [imageErrorMap, setImageErrorMap] = useState({});
   const [newFichaFile, setNewFichaFile] = useState(null);
   const [newImageFile, setNewImageFile] = useState(null);
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'table'
+  const [copiedKey, setCopiedKey] = useState(null);
 
   const isOldServerUrl = (url) => {
     if (!url) return false;
@@ -182,6 +184,98 @@ const Catalogo = () => {
 
     return list;
   }, [products, selectedCategory, searchQuery]);
+
+  const copyToClipboard = (text, key) => {
+    if (!text) return;
+    try {
+      navigator.clipboard?.writeText(text);
+      setCopiedKey(key);
+      setTimeout(() => setCopiedKey(null), 2000);
+      if (window.__toast?.success) {
+        window.__toast.success(`Copiado: ${text}`);
+      }
+    } catch (err) {
+      console.warn('Error copiando al portapapeles:', err);
+    }
+  };
+
+  const getCategoryDef = (catId) => {
+    const found = CATEGORIES_DEF.find(c => c.id === catId);
+    if (found && found.id !== 'todos' && found.id !== 'caducar') return found;
+    if (catId === 'caducar') return CATEGORIES_DEF.find(c => c.id === 'caducar');
+    return {
+      id: catId || 'otros',
+      title: catId ? (catId.charAt(0).toUpperCase() + catId.slice(1)) : 'Otros',
+      icon: Package,
+      color: '#6366f1',
+      bgBadge: '#ede9fe',
+      badgeText: '#4338ca',
+      border: '#c7d2fe'
+    };
+  };
+
+  const groupedProducts = useMemo(() => {
+    if (selectedCategory === 'caducar') {
+      const cadCat = CATEGORIES_DEF.find(c => c.id === 'caducar');
+      return [{
+        category: cadCat,
+        items: filteredProducts
+      }];
+    }
+
+    if (selectedCategory !== 'todos') {
+      const catDef = getCategoryDef(selectedCategory);
+      return [{
+        category: catDef,
+        items: filteredProducts
+      }];
+    }
+
+    // Default 'todos': organizar lógicamente por insecticidas, rodenticidas, biocidas y otros
+    const order = ['insecticidas', 'rodenticidas', 'biocidas'];
+    const groups = [];
+
+    order.forEach(catId => {
+      const items = filteredProducts.filter(p => p.categoryId === catId);
+      if (items.length > 0) {
+        const catDef = CATEGORIES_DEF.find(c => c.id === catId);
+        groups.push({
+          category: catDef,
+          items
+        });
+      }
+    });
+
+    const remaining = filteredProducts.filter(p => !order.includes(p.categoryId));
+    if (remaining.length > 0) {
+      groups.push({
+        category: {
+          id: 'otros',
+          title: 'Otros Productos',
+          icon: Package,
+          color: '#64748b',
+          bgBadge: '#f1f5f9',
+          badgeText: '#334155',
+          border: '#e2e8f0'
+        },
+        items: remaining
+      });
+    }
+
+    return groups;
+  }, [filteredProducts, selectedCategory]);
+
+  const tableStats = useMemo(() => {
+    const withRegistro = filteredProducts.filter(p => p.registro && p.registro.trim().length > 0).length;
+    const withLote = filteredProducts.filter(p => p.lote && p.lote.trim().length > 0).length;
+    const withPdf = filteredProducts.filter(p => Boolean(p.pdfUrl)).length;
+    return {
+      total: filteredProducts.length,
+      withRegistro,
+      withLote,
+      withPdf
+    };
+  }, [filteredProducts]);
 
   const handleSaveProductEdit = async (e) => {
     e.preventDefault();
@@ -297,25 +391,49 @@ const Catalogo = () => {
           </div>
         </div>
 
-        {/* Buscador integrado */}
-        <div className="cat-search-box">
-          <Search size={18} color="var(--text-muted)" />
-          <input
-            type="text"
-            placeholder="Buscar por producto, materia activa, lote o registro..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          {searchQuery && (
+        {/* Acciones de cabecera: Selector de Vista + Buscador */}
+        <div className="cat-header-controls">
+          <div className="cat-view-toggles">
             <button
               type="button"
-              className="cat-search-clear"
-              onClick={() => setSearchQuery('')}
-              title="Limpiar búsqueda"
+              className={`cat-toggle-btn ${viewMode === 'grid' ? 'active' : ''}`}
+              onClick={() => setViewMode('grid')}
+              title="Vista de fichas en tarjetas"
             >
-              <X size={15} />
+              <LayoutGrid size={15} />
+              <span>Tarjetas</span>
             </button>
-          )}
+            <button
+              type="button"
+              className={`cat-toggle-btn ${viewMode === 'table' ? 'active' : ''}`}
+              onClick={() => setViewMode('table')}
+              title="Vista en cuadro / tabla resumen estilo Excel"
+            >
+              <Table size={15} />
+              <span>Cuadro Resumen</span>
+            </button>
+          </div>
+
+          {/* Buscador integrado */}
+          <div className="cat-search-box">
+            <Search size={18} color="var(--text-muted)" />
+            <input
+              type="text"
+              placeholder="Buscar por producto, materia activa, lote o registro..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                className="cat-search-clear"
+                onClick={() => setSearchQuery('')}
+                title="Limpiar búsqueda"
+              >
+                <X size={15} />
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -356,7 +474,7 @@ const Catalogo = () => {
         )}
       </div>
 
-      {/* 4. Cuadrícula Bento de Tarjetas de Producto */}
+      {/* 4. Cuadrícula Bento de Tarjetas de Producto o Cuadro Resumen */}
       {loading ? (
         <div className="cat-empty-state">
           <p>Cargando catálogo de productos...</p>
@@ -371,7 +489,7 @@ const Catalogo = () => {
               : 'No hay productos en esta categoría. Puedes añadir nuevos productos desde el botón central (+).'}
           </p>
         </div>
-      ) : (
+      ) : viewMode === 'grid' ? (
         <div className="cat-cards-grid animate-fade-in">
           {filteredProducts.map(prod => {
             const theme = getCategoryTheme(prod.categoryId, prod.caducidad);
@@ -579,6 +697,236 @@ const Catalogo = () => {
                       </button>
                     </div>
                   </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        /* Cuadro Resumen estilo Excel organizado por tipo */
+        <div className="cat-table-view-container animate-fade-in">
+          {/* Tira resumen de inventario */}
+          <div className="cat-table-summary-strip">
+            <div className="cat-summary-stat">
+              <span className="stat-label">Total en vista</span>
+              <span className="stat-value">{tableStats.total}</span>
+            </div>
+            <div className="cat-summary-divider" />
+            <div className="cat-summary-stat">
+              <span className="stat-label">Con Nº Registro Oficial</span>
+              <span className="stat-value highlight-reg">{tableStats.withRegistro}</span>
+            </div>
+            <div className="cat-summary-divider" />
+            <div className="cat-summary-stat">
+              <span className="stat-label">Con Lote Asignado</span>
+              <span className="stat-value">{tableStats.withLote}</span>
+            </div>
+            <div className="cat-summary-divider" />
+            <div className="cat-summary-stat">
+              <span className="stat-label">Con Ficha Técnica / SDS</span>
+              <span className="stat-value">{tableStats.withPdf}</span>
+            </div>
+          </div>
+
+          {/* Grupos organizados por tipo de producto */}
+          {groupedProducts.map(group => {
+            const GroupIcon = group.category?.icon || Package;
+            const groupTitle = group.category?.title || 'Otros';
+            const groupCount = group.items.length;
+            const groupBadgeBg = group.category?.bgBadge || 'var(--bg-card-hover)';
+            const groupBadgeText = group.category?.badgeText || 'var(--text-main)';
+
+            return (
+              <div key={group.category.id} className="cat-table-group-card">
+                {/* Cabecera / Banner del grupo */}
+                <div className="cat-group-banner">
+                  <div className="cat-group-banner-left">
+                    <span 
+                      className="cat-group-banner-icon"
+                      style={{ background: groupBadgeBg, color: groupBadgeText }}
+                    >
+                      <GroupIcon size={18} />
+                    </span>
+                    <div>
+                      <h3 className="cat-group-banner-title">{groupTitle}</h3>
+                      <span className="cat-group-banner-sub">
+                        {groupCount} {groupCount === 1 ? 'producto clasificado' : 'productos clasificados'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tabla de Productos con desplazamiento horizontal responsivo */}
+                <div className="cat-table-responsive">
+                  <table className="cat-excel-table">
+                    <thead>
+                      <tr>
+                        <th className="th-prod">Producto</th>
+                        <th className="th-type">Tipo</th>
+                        <th className="th-comp">Composición / Materia Activa</th>
+                        <th className="th-reg">Nº Registro Oficial ⭐</th>
+                        <th className="th-lote">Lote</th>
+                        <th className="th-cad">Caducidad</th>
+                        <th className="th-actions">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {group.items.map(prod => {
+                        const expiring = isExpiringSoon(prod.caducidad);
+                        const catDef = getCategoryDef(prod.categoryId);
+                        const CatIcon = catDef.icon || Package;
+                        const regKey = `reg-${prod.id}`;
+                        const loteKey = `lote-${prod.id}`;
+                        const isCopiedReg = copiedKey === regKey;
+                        const isCopiedLote = copiedKey === loteKey;
+
+                        return (
+                          <tr 
+                            key={prod.id} 
+                            className="cat-excel-row"
+                            onClick={() => setSelectedProduct(prod)}
+                            title="Clic para ver la ficha completa de este producto"
+                          >
+                            {/* 1. Producto */}
+                            <td className="td-prod">
+                              <div className="cat-prod-cell">
+                                {prod.image ? (
+                                  <img src={prod.image} alt={prod.name} className="cat-mini-thumb" />
+                                ) : (
+                                  <div 
+                                    className="cat-mini-thumb-placeholder" 
+                                    style={{ background: catDef.bgBadge, color: catDef.badgeText }}
+                                  >
+                                    {prod.name ? prod.name.charAt(0).toUpperCase() : 'P'}
+                                  </div>
+                                )}
+                                <div className="cat-prod-text-wrap">
+                                  <strong className="cat-prod-name">{prod.name}</strong>
+                                  {prod.badge && <span className="cat-badge-mini">{prod.badge}</span>}
+                                </div>
+                              </div>
+                            </td>
+
+                            {/* 2. Tipo */}
+                            <td className="td-type">
+                              <span 
+                                className="cat-type-pill"
+                                style={{ background: catDef.bgBadge, color: catDef.badgeText }}
+                              >
+                                <CatIcon size={12} />
+                                <span>{catDef.title}</span>
+                              </span>
+                            </td>
+
+                            {/* 3. Composición */}
+                            <td className="td-comp">
+                              {prod.materiaActiva ? (
+                                <div className="cat-comp-cell" title={prod.materiaActiva}>
+                                  <FlaskConical size={13} color="#0284c7" className="cat-comp-icon" />
+                                  <span className="cat-comp-text">{prod.materiaActiva}</span>
+                                </div>
+                              ) : (
+                                <span className="cat-muted-dash">—</span>
+                              )}
+                            </td>
+
+                            {/* 4. Nº Registro (Muy importante) */}
+                            <td className="td-reg">
+                              {prod.registro && prod.registro.trim() ? (
+                                <div className="cat-registro-chip" title="Nº de Registro Oficial">
+                                  <span className="cat-reg-code">{prod.registro}</span>
+                                  <button
+                                    type="button"
+                                    className={`cat-mini-copy-btn ${isCopiedReg ? 'copied' : ''}`}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      copyToClipboard(prod.registro, regKey);
+                                    }}
+                                    title="Copiar Nº de Registro"
+                                  >
+                                    {isCopiedReg ? <Check size={12} color="#10b981" /> : <Copy size={12} />}
+                                  </button>
+                                </div>
+                              ) : (
+                                <span className="cat-muted-dash">Sin registro</span>
+                              )}
+                            </td>
+
+                            {/* 5. Lote */}
+                            <td className="td-lote">
+                              {prod.lote && prod.lote.trim() ? (
+                                <div className="cat-lote-chip" title="Número de Lote">
+                                  <span className="cat-lote-code">{prod.lote}</span>
+                                  <button
+                                    type="button"
+                                    className={`cat-mini-copy-btn ${isCopiedLote ? 'copied' : ''}`}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      copyToClipboard(prod.lote, loteKey);
+                                    }}
+                                    title="Copiar Lote"
+                                  >
+                                    {isCopiedLote ? <Check size={12} color="#10b981" /> : <Copy size={12} />}
+                                  </button>
+                                </div>
+                              ) : (
+                                <span className="cat-muted-dash">Sin lote</span>
+                              )}
+                            </td>
+
+                            {/* 6. Caducidad */}
+                            <td className="td-cad">
+                              {prod.caducidad ? (
+                                <span className={`cat-cad-pill ${expiring ? 'expiring' : ''}`}>
+                                  {expiring && <CalendarClock size={11} />}
+                                  <span>{prod.caducidad}</span>
+                                </span>
+                              ) : (
+                                <span className="cat-muted-dash">—</span>
+                              )}
+                            </td>
+
+                            {/* 7. Acciones */}
+                            <td className="td-actions" onClick={(e) => e.stopPropagation()}>
+                              <div className="cat-row-actions">
+                                {prod.pdfUrl && (
+                                  <a
+                                    href={prod.pdfUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="cat-tbl-action sds"
+                                    title="Ver Ficha Técnica / SDS (PDF)"
+                                  >
+                                    <FileText size={14} />
+                                  </a>
+                                )}
+                                <button
+                                  type="button"
+                                  className="cat-tbl-action view"
+                                  onClick={() => setSelectedProduct(prod)}
+                                  title="Ver detalle completo"
+                                >
+                                  <Eye size={14} />
+                                </button>
+                                <button
+                                  type="button"
+                                  className="cat-tbl-action edit"
+                                  onClick={() => {
+                                    setEditingProduct(prod);
+                                    setNewFichaFile(null);
+                                    setNewImageFile(null);
+                                  }}
+                                  title="Editar producto"
+                                >
+                                  <Edit3 size={14} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             );
