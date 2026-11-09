@@ -1078,32 +1078,6 @@
     width: 64px;
     height: 64px;
   }
-
-  .cat-excel-table {
-    min-width: 650px;
-  }
-
-  .cat-excel-table thead th.th-prod,
-  .cat-excel-table td.td-prod {
-    min-width: 150px;
-    max-width: 180px;
-    padding: 10px 12px;
-  }
-
-  .cat-mini-thumb,
-  .cat-mini-thumb-placeholder {
-    width: 32px;
-    height: 32px;
-  }
-
-  .cat-prod-name {
-    font-size: 0.84rem;
-  }
-
-  .cat-excel-table thead th,
-  .cat-excel-table td {
-    padding: 10px 12px;
-  }
 }
 
 /* ═════════════════════════════════════════════════════════════════════
@@ -1221,18 +1195,21 @@
   width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
 }
 
 .cat-excel-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  min-width: 720px;
+  min-width: 820px;
+  table-layout: fixed;
   text-align: left;
 }
 
 .cat-excel-table thead th {
-  padding: 12px 18px;
+  padding: 12px 14px;
   font-size: 0.74rem;
   font-weight: 800;
   color: var(--text-muted);
@@ -1245,9 +1222,7 @@
 
 /* Columna de Producto Inmovilizada / Sticky a la izquierda */
 .cat-excel-table thead th.th-prod {
-  width: 30%;
-  min-width: 180px;
-  max-width: 240px;
+  width: 220px;
   position: sticky;
   left: 0;
   z-index: 10;
@@ -1256,11 +1231,11 @@
   box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.08);
 }
 
-.cat-excel-table thead th.th-comp { width: 28%; }
-.cat-excel-table thead th.th-reg { width: 19%; }
-.cat-excel-table thead th.th-lote { width: 13%; }
-.cat-excel-table thead th.th-cad { width: 6%; }
-.cat-excel-table thead th.th-actions { width: 4%; text-align: right; }
+.cat-excel-table thead th.th-comp { width: 220px; }
+.cat-excel-table thead th.th-reg { width: 170px; }
+.cat-excel-table thead th.th-lote { width: 125px; }
+.cat-excel-table thead th.th-cad { width: 100px; }
+.cat-excel-table thead th.th-actions { width: 95px; text-align: center; }
 
 .cat-excel-row {
   transition: background-color 0.15s ease;
@@ -1272,10 +1247,11 @@
 }
 
 .cat-excel-table td {
-  padding: 12px 18px;
+  padding: 12px 14px;
   vertical-align: middle;
   font-size: 0.88rem;
   border-bottom: 1px solid var(--border);
+  overflow: hidden;
 }
 
 /* Celda de Producto Inmovilizada / Sticky a la izquierda */
@@ -1283,8 +1259,7 @@
   position: sticky;
   left: 0;
   z-index: 5;
-  min-width: 180px;
-  max-width: 240px;
+  width: 220px;
   background: var(--bg-card);
   border-right: 2px solid var(--border);
   box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.08);
@@ -1299,12 +1274,14 @@
 .cat-prod-cell {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  min-width: 0;
+  width: 100%;
 }
 
 .cat-mini-thumb {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: var(--radius-xs);
   object-fit: contain;
   background: #ffffff;
@@ -1315,13 +1292,13 @@
 }
 
 .cat-mini-thumb-placeholder {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: var(--radius-xs);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   font-weight: 900;
   flex-shrink: 0;
   border: 1px solid var(--border-light);
@@ -1332,13 +1309,21 @@
   flex-direction: column;
   gap: 2px;
   min-width: 0;
+  flex: 1;
+  overflow: hidden;
 }
 
 .cat-prod-name {
-  font-size: 0.93rem;
+  font-size: 0.88rem;
   font-weight: 800;
   color: var(--text-main);
   line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
 }
 
 .cat-badge-mini {
@@ -1350,17 +1335,6 @@
   padding: 1px 6px;
   border-radius: 4px;
   align-self: flex-start;
-}
-
-.cat-type-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: var(--radius-pill);
-  font-size: 0.76rem;
-  font-weight: 800;
-  white-space: nowrap;
 }
 
 .cat-comp-cell {
@@ -1596,7 +1570,16 @@
   color: #ffffff;
 }
 
+[data-theme='dark'] .cat-scroll-hint-pill {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-muted);
+}
+
 @media (max-width: 768px) {
+  .cat-container {
+    padding: 16px 12px 140px 12px;
+  }
+
   .cat-header-controls {
     width: 100%;
     justify-content: space-between;
@@ -1613,8 +1596,8 @@
   }
 
   .cat-table-summary-strip {
-    gap: 12px;
-    padding: 12px 16px;
+    gap: 10px 14px;
+    padding: 10px 14px;
   }
 
   .cat-summary-divider {
@@ -1623,5 +1606,113 @@
 
   .cat-summary-stat {
     flex: 1 1 40%;
+  }
+
+  .cat-scroll-hint-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: var(--radius-pill);
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--text-muted);
+  }
+
+  /* TABLA EN MÓVIL: COLUMNA PRODUCTO MUY COMPACTA (125px) Y ANCHO TOTAL REDUCIDO */
+  .cat-excel-table {
+    min-width: 730px;
+    table-layout: fixed;
+  }
+
+  .cat-excel-table thead th {
+    padding: 10px 8px;
+    font-size: 0.7rem;
+  }
+
+  .cat-excel-table td {
+    padding: 10px 8px;
+    font-size: 0.82rem;
+  }
+
+  /* Columna Producto en móvil: exactamente 125px para dejar más de 65% de pantalla libre al scroll */
+  .cat-excel-table thead th.th-prod,
+  .cat-excel-table td.td-prod {
+    width: 125px !important;
+    min-width: 125px !important;
+    max-width: 125px !important;
+    padding: 8px 6px !important;
+  }
+
+  .cat-prod-cell {
+    gap: 6px;
+  }
+
+  .cat-mini-thumb,
+  .cat-mini-thumb-placeholder {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    font-size: 0.78rem;
+  }
+
+  .cat-prod-name {
+    font-size: 0.76rem;
+    line-height: 1.15;
+  }
+
+  .cat-badge-mini {
+    font-size: 0.58rem;
+    padding: 0 4px;
+  }
+
+  /* Columnas de scroll en móvil: anchos claros y compactos */
+  .cat-excel-table thead th.th-comp,
+  .cat-excel-table td.td-comp {
+    width: 175px !important;
+  }
+
+  .cat-excel-table thead th.th-reg,
+  .cat-excel-table td.td-reg {
+    width: 160px !important;
+  }
+
+  .cat-excel-table thead th.th-lote,
+  .cat-excel-table td.td-lote {
+    width: 115px !important;
+  }
+
+  .cat-excel-table thead th.th-cad,
+  .cat-excel-table td.td-cad {
+    width: 95px !important;
+  }
+
+  .cat-excel-table thead th.th-actions,
+  .cat-excel-table td.td-actions {
+    width: 85px !important;
+    text-align: center;
+  }
+
+  .cat-registro-chip {
+    padding: 4px 8px;
+    font-size: 0.76rem;
+    gap: 5px;
+  }
+
+  .cat-lote-chip {
+    padding: 3px 7px;
+    font-size: 0.76rem;
+    gap: 5px;
+  }
+
+  .cat-cad-pill {
+    padding: 3px 6px;
+    font-size: 0.75rem;
+  }
+
+  .cat-tbl-action {
+    width: 28px;
+    height: 28px;
   }
 }

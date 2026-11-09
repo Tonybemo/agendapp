@@ -754,6 +754,11 @@ const Catalogo = () => {
                       </span>
                     </div>
                   </div>
+                  <div className="cat-group-banner-right">
+                    <span className="cat-scroll-hint-pill" title="Desliza horizontalmente para ver el resto de columnas">
+                      ↔ Desliza
+                    </span>
+                  </div>
                 </div>
 
                 {/* Tabla de Productos con desplazamiento horizontal responsivo */}
