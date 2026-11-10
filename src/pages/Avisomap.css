@@ -421,53 +421,104 @@
   border: 1px solid transparent;
 }
 
-/* ── SECCIÓN VISUAL: MINI-MAPA Y FOTO ─────────────────────────────── */
-.aviso-media-section {
+/* ── MINIATURAS COMPACTAS: CUADROS SEPARADOS DE MAPA Y FOTO ───────── */
+.aviso-thumbs-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 4px 0 2px 0;
+}
+
+.aviso-thumb-box {
   position: relative;
-  height: 140px;
-  width: 100%;
-  overflow: hidden;
+  width: 82px;
+  height: 82px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
   background: var(--bg-card-hover);
-  border-bottom: 1px solid var(--border);
-}
-
-.aviso-media-dual {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  height: 100%;
-  width: 100%;
-  gap: 1px;
-  background: var(--border);
-}
-
-.aviso-thumb-container {
-  position: relative;
-  height: 100%;
-  width: 100%;
-  cursor: pointer;
   overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.aviso-thumb-box:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.18);
+  border-color: #3b82f6;
+}
+
+.aviso-thumb-box.map-box {
+  background: #f1f5f9;
+}
+
+.aviso-thumb-box.photo-box {
   background: #0f172a;
+}
+
+.aviso-thumb-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  pointer-events: none;
+  filter: saturate(1.1);
+  transform: scale(1.15);
 }
 
 .aviso-thumb-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.95;
-  transition: transform 0.25s ease, opacity 0.2s ease;
+  display: block;
+  transition: transform 0.25s ease;
 }
 
-.aviso-thumb-container:hover .aviso-thumb-img {
-  transform: scale(1.06);
-  opacity: 1;
+.aviso-thumb-box:hover .aviso-thumb-img {
+  transform: scale(1.08);
+}
+
+.aviso-thumb-glass-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 5px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.62) 0%, transparent 60%);
+  transition: background 0.2s ease;
+}
+
+.aviso-thumb-box:hover .aviso-thumb-glass-overlay {
+  background: linear-gradient(to top, rgba(37, 99, 235, 0.72) 0%, transparent 70%);
+}
+
+.aviso-thumb-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.66rem;
+  font-weight: 800;
+  color: #ffffff;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
+.aviso-thumb-badge.map {
+  background: #2563eb;
+}
+
+.aviso-thumb-badge.photo {
+  background: rgba(15, 23, 42, 0.85);
 }
 
 .aviso-thumb-zoom-icon {
   position: absolute;
-  bottom: 8px;
-  right: 8px;
-  width: 28px;
-  height: 28px;
+  top: 5px;
+  right: 5px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   background: rgba(15, 23, 42, 0.75);
   color: #ffffff;
@@ -475,71 +526,12 @@
   align-items: center;
   justify-content: center;
   backdrop-filter: blur(4px);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-  transition: transform 0.15s ease, background 0.15s ease;
+  transition: background 0.15s ease, transform 0.15s ease;
 }
 
-.aviso-thumb-container:hover .aviso-thumb-zoom-icon {
+.aviso-thumb-box:hover .aviso-thumb-zoom-icon {
+  background: #2563eb;
   transform: scale(1.1);
-  background: #2563eb;
-}
-
-.aviso-map-container {
-  position: relative;
-  height: 100%;
-  width: 100%;
-  cursor: pointer;
-  overflow: hidden;
-  background: #f1f5f9;
-}
-
-.aviso-mini-map-frame {
-  width: 100%;
-  height: 100%;
-  border: none;
-  pointer-events: none;
-  filter: saturate(1.1);
-  transform: scale(1.02);
-}
-
-.aviso-map-glass-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-  padding: 8px;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.45) 0%, transparent 60%);
-  transition: background 0.2s ease;
-}
-
-.aviso-map-container:hover .aviso-map-glass-overlay {
-  background: linear-gradient(to top, rgba(37, 99, 235, 0.6) 0%, transparent 70%);
-}
-
-.aviso-media-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.72rem;
-  font-weight: 800;
-  padding: 4px 9px;
-  border-radius: var(--radius-pill);
-}
-
-.aviso-media-tag.photo {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  background: rgba(15, 23, 42, 0.75);
-  color: #ffffff;
-  backdrop-filter: blur(4px);
-}
-
-.aviso-media-tag.map {
-  background: #2563eb;
-  color: #ffffff;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
 }
 
 /* ── CUERPO DE LA TARJETA ─────────────────────────────────────────── */
@@ -1021,7 +1013,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+  z-index: 999999;
   padding: 20px;
 }
 
@@ -1134,20 +1126,16 @@
   color: #ffffff;
 }
 
-[data-theme='dark'] .aviso-media-section {
-  background: #0f172a;
+[data-theme='dark'] .aviso-thumb-box {
   border-color: var(--border);
+  background: #1e293b;
 }
 
-[data-theme='dark'] .aviso-media-dual {
-  background: var(--border);
-}
-
-[data-theme='dark'] .aviso-map-container {
+[data-theme='dark'] .aviso-thumb-box.map-box {
   background: #0f172a;
 }
 
-[data-theme='dark'] .aviso-mini-map-frame {
+[data-theme='dark'] .aviso-thumb-iframe {
   filter: brightness(0.85) contrast(1.1) invert(0.9) hue-rotate(180deg);
 }
 

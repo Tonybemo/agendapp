@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   ShieldCheck, Search, Calendar, 
   MapPin, Clock, Navigation, Eye, Edit3, Trash2, Camera,
@@ -198,6 +199,21 @@ const Avisomap = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [avisoFileName, setAvisoFileName] = useState('');
   const [previewImage, setPreviewImage] = useState(null);
+
+  // Bloquear scroll de la página y cerrar con Escape al abrir el visor de foto
+  useEffect(() => {
+    if (!previewImage) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setPreviewImage(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [previewImage]);
 
   const handleOpenEdit = (aviso, plagasArray) => {
     // 1. Normalizar hora para input tipo "time" (formato HH:mm)
@@ -636,72 +652,6 @@ const Avisomap = () => {
                   </div>
                 </div>
 
-                {/* Sección Visual: Foto del Albarán y/o Miniatura de Mapa */}
-                <div className="aviso-media-section">
-                  {aviso.adjunto ? (
-                    /* Vista Combinada: Foto a la izquierda + Mini Mapa a la derecha */
-                    <div className="aviso-media-dual">
-                      {/* Miniatura Foto / Albarán */}
-                      <div 
-                        className="aviso-thumb-container"
-                        onClick={() => setPreviewImage(aviso.adjunto)}
-                        title="Toca para ampliar el albarán o foto adjunta"
-                      >
-                        <img 
-                          src={aviso.adjunto} 
-                          alt="Albarán / Foto de aviso" 
-                          className="aviso-thumb-img" 
-                          loading="lazy" 
-                        />
-                        <span className="aviso-media-tag photo">
-                          <Camera size={11} /> Foto
-                        </span>
-                        <div className="aviso-thumb-zoom-icon">
-                          <Eye size={15} />
-                        </div>
-                      </div>
-
-                      {/* Miniatura de Mapa */}
-                      <div 
-                        className="aviso-map-container"
-                        onClick={() => window.open(mapSearchUrl, '_blank')}
-                        title="Toca para abrir la ruta en Google Maps"
-                      >
-                        <iframe
-                          title={`Mapa de ${aviso.direccion}`}
-                          src={mapEmbedUrl}
-                          className="aviso-mini-map-frame"
-                          loading="lazy"
-                        />
-                        <div className="aviso-map-glass-overlay">
-                          <span className="aviso-media-tag map">
-                            <Navigation size={11} /> Ruta GPS
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    /* Sin foto: Mini Mapa a ancho completo */
-                    <div 
-                      className="aviso-map-container full"
-                      onClick={() => window.open(mapSearchUrl, '_blank')}
-                      title="Toca para abrir la ruta en Google Maps"
-                    >
-                      <iframe
-                        title={`Mapa de ${aviso.direccion}`}
-                        src={mapEmbedUrl}
-                        className="aviso-mini-map-frame full"
-                        loading="lazy"
-                      />
-                      <div className="aviso-map-glass-overlay">
-                        <span className="aviso-media-tag map">
-                          <Navigation size={11} /> Toca para navegar en Google Maps
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
                 <div className="aviso-card-body">
                   {/* Metadata: Contacto y Tiempo Relativo */}
                   <div className="aviso-details-row">
@@ -715,6 +665,52 @@ const Avisomap = () => {
                       <span className="aviso-relative-time">
                         {relativeTime}
                       </span>
+                    )}
+                  </div>
+
+                  {/* Cuadros independientes y separados: Mapa y Foto */}
+                  <div className="aviso-thumbs-row">
+                    {/* Cuadro Mini Mapa */}
+                    <div 
+                      className="aviso-thumb-box map-box"
+                      onClick={() => window.open(mapSearchUrl, '_blank')}
+                      title="Abrir ubicación en Google Maps"
+                    >
+                      <iframe
+                        title={`Mapa de ${aviso.direccion}`}
+                        src={mapEmbedUrl}
+                        className="aviso-thumb-iframe"
+                        loading="lazy"
+                      />
+                      <div className="aviso-thumb-glass-overlay">
+                        <span className="aviso-thumb-badge map">
+                          <Navigation size={10} /> Mapa
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Cuadro Foto / Albarán (si tiene adjunto) */}
+                    {aviso.adjunto && (
+                      <div 
+                        className="aviso-thumb-box photo-box"
+                        onClick={() => setPreviewImage(aviso.adjunto)}
+                        title="Toca para ampliar el albarán o foto adjunta"
+                      >
+                        <img 
+                          src={aviso.adjunto} 
+                          alt="Foto / Albarán adjunto" 
+                          className="aviso-thumb-img" 
+                          loading="lazy" 
+                        />
+                        <div className="aviso-thumb-glass-overlay">
+                          <span className="aviso-thumb-badge photo">
+                            <Camera size={10} /> Foto
+                          </span>
+                        </div>
+                        <div className="aviso-thumb-zoom-icon">
+                          <Eye size={12} />
+                        </div>
+                      </div>
                     )}
                   </div>
 
@@ -833,7 +829,7 @@ const Avisomap = () => {
       </div>
 
       {/* Modal Editar Aviso */}
-      {editingAviso && (
+      {editingAviso && createPortal(
         <div className="uf-overlay" onClick={() => setEditingAviso(null)}>
           <div className="uf-modal animate-fade-in" onClick={e => e.stopPropagation()}>
             <div className="uf-modal-header">
@@ -955,11 +951,12 @@ const Avisomap = () => {
               </button>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Modal Lightbox para Ampliar Foto / Albarán */}
-      {previewImage && (
+      {previewImage && createPortal(
         <div className="aviso-lightbox-overlay animate-fade-in" onClick={() => setPreviewImage(null)}>
           <div className="aviso-lightbox-card" onClick={(e) => e.stopPropagation()}>
             <div className="aviso-lightbox-top">
@@ -991,7 +988,8 @@ const Avisomap = () => {
               <img src={previewImage} alt="Albarán ampliado" className="aviso-lightbox-img" />
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
