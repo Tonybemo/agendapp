@@ -12,16 +12,116 @@ const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Juli
 
 const getPlagaStyle = (plaga) => {
   const pLower = (plaga || '').toLowerCase().trim();
-  if (pLower.includes('cucaracha')) return { label: 'Cucarachas', color: '#b91c1c', bg: '#fee2e2' };
-  if (pLower.includes('avispa')) return { label: 'Avispas', color: '#d97706', bg: '#fef3c7' };
-  if (pLower.includes('roedor') || pLower.includes('rata') || pLower.includes('raton') || pLower.includes('ratón')) return { label: 'Roedores', color: '#c2410c', bg: '#ffedd5' };
-  if (pLower.includes('hormiga')) return { label: 'Hormigas', color: '#4338ca', bg: '#e0e7ff' };
-  if (pLower.includes('termita')) return { label: 'Termitas', color: '#78350f', bg: '#ffedd5' };
-  if (pLower.includes('procesionaria')) return { label: 'Procesionaria', color: '#047857', bg: '#d1fae5' };
-  if (pLower.includes('chinche')) return { label: 'Chinches', color: '#15803d', bg: '#dcfce7' };
+  if (pLower.includes('cucaracha')) {
+    return { 
+      label: 'Cucarachas', 
+      color: '#b91c1c', 
+      bg: '#fee2e2', 
+      border: '#fca5a5', 
+      gradient: 'linear-gradient(135deg, rgba(254, 242, 242, 0.95) 0%, rgba(254, 226, 226, 0.6) 100%)' 
+    };
+  }
+  if (pLower.includes('avispa')) {
+    return { 
+      label: 'Avispas', 
+      color: '#d97706', 
+      bg: '#fef3c7', 
+      border: '#fde68a', 
+      gradient: 'linear-gradient(135deg, rgba(254, 243, 199, 0.95) 0%, rgba(253, 230, 138, 0.6) 100%)' 
+    };
+  }
+  if (pLower.includes('roedor') || pLower.includes('rata') || pLower.includes('raton') || pLower.includes('ratón')) {
+    return { 
+      label: 'Roedores', 
+      color: '#c2410c', 
+      bg: '#ffedd5', 
+      border: '#fed7aa', 
+      gradient: 'linear-gradient(135deg, rgba(255, 247, 237, 0.95) 0%, rgba(255, 237, 213, 0.6) 100%)' 
+    };
+  }
+  if (pLower.includes('hormiga')) {
+    return { 
+      label: 'Hormigas', 
+      color: '#4338ca', 
+      bg: '#e0e7ff', 
+      border: '#c7d2fe', 
+      gradient: 'linear-gradient(135deg, rgba(238, 242, 255, 0.95) 0%, rgba(224, 231, 255, 0.6) 100%)' 
+    };
+  }
+  if (pLower.includes('termita')) {
+    return { 
+      label: 'Termitas', 
+      color: '#78350f', 
+      bg: '#ffedd5', 
+      border: '#fed7aa', 
+      gradient: 'linear-gradient(135deg, rgba(255, 247, 237, 0.95) 0%, rgba(254, 215, 170, 0.6) 100%)' 
+    };
+  }
+  if (pLower.includes('procesionaria')) {
+    return { 
+      label: 'Procesionaria', 
+      color: '#047857', 
+      bg: '#d1fae5', 
+      border: '#a7f3d0', 
+      gradient: 'linear-gradient(135deg, rgba(236, 253, 245, 0.95) 0%, rgba(209, 250, 229, 0.6) 100%)' 
+    };
+  }
+  if (pLower.includes('chinche')) {
+    return { 
+      label: 'Chinches', 
+      color: '#15803d', 
+      bg: '#dcfce7', 
+      border: '#bbf7d0', 
+      gradient: 'linear-gradient(135deg, rgba(240, 253, 244, 0.95) 0%, rgba(220, 252, 231, 0.6) 100%)' 
+    };
+  }
   
   const formatted = plaga ? (plaga.charAt(0).toUpperCase() + plaga.slice(1).toLowerCase()) : 'Plaga';
-  return { label: formatted, color: '#2563eb', bg: '#eff6ff' };
+  return { 
+    label: formatted, 
+    color: '#2563eb', 
+    bg: '#eff6ff', 
+    border: '#bfdbfe', 
+    gradient: 'linear-gradient(135deg, rgba(239, 246, 255, 0.95) 0%, rgba(224, 242, 254, 0.6) 100%)' 
+  };
+};
+
+const formatDateDisplay = (dateStr) => {
+  if (!dateStr) return '';
+  const parts = dateStr.split('-');
+  if (parts.length === 3) {
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  }
+  return dateStr;
+};
+
+const formatTimeDisplay = (timeStr) => {
+  if (!timeStr) return '';
+  const parts = String(timeStr).split(':');
+  if (parts.length >= 2) {
+    return `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
+  }
+  return timeStr;
+};
+
+const getRelativeTimeString = (dateStr) => {
+  if (!dateStr) return '';
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  
+  const parts = dateStr.split('-');
+  if (parts.length !== 3) return '';
+  const date = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+  
+  const diffTime = today.getTime() - date.getTime();
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays === 0) return 'Hoy';
+  if (diffDays === 1) return 'Ayer';
+  if (diffDays === -1) return 'Mañana';
+  if (diffDays > 1 && diffDays < 30) return `Hace ${diffDays} días`;
+  if (diffDays >= 30 && diffDays < 365) return `Hace ${Math.floor(diffDays / 30)} mes${Math.floor(diffDays / 30) > 1 ? 'es' : ''}`;
+  return '';
 };
 
 const getMonthColor = (month) => {
@@ -97,6 +197,7 @@ const Avisomap = () => {
   const [editingAviso, setEditingAviso] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [avisoFileName, setAvisoFileName] = useState('');
+  const [previewImage, setPreviewImage] = useState(null);
 
   const handleOpenEdit = (aviso, plagasArray) => {
     // 1. Normalizar hora para input tipo "time" (formato HH:mm)
@@ -468,19 +569,54 @@ const Avisomap = () => {
         <div className="am-avisos-grid animate-fade-in">
           {filteredAvisos.map(aviso => {
             const plagasArray = parsePlagas(aviso.plagas);
+            const primaryPlaga = plagasArray.length > 0 ? getPlagaStyle(plagasArray[0]) : getPlagaStyle('Plaga');
+            const relativeTime = getRelativeTimeString(aviso.fecha);
+            const fullAddress = `${aviso.direccion || ''}${aviso.portal ? `, ${aviso.portal}` : ''}, ${aviso.localidad || ''}`;
+            const mapQuery = encodeURIComponent(`${fullAddress}, Asturias, España`);
+            const mapEmbedUrl = `https://maps.google.com/maps?q=${mapQuery}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+            const mapSearchUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`;
 
             return (
-              <div key={aviso.id} className="aviso-map-card">
-                {/* Header: Dirección, Localidad y Plagas (Velo Azul Tenue) */}
-                <div className="aviso-card-top">
+              <div 
+                key={aviso.id} 
+                className="aviso-map-card"
+                style={{
+                  '--card-accent': primaryPlaga.color,
+                  '--card-accent-border': primaryPlaga.border
+                }}
+              >
+                {/* Cabecera: Dirección, Localidad y Plagas (con acento según plaga) */}
+                <div 
+                  className="aviso-card-top"
+                  style={{ 
+                    background: primaryPlaga.gradient, 
+                    borderBottomColor: primaryPlaga.border 
+                  }}
+                >
                   <div className="aviso-card-title-group">
-                    <h4 className="aviso-address">
+                    <div className="aviso-header-meta">
+                      {aviso.localidad && (
+                        <span className="aviso-loc-badge">
+                          <MapPin size={12} />
+                          {aviso.localidad}
+                        </span>
+                      )}
+                      {aviso.fecha && (
+                        <span className="aviso-date-badge">
+                          <Calendar size={12} />
+                          {formatDateDisplay(aviso.fecha)}
+                        </span>
+                      )}
+                      {aviso.hora && (
+                        <span className="aviso-time-badge">
+                          <Clock size={12} />
+                          {formatTimeDisplay(aviso.hora)}
+                        </span>
+                      )}
+                    </div>
+                    <h4 className="aviso-address" title={fullAddress}>
                       {aviso.direccion}{aviso.portal ? `, ${aviso.portal}` : ''}
                     </h4>
-                    <div className="aviso-loc">
-                      <MapPin size={14} color="#2563eb" />
-                      <span>{aviso.localidad}</span>
-                    </div>
                   </div>
 
                   {/* Plagas Badges */}
@@ -491,7 +627,7 @@ const Avisomap = () => {
                         <span 
                           key={p} 
                           className="plaga-pill" 
-                          style={{ backgroundColor: pc.bg, color: pc.color }}
+                          style={{ backgroundColor: pc.bg, color: pc.color, borderColor: pc.border }}
                         >
                           <Bug size={13} /> {pc.label}
                         </span>
@@ -500,15 +636,84 @@ const Avisomap = () => {
                   </div>
                 </div>
 
+                {/* Sección Visual: Foto del Albarán y/o Miniatura de Mapa */}
+                <div className="aviso-media-section">
+                  {aviso.adjunto ? (
+                    /* Vista Combinada: Foto a la izquierda + Mini Mapa a la derecha */
+                    <div className="aviso-media-dual">
+                      {/* Miniatura Foto / Albarán */}
+                      <div 
+                        className="aviso-thumb-container"
+                        onClick={() => setPreviewImage(aviso.adjunto)}
+                        title="Toca para ampliar el albarán o foto adjunta"
+                      >
+                        <img 
+                          src={aviso.adjunto} 
+                          alt="Albarán / Foto de aviso" 
+                          className="aviso-thumb-img" 
+                          loading="lazy" 
+                        />
+                        <span className="aviso-media-tag photo">
+                          <Camera size={11} /> Foto
+                        </span>
+                        <div className="aviso-thumb-zoom-icon">
+                          <Eye size={15} />
+                        </div>
+                      </div>
+
+                      {/* Miniatura de Mapa */}
+                      <div 
+                        className="aviso-map-container"
+                        onClick={() => window.open(mapSearchUrl, '_blank')}
+                        title="Toca para abrir la ruta en Google Maps"
+                      >
+                        <iframe
+                          title={`Mapa de ${aviso.direccion}`}
+                          src={mapEmbedUrl}
+                          className="aviso-mini-map-frame"
+                          loading="lazy"
+                        />
+                        <div className="aviso-map-glass-overlay">
+                          <span className="aviso-media-tag map">
+                            <Navigation size={11} /> Ruta GPS
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    /* Sin foto: Mini Mapa a ancho completo */
+                    <div 
+                      className="aviso-map-container full"
+                      onClick={() => window.open(mapSearchUrl, '_blank')}
+                      title="Toca para abrir la ruta en Google Maps"
+                    >
+                      <iframe
+                        title={`Mapa de ${aviso.direccion}`}
+                        src={mapEmbedUrl}
+                        className="aviso-mini-map-frame full"
+                        loading="lazy"
+                      />
+                      <div className="aviso-map-glass-overlay">
+                        <span className="aviso-media-tag map">
+                          <Navigation size={11} /> Toca para navegar en Google Maps
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <div className="aviso-card-body">
-                  {/* Metadata: Fecha, Hora, Tipo de Contacto */}
-                  <div className="aviso-datetime">
-                    <span><Calendar size={13} /> {aviso.fecha}</span>
-                    <span><Clock size={13} /> {aviso.hora}</span>
+                  {/* Metadata: Contacto y Tiempo Relativo */}
+                  <div className="aviso-details-row">
                     {aviso.contacto && (
-                      <span className="aviso-contact-badge">
-                        {aviso.contacto === 'Telefónicamente' ? <Phone size={13} /> : <MapPin size={13} />}
+                      <span className="aviso-contact-chip">
+                        {aviso.contacto === 'Telefónicamente' ? <Phone size={12} /> : <MapPin size={12} />}
                         {aviso.contacto}
+                      </span>
+                    )}
+                    {relativeTime && (
+                      <span className="aviso-relative-time">
+                        {relativeTime}
                       </span>
                     )}
                   </div>
@@ -525,24 +730,23 @@ const Avisomap = () => {
                     <button 
                       type="button"
                       className="btn-ruta" 
-                      onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(aviso.direccion + (aviso.portal ? ' ' + aviso.portal : '') + ', ' + aviso.localidad)}`, '_blank')}
+                      onClick={() => window.open(mapSearchUrl, '_blank')}
                       title="Abrir ubicación en Google Maps"
                     >
                       <Navigation size={13} /> Ruta GPS
                     </button>
 
                     <div className="aviso-actions">
-                      {aviso.adjunto ? (
-                        <a 
-                          href={aviso.adjunto} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
+                      {aviso.adjunto && (
+                        <button 
+                          type="button"
                           className="aviso-action-btn view"
-                          title="Ver foto / albarán adjunto"
+                          onClick={() => setPreviewImage(aviso.adjunto)}
+                          title="Ampliar foto / albarán"
                         >
-                          <Eye size={16} /> Foto
-                        </a>
-                      ) : null}
+                          <Eye size={15} /> Ver Foto
+                        </button>
+                      )}
 
                       <div className="admin-actions-group">
                         <button 
@@ -750,6 +954,42 @@ const Avisomap = () => {
                 )}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Lightbox para Ampliar Foto / Albarán */}
+      {previewImage && (
+        <div className="aviso-lightbox-overlay animate-fade-in" onClick={() => setPreviewImage(null)}>
+          <div className="aviso-lightbox-card" onClick={(e) => e.stopPropagation()}>
+            <div className="aviso-lightbox-top">
+              <div className="aviso-lightbox-title">
+                <Camera size={16} color="#2563eb" />
+                <span>Foto / Albarán adjunto</span>
+              </div>
+              <div className="aviso-lightbox-actions">
+                <a
+                  href={previewImage}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="aviso-lightbox-btn-open"
+                  title="Abrir imagen original en pestaña nueva"
+                >
+                  <Eye size={14} /> Abrir original
+                </a>
+                <button
+                  type="button"
+                  className="icon-btn-close"
+                  onClick={() => setPreviewImage(null)}
+                  title="Cerrar visor"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+            <div className="aviso-lightbox-img-wrap">
+              <img src={previewImage} alt="Albarán ampliado" className="aviso-lightbox-img" />
+            </div>
           </div>
         </div>
       )}
