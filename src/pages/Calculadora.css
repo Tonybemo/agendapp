@@ -1385,3 +1385,108 @@
 }
 
 
+
+/* ══════════════════════════════════════════════════════════════════════
+   TAB BIOCIDA NO OXIDANTE – FERROCID 8583
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Píldora de navegación – color verde oscuro */
+.calc-nav-pill.active.tab-ferrocid {
+  background: linear-gradient(135deg, #15803d, #22c55e);
+  box-shadow: 0 4px 14px rgba(34, 197, 94, 0.35);
+}
+
+/* Input con acento verde */
+.calc-main-input--green:focus {
+  border-color: #16a34a;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15);
+}
+
+/* Chip buttons verdes */
+.calc-chip-btn--green.active {
+  background: #16a34a;
+  border-color: #16a34a;
+  color: #ffffff;
+}
+
+/* Tarjeta principal de resultado – borde verde */
+.calc-result-card--ferrocid {
+  border-color: #22c55e;
+  background: linear-gradient(160deg, #f0fdf4 0%, var(--bg-card) 55%);
+}
+
+/* Número grande – color verde */
+.calc-result-card--ferrocid .ferrocid-unit {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #16a34a;
+}
+
+/* Tarjeta recomendación de aplicación */
+.calc-ferrocid-recomendacion {
+  background: #f0fdf4;
+  border-color: #86efac;
+}
+
+.calc-ferrocid-recomendacion .calc-diag-header h4 {
+  color: #14532d;
+}
+
+.calc-ferrocid-recomendacion .calc-diag-header p {
+  color: #166534;
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+/* Encabezado de la tabla de referencia */
+.calc-ferrocid-table-header {
+  display: grid;
+  grid-template-columns: 70px 1fr 110px 1fr;
+  align-items: center;
+  padding: 5px 10px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border-light);
+  margin-bottom: 2px;
+}
+
+/* Filas de la tabla Ferrocid */
+.calc-ferrocid-row {
+  grid-template-columns: 70px 1fr 110px 1fr !important;
+}
+
+/* Responsive */
+@media (max-width: 700px) {
+  .calc-ferrocid-table-header,
+  .calc-ferrocid-row {
+    grid-template-columns: 60px 1fr !important;
+  }
+  .calc-ferrocid-table-header span:nth-child(3),
+  .calc-ferrocid-table-header span:nth-child(4),
+  .calc-ferrocid-row .col-factor,
+  .calc-ferrocid-row .col-desc {
+    display: none;
+  }
+}
+
+/* Dark mode */
+[data-theme='dark'] .calc-result-card--ferrocid {
+  background: linear-gradient(160deg, rgba(20, 83, 45, 0.18) 0%, var(--bg-card) 55%);
+  border-color: #15803d;
+}
+
+[data-theme='dark'] .calc-ferrocid-recomendacion {
+  background: rgba(20, 83, 45, 0.15);
+  border-color: #15803d;
+}
+
+[data-theme='dark'] .calc-ferrocid-recomendacion .calc-diag-header h4 {
+  color: #4ade80;
+}
+
+[data-theme='dark'] .calc-ferrocid-recomendacion .calc-diag-header p {
+  color: #86efac;
+}

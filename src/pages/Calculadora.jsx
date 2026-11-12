@@ -261,6 +261,34 @@ const NORMATIVA_DATA = [
 const Calculadora = () => {
   const [activeTab, setActiveTab] = useState('hipoclorito');
 
+  // ── ESTADO 5: Biocida No Oxidante (Ferrocid 8583) ──────────────────
+  const [ferrocidVolumen, setFerrocidVolumen] = useState(10); // m³
+  const [ferrocidPpm, setFerrocidPpm] = useState(50);         // ppm objetivo
+  const [ferrocidDensidad, setFerrocidDensidad] = useState(1.04); // g/cm³
+
+  const calculoFerrocid = useMemo(() => {
+    const v = parseFloat(ferrocidVolumen) || 0;    // m³ → 1 m³ = 1000 L = 1.000.000 mL
+    const ppm = parseFloat(ferrocidPpm) || 0;      // mg/L = g/m³
+    const rho = parseFloat(ferrocidDensidad) || 1; // g/cm³ = g/mL = kg/L
+
+    // Masa de producto activo necesaria (gramos):
+    // ppm = mg/L → (ppm mg/L) × (v m³ × 1000 L/m³) = masa_mg → /1000 = masa_g
+    const masaGramos = ppm * v * 1000 / 1000; // simplifica: ppm × v (en g)
+    // Volumen de producto comercial (mL):
+    // V_producto (mL) = masa_gramos / densidad (g/mL)
+    const volumenMl = masaGramos / rho;
+    // Litros
+    const volumenL = volumenMl / 1000;
+
+    return {
+      masaGramos: masaGramos.toFixed(1),
+      volumenMl: volumenMl.toFixed(0),
+      volumenL: volumenL.toFixed(3),
+      volumenLDisplay: volumenL >= 1 ? volumenL.toFixed(2) : volumenMl.toFixed(0),
+      unidad: volumenL >= 1 ? 'L' : 'mL',
+    };
+  }, [ferrocidVolumen, ferrocidPpm, ferrocidDensidad]);
+
   // ── ESTADO 1: Hipoclorito & pH ──────────────────────────────────────
   const [volumenAgua, setVolumenAgua] = useState(100); // en m3
   const [dosisCloro, setDosisCloro] = useState(5.0);   // en ppm (mg/L)
@@ -658,6 +686,15 @@ const Calculadora = () => {
           <FileText size={16} />
           <span>Guía RD 487/2022</span>
           <span className="calc-badge-count">{NORMATIVA_DATA.length}</span>
+        </button>
+
+        <button
+          type="button"
+          className={`calc-nav-pill ${activeTab === 'ferrocid' ? 'active tab-ferrocid' : ''}`}
+          onClick={() => setActiveTab('ferrocid')}
+        >
+          <Bug size={16} />
+          <span>Biocida No Oxidante</span>
         </button>
       </div>
 
@@ -2280,6 +2317,246 @@ const Calculadora = () => {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* ────────────────────────────────────────────────────────────── */}
+      {/* TAB 6: BIOCIDA NO OXIDANTE – FERROCID 8583                    */}
+      {/* ────────────────────────────────────────────────────────────── */}
+      {activeTab === 'ferrocid' && (
+        <div className="calc-tab-pane animate-fade-in">
+          {/* Intro card */}
+          <div className="calc-intro-card">
+            <div className="calc-intro-text">
+              <h3>Dosificación de Biocida No Oxidante (Ferrocid 8583)</h3>
+              <p>Cálculo para tratamientos de choque y mantenimiento con biocida de amplio espectro para control de biopelícula en torres de refrigeración.</p>
+            </div>
+            <span className="calc-source-tag">Kurita / RD 487/2022</span>
+          </div>
+
+          <div className="calc-grid-2col">
+            {/* ── Panel Izquierdo: Entradas ── */}
+            <div className="calc-panel-card">
+              <h4 className="calc-panel-title">
+                <Sliders size={18} color="#16a34a" /> Parámetros de la Instalación
+              </h4>
+
+              {/* Campo 1: Volumen */}
+              <div className="calc-field-group">
+                <div className="calc-field-header">
+                  <label>Volumen total de agua a tratar</label>
+                  <span className="calc-unit-pill">{ferrocidVolumen} m³ ({Math.round(ferrocidVolumen * 1000)} L)</span>
+                </div>
+                <div className="calc-input-wrapper">
+                  <input
+                    type="number"
+                    min="0.1"
+                    step="0.5"
+                    value={ferrocidVolumen}
+                    onChange={(e) => setFerrocidVolumen(e.target.value)}
+                    className="calc-main-input calc-main-input--green"
+                  />
+                  <span className="calc-input-suffix">m³</span>
+                </div>
+                <div className="calc-chip-row">
+                  {[1, 5, 10, 25, 50, 100].map(v => (
+                    <button
+                      key={v}
+                      type="button"
+                      className={`calc-chip-btn calc-chip-btn--green ${ferrocidVolumen == v ? 'active' : ''}`}
+                      onClick={() => setFerrocidVolumen(v)}
+                    >
+                      {v} m³
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Campo 2: Concentración / ppm objetivo */}
+              <div className="calc-field-group">
+                <div className="calc-field-header">
+                  <label>Concentración deseada de Ferrocid 8583</label>
+                  <span className="calc-unit-pill">{ferrocidPpm} ppm (mg/L)</span>
+                </div>
+                <div className="calc-input-wrapper">
+                  <input
+                    type="number"
+                    min="1"
+                    step="5"
+                    value={ferrocidPpm}
+                    onChange={(e) => setFerrocidPpm(e.target.value)}
+                    className="calc-main-input calc-main-input--green"
+                  />
+                  <span className="calc-input-suffix">ppm</span>
+                </div>
+                <div className="calc-chip-row">
+                  {[
+                    { label: '25 ppm – Mantenimiento preventivo', val: 25 },
+                    { label: '50 ppm – Dosis estándar / habitual', val: 50 },
+                    { label: '75 ppm – Choque medio', val: 75 },
+                    { label: '100 ppm – Choque severo / biopelícula', val: 100 },
+                  ].map(d => (
+                    <button
+                      key={d.val}
+                      type="button"
+                      className={`calc-chip-btn calc-chip-btn--green ${ferrocidPpm == d.val ? 'active' : ''}`}
+                      onClick={() => setFerrocidPpm(d.val)}
+                    >
+                      {d.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Campo 3: Densidad del producto */}
+              <div className="calc-field-group calc-ph-slider-box">
+                <div className="calc-field-header">
+                  <label className="calc-ph-title">
+                    <FlaskConical size={16} color="#16a34a" /> Densidad del producto comercial
+                  </label>
+                  <span className="calc-unit-pill">{ferrocidDensidad} g/cm³</span>
+                </div>
+                <div className="calc-input-wrapper" style={{ marginTop: 8 }}>
+                  <input
+                    type="number"
+                    min="0.9"
+                    max="1.3"
+                    step="0.01"
+                    value={ferrocidDensidad}
+                    onChange={(e) => setFerrocidDensidad(e.target.value)}
+                    className="calc-main-input calc-main-input--green"
+                  />
+                  <span className="calc-input-suffix">g/cm³</span>
+                </div>
+                <div className="calc-chip-row" style={{ marginTop: 8 }}>
+                  <button
+                    type="button"
+                    className={`calc-chip-btn calc-chip-btn--green ${parseFloat(ferrocidDensidad) === 1.04 ? 'active' : ''}`}
+                    onClick={() => setFerrocidDensidad(1.04)}
+                  >
+                    1,04 g/cm³ (Ferrocid 8583)
+                  </button>
+                  <button
+                    type="button"
+                    className={`calc-chip-btn calc-chip-btn--green ${parseFloat(ferrocidDensidad) === 1.00 ? 'active' : ''}`}
+                    onClick={() => setFerrocidDensidad(1.00)}
+                  >
+                    1,00 g/cm³ (Aprox. práctica)
+                  </button>
+                </div>
+              </div>
+
+              {/* Fórmula aplicada */}
+              <div className="calc-formula-footer">
+                <span className="calc-formula-badge">FÓRMULA APLICADA:</span>
+                <code>V (mL) = (ppm × m³ × 1000) ÷ densidad (g/mL)</code>
+                <code style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                  = ({ferrocidPpm} × {ferrocidVolumen} × 1000) ÷ {ferrocidDensidad} = {calculoFerrocid.volumenMl} mL
+                </code>
+              </div>
+            </div>
+
+            {/* ── Panel Derecho: Resultados ── */}
+            <div className="calc-panel-results">
+              {/* Tarjeta principal de resultado */}
+              <div className="calc-result-card calc-result-card--ferrocid">
+                <span className="calc-result-badge">CANTIDAD TOTAL REQUERIDA</span>
+                <div className="calc-result-big-number">
+                  <strong>{calculoFerrocid.volumenLDisplay}</strong>
+                  <span className="ferrocid-unit">{calculoFerrocid.unidad}</span>
+                </div>
+                <p className="calc-result-subtext">
+                  de Ferrocid 8583 para tratar <strong>{ferrocidVolumen} m³</strong> a <strong>{ferrocidPpm} ppm</strong> (densidad {ferrocidDensidad} g/cm³)
+                </p>
+
+                <div className="calc-compare-row">
+                  <div className="calc-compare-item">
+                    <span>En mililitros (c.c.):</span>
+                    <strong>{calculoFerrocid.volumenMl} mL</strong>
+                  </div>
+                  <div className="calc-compare-item">
+                    <span>Masa de producto activo:</span>
+                    <strong>{calculoFerrocid.masaGramos} g</strong>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tarjeta secundaria: Recomendación de aplicación */}
+              <div className="calc-diagnostic-card calc-ferrocid-recomendacion">
+                <div className="calc-diag-top">
+                  <div className="calc-diag-icon">
+                    <Info size={24} color="#16a34a" />
+                  </div>
+                  <div className="calc-diag-header">
+                    <h4>Recomendación de Aplicación</h4>
+                    <p>
+                      El Ferrocid 8583 actúa mejor mediante <strong>adición en choque o pulsos espaciados</strong> según el protocolo de Legionella (RD 487/2022). Verter directamente en la balsa de la torre con la bomba en circulación. No mezclar con oxidantes (cloro, bromo). Respetar los tiempos de contacto mínimos de <strong>4-6 horas</strong> antes de purga.
+                    </p>
+                  </div>
+                </div>
+                <div className="calc-acid-callout" style={{ borderColor: '#16a34a', background: 'rgba(22,163,74,0.07)' }}>
+                  <ShieldAlert size={16} color="#15803d" />
+                  <span style={{ color: '#14532d' }}>
+                    <strong>Límite máximo autorizado:</strong> No superar las concentraciones autorizadas en la ficha técnica y homologación del producto (consultar SDS Ferrocid 8583 – Kurita). Las dosis de choque no deben repetirse en intervalos inferiores a 72 h sin análisis microbiológico previo.
+                  </span>
+                </div>
+              </div>
+
+              {/* Tabla de referencia de concentraciones */}
+              <div className="calc-ph-table-card">
+                <h5>Guía de Concentraciones de Ferrocid 8583</h5>
+                <div className="calc-ph-mini-table">
+                  {/* Encabezado */}
+                  <div className="calc-ferrocid-table-header">
+                    <span>ppm</span>
+                    <span>Propósito operativo</span>
+                    <span>Frecuencia</span>
+                    <span>Notas clave</span>
+                  </div>
+                  {[
+                    {
+                      ppm: 25,
+                      proposito: 'Mantenimiento preventivo',
+                      frecuencia: 'Semanal / quincenal',
+                      nota: 'Control de biopelícula incipiente. Circuitos con bajo riesgo.',
+                      cls: 'opt',
+                    },
+                    {
+                      ppm: 50,
+                      proposito: 'Dosis estándar / habitual',
+                      frecuencia: 'Semanal',
+                      nota: 'Dosis de referencia en protocolos Legionella RD 487/2022.',
+                      cls: 'good',
+                    },
+                    {
+                      ppm: 75,
+                      proposito: 'Choque medio',
+                      frecuencia: 'Puntual / mensual',
+                      nota: 'Recuentos de aerobios entre 10.000 y 100.000 UFC/mL.',
+                      cls: 'warn',
+                    },
+                    {
+                      ppm: 100,
+                      proposito: 'Choque severo / biopelícula',
+                      frecuencia: 'Urgente / no periódico',
+                      nota: 'Recuentos > 100.000 UFC/mL o presencia confirmada de Legionella.',
+                      cls: 'bad',
+                    },
+                  ].map(row => (
+                    <div
+                      key={row.ppm}
+                      className={`calc-ph-row calc-ferrocid-row ${ferrocidPpm == row.ppm ? 'highlight' : ''}`}
+                    >
+                      <span className={`col-eff ${row.cls}`} style={{ fontWeight: 900 }}>{row.ppm} ppm</span>
+                      <span className="col-ph" style={{ fontWeight: 700 }}>{row.proposito}</span>
+                      <span className="col-factor">{row.frecuencia}</span>
+                      <span className="col-desc">{row.nota}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
