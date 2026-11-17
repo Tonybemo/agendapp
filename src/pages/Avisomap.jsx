@@ -16,6 +16,7 @@ const getPlagaStyle = (plaga) => {
   if (pLower.includes('cucaracha')) {
     return { 
       label: 'Cucarachas', 
+      emoji: '🪳',
       color: '#b91c1c', 
       bg: '#fee2e2', 
       border: '#fca5a5', 
@@ -25,6 +26,7 @@ const getPlagaStyle = (plaga) => {
   if (pLower.includes('avispa')) {
     return { 
       label: 'Avispas', 
+      emoji: '🐝',
       color: '#d97706', 
       bg: '#fef3c7', 
       border: '#fde68a', 
@@ -34,7 +36,8 @@ const getPlagaStyle = (plaga) => {
   if (pLower.includes('roedor') || pLower.includes('rata') || pLower.includes('raton') || pLower.includes('ratón')) {
     return { 
       label: 'Roedores', 
-      color: '#c2410c', 
+      emoji: '🪤',
+      color: '#ea580c', 
       bg: '#ffedd5', 
       border: '#fed7aa', 
       gradient: 'linear-gradient(135deg, rgba(255, 247, 237, 0.95) 0%, rgba(255, 237, 213, 0.6) 100%)' 
@@ -43,6 +46,7 @@ const getPlagaStyle = (plaga) => {
   if (pLower.includes('hormiga')) {
     return { 
       label: 'Hormigas', 
+      emoji: '🐜',
       color: '#4338ca', 
       bg: '#e0e7ff', 
       border: '#c7d2fe', 
@@ -52,6 +56,7 @@ const getPlagaStyle = (plaga) => {
   if (pLower.includes('termita')) {
     return { 
       label: 'Termitas', 
+      emoji: '🪵',
       color: '#78350f', 
       bg: '#ffedd5', 
       border: '#fed7aa', 
@@ -61,6 +66,7 @@ const getPlagaStyle = (plaga) => {
   if (pLower.includes('procesionaria')) {
     return { 
       label: 'Procesionaria', 
+      emoji: '🐛',
       color: '#047857', 
       bg: '#d1fae5', 
       border: '#a7f3d0', 
@@ -70,6 +76,7 @@ const getPlagaStyle = (plaga) => {
   if (pLower.includes('chinche')) {
     return { 
       label: 'Chinches', 
+      emoji: '🪲',
       color: '#15803d', 
       bg: '#dcfce7', 
       border: '#bbf7d0', 
@@ -80,6 +87,7 @@ const getPlagaStyle = (plaga) => {
   const formatted = plaga ? (plaga.charAt(0).toUpperCase() + plaga.slice(1).toLowerCase()) : 'Plaga';
   return { 
     label: formatted, 
+    emoji: '⚠️',
     color: '#2563eb', 
     bg: '#eff6ff', 
     border: '#bfdbfe', 
@@ -586,182 +594,146 @@ const Avisomap = () => {
           {filteredAvisos.map(aviso => {
             const plagasArray = parsePlagas(aviso.plagas);
             const primaryPlaga = plagasArray.length > 0 ? getPlagaStyle(plagasArray[0]) : getPlagaStyle('Plaga');
-            const relativeTime = getRelativeTimeString(aviso.fecha);
             const fullAddress = `${aviso.direccion || ''}${aviso.portal ? `, ${aviso.portal}` : ''}, ${aviso.localidad || ''}`;
-            const mapQuery = encodeURIComponent(`${fullAddress}, Asturias, España`);
-            const mapEmbedUrl = `https://maps.google.com/maps?q=${mapQuery}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
             const mapSearchUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`;
+            const routeUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(fullAddress)}`;
+            const isTelefonica = (aviso.contacto || '').toLowerCase().includes('telef');
 
             return (
               <div 
                 key={aviso.id} 
-                className="aviso-map-card"
+                className="aviso-simple-card"
                 style={{
                   '--card-accent': primaryPlaga.color,
                   '--card-accent-border': primaryPlaga.border
                 }}
               >
-                {/* Cabecera: Dirección, Localidad y Plagas (con acento según plaga) */}
+                {/* Franja superior de color según plaga */}
                 <div 
-                  className="aviso-card-top"
-                  style={{ 
-                    background: primaryPlaga.gradient, 
-                    borderBottomColor: primaryPlaga.border 
-                  }}
-                >
-                  <div className="aviso-card-title-group">
-                    <div className="aviso-header-meta">
-                      {aviso.localidad && (
-                        <span className="aviso-loc-badge">
-                          <MapPin size={12} />
-                          {aviso.localidad}
-                        </span>
-                      )}
+                  className="aviso-card-stripe" 
+                  style={{ backgroundColor: primaryPlaga.color }} 
+                />
+
+                <div className="aviso-card-content">
+                  {/* Fila 1: Localidad (izq) y Fecha + Hora (dcha) */}
+                  <div className="aviso-card-meta-row">
+                    <span className="aviso-card-loc">
+                      <span className="aviso-pin-emoji">📍</span>
+                      {aviso.localidad ? aviso.localidad.toUpperCase() : 'SIN LOCALIDAD'}
+                    </span>
+                    <div className="aviso-card-datetime">
                       {aviso.fecha && (
-                        <span className="aviso-date-badge">
-                          <Calendar size={12} />
-                          {formatDateDisplay(aviso.fecha)}
+                        <span className="aviso-meta-item">
+                          🗓️ {formatDateDisplay(aviso.fecha)}
                         </span>
                       )}
                       {aviso.hora && (
-                        <span className="aviso-time-badge">
-                          <Clock size={12} />
-                          {formatTimeDisplay(aviso.hora)}
+                        <span className="aviso-meta-item">
+                          🕒 {formatTimeDisplay(aviso.hora)}
                         </span>
                       )}
                     </div>
-                    <h4 className="aviso-address" title={fullAddress}>
-                      {aviso.direccion}{aviso.portal ? `, ${aviso.portal}` : ''}
-                    </h4>
                   </div>
 
-                  {/* Plagas Badges */}
-                  <div className="aviso-plagas-wrap">
+                  {/* Fila 2: Dirección principal */}
+                  <h4 className="aviso-card-address" title={fullAddress}>
+                    {aviso.direccion}{aviso.portal ? `, ${aviso.portal}` : ''}
+                  </h4>
+
+                  {/* Fila 3: Píldora de Plaga + Píldora de Presencial/Telefónica */}
+                  <div className="aviso-card-tags-row">
                     {plagasArray.map(p => {
                       const pc = getPlagaStyle(p);
                       return (
                         <span 
                           key={p} 
-                          className="plaga-pill" 
-                          style={{ backgroundColor: pc.bg, color: pc.color, borderColor: pc.border }}
+                          className="aviso-pill-plaga" 
+                          style={{ 
+                            backgroundColor: pc.bg, 
+                            color: pc.color, 
+                            borderColor: pc.border 
+                          }}
                         >
-                          <Bug size={13} /> {pc.label}
+                          <span className="pill-emoji">{pc.emoji}</span>
+                          <span className="pill-label">{pc.label.toUpperCase()}</span>
                         </span>
                       );
                     })}
-                  </div>
-                </div>
 
-                <div className="aviso-card-body">
-                  {/* Metadata: Contacto y Tiempo Relativo */}
-                  <div className="aviso-details-row">
                     {aviso.contacto && (
-                      <span className="aviso-contact-chip">
-                        {aviso.contacto === 'Telefónicamente' ? <Phone size={12} /> : <MapPin size={12} />}
-                        {aviso.contacto}
-                      </span>
-                    )}
-                    {relativeTime && (
-                      <span className="aviso-relative-time">
-                        {relativeTime}
+                      <span className={`aviso-pill-contacto ${isTelefonica ? 'tel' : 'pres'}`}>
+                        {isTelefonica ? '📞 TELEFÓNICA' : '👤 PRESENCIAL'}
                       </span>
                     )}
                   </div>
 
-                  {/* Cuadros independientes y separados: Mapa y Foto */}
-                  <div className="aviso-thumbs-row">
-                    {/* Cuadro Mini Mapa */}
-                    <div 
-                      className="aviso-thumb-box map-box"
-                      onClick={() => window.open(mapSearchUrl, '_blank')}
-                      title="Abrir ubicación en Google Maps"
-                    >
-                      <iframe
-                        title={`Mapa de ${aviso.direccion}`}
-                        src={mapEmbedUrl}
-                        className="aviso-thumb-iframe"
-                        loading="lazy"
-                      />
-                      <div className="aviso-thumb-glass-overlay">
-                        <span className="aviso-thumb-badge map">
-                          <Navigation size={10} /> Mapa
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Cuadro Foto / Albarán (si tiene adjunto) */}
-                    {aviso.adjunto && (
-                      <div 
-                        className="aviso-thumb-box photo-box"
-                        onClick={() => setPreviewImage(aviso.adjunto)}
-                        title="Toca para ampliar el albarán o foto adjunta"
-                      >
-                        <img 
-                          src={aviso.adjunto} 
-                          alt="Foto / Albarán adjunto" 
-                          className="aviso-thumb-img" 
-                          loading="lazy" 
-                        />
-                        <div className="aviso-thumb-glass-overlay">
-                          <span className="aviso-thumb-badge photo">
-                            <Camera size={10} /> Foto
-                          </span>
-                        </div>
-                        <div className="aviso-thumb-zoom-icon">
-                          <Eye size={12} />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Comentarios / Observaciones */}
+                  {/* Fila 4: Notas / Comentarios (solo si existen) */}
                   {aviso.comentarios && (
-                    <div className="aviso-notes-box">
-                      <strong>Notas:</strong> {aviso.comentarios}
+                    <div className="aviso-card-note-box">
+                      <span className="aviso-note-icon">📝</span>
+                      <span className="aviso-note-text">{aviso.comentarios}</span>
                     </div>
                   )}
 
-                  {/* Footer Actions */}
-                  <div className="aviso-card-footer">
-                    <button 
-                      type="button"
-                      className="btn-ruta" 
-                      onClick={() => window.open(mapSearchUrl, '_blank')}
-                      title="Abrir ubicación en Google Maps"
-                    >
-                      <Navigation size={13} /> Ruta GPS
-                    </button>
+                  {/* Fila 5: Botones de Acción (Maps, Foto, Ruta, Editar, Borrar) */}
+                  <div className="aviso-card-actions-row">
+                    <div className="aviso-main-btns">
+                      <button 
+                        type="button"
+                        className="btn-aviso-btn btn-maps" 
+                        onClick={() => window.open(mapSearchUrl, '_blank')}
+                        title="Abrir ubicación en Google Maps"
+                      >
+                        <Navigation size={13} /> Maps
+                      </button>
 
-                    <div className="aviso-actions">
-                      {aviso.adjunto && (
+                      {aviso.adjunto ? (
                         <button 
                           type="button"
-                          className="aviso-action-btn view"
+                          className="btn-aviso-btn btn-foto" 
                           onClick={() => setPreviewImage(aviso.adjunto)}
-                          title="Ampliar foto / albarán"
+                          title="Ver albarán o foto adjunta"
                         >
-                          <Eye size={15} /> Ver Foto
+                          <Camera size={13} /> Foto
+                        </button>
+                      ) : (
+                        <button 
+                          type="button"
+                          className="btn-aviso-btn btn-foto is-disabled" 
+                          disabled
+                          title="Sin foto adjunta"
+                        >
+                          <Camera size={13} /> Foto
                         </button>
                       )}
 
-                      <div className="admin-actions-group">
-                        <button 
-                          type="button"
-                          className="aviso-action-icon edit"
-                          title="Editar aviso"
-                          onClick={() => handleOpenEdit(aviso, plagasArray)}
-                        >
-                          <Edit3 size={15} />
-                        </button>
-                        <button 
-                          type="button"
-                          className="aviso-action-icon delete"
-                          title="Eliminar aviso"
-                          onClick={() => handleDeleteAviso(aviso.id)}
-                        >
-                          <Trash2 size={15} />
-                        </button>
-                      </div>
+                      <button 
+                        type="button"
+                        className="btn-aviso-btn btn-ruta" 
+                        onClick={() => window.open(routeUrl, '_blank')}
+                        title="Calcular ruta GPS en Google Maps"
+                      >
+                        <Navigation size={13} className="route-arrow-icon" /> Ruta
+                      </button>
+                    </div>
+
+                    <div className="aviso-admin-btns">
+                      <button 
+                        type="button"
+                        className="btn-aviso-icon edit"
+                        title="Editar aviso"
+                        onClick={() => handleOpenEdit(aviso, plagasArray)}
+                      >
+                        <Edit3 size={15} />
+                      </button>
+                      <button 
+                        type="button"
+                        className="btn-aviso-icon delete"
+                        title="Eliminar aviso"
+                        onClick={() => handleDeleteAviso(aviso.id)}
+                      >
+                        <Trash2 size={15} />
+                      </button>
                     </div>
                   </div>
                 </div>
