@@ -234,9 +234,10 @@ const Dashboard = () => {
   };
   const goToday = () => { setSelectedYear(now.getFullYear()); setSelectedMonth(now.getMonth()); };
 
-  // Cuadrícula unificada 3x3: todas las tarjetas con gradientes vivos y texto blanco
+  // Cuadrícula unificada 3x3: color único e inconfundible para cada módulo
   const allModuleCards = [
     {
+      // 🔵 AZUL — Muestras de agua
       id: 'muestras',
       title: 'Muestras',
       subtitle: 'Recogida y analíticas de agua',
@@ -252,6 +253,7 @@ const Dashboard = () => {
       public: true
     },
     {
+      // 🟢 VERDE ESMERALDA — Tratamientos
       id: 'tratamientos',
       title: 'Tratamientos',
       subtitle: 'Desinfección, limpiezas y torres',
@@ -267,6 +269,7 @@ const Dashboard = () => {
       public: true
     },
     {
+      // 🔴 ROJO — Avisos Mapfre
       id: 'avisomap',
       title: 'Avisos Mapfre',
       subtitle: 'Avisos de control de plagas',
@@ -282,14 +285,15 @@ const Dashboard = () => {
       public: true
     },
     {
+      // 🟠 NARANJA — Tareas (antes índigo, ahora claramente distinto)
       id: 'tareas',
       title: 'Tareas',
       subtitle: monthStats ? `${monthStats.tareasCompletadas} de ${monthStats.tareasTotal} completadas` : 'Visitas mensuales',
       value: monthStats ? `${monthStats.tareasPct}%` : '...',
       icon: <CalendarCheck size={24} color="#ffffff" />,
       path: '/tareas',
-      cardBg: 'linear-gradient(145deg, #818cf8 0%, #4f46e5 100%)',
-      cardBorder: '#4338ca',
+      cardBg: 'linear-gradient(145deg, #fb923c 0%, #ea580c 100%)',
+      cardBorder: '#c2410c',
       accentColor: '#ffffff',
       iconBg: 'rgba(255,255,255,0.22)',
       textColor: '#ffffff',
@@ -297,6 +301,7 @@ const Dashboard = () => {
       public: false
     },
     {
+      // 🟣 VIOLETA — Workapp
       id: 'workapp',
       title: 'Workapp · Jornada',
       isWorkapp: true,
@@ -304,7 +309,7 @@ const Dashboard = () => {
       value: monthStats ? `${monthStats.jornadasDias}d` : '...',
       icon: <Briefcase size={24} color="#ffffff" />,
       path: '/workapp',
-      cardBg: 'linear-gradient(145deg, #c084fc 0%, #7c3aed 100%)',
+      cardBg: 'linear-gradient(145deg, #a78bfa 0%, #7c3aed 100%)',
       cardBorder: '#6d28d9',
       accentColor: '#ffffff',
       iconBg: 'rgba(255,255,255,0.22)',
@@ -313,14 +318,15 @@ const Dashboard = () => {
       public: false
     },
     {
+      // 🩵 CIAN — Calculadora Técnica (distinto del azul de Muestras)
       id: 'calculadora',
       title: 'Calculadora Técnica',
       subtitle: 'Cloro, neutralización y conversor',
       value: null,
       icon: <Calculator size={24} color="#ffffff" />,
       path: '/calculadora',
-      cardBg: 'linear-gradient(145deg, #2dd4bf 0%, #0d9488 100%)',
-      cardBorder: '#0f766e',
+      cardBg: 'linear-gradient(145deg, #22d3ee 0%, #0891b2 100%)',
+      cardBorder: '#0e7490',
       accentColor: '#ffffff',
       iconBg: 'rgba(255,255,255,0.22)',
       textColor: '#ffffff',
@@ -328,6 +334,7 @@ const Dashboard = () => {
       public: true
     },
     {
+      // 🟡 ÁMBAR/DORADO — Productos
       id: 'catalogo',
       title: 'Productos',
       subtitle: 'Catálogo, fichas y registros',
@@ -343,6 +350,7 @@ const Dashboard = () => {
       public: false
     },
     {
+      // 🌸 ROSA FUERTE — Calendario
       id: 'calendario',
       title: 'Calendario Global',
       subtitle: 'Agenda y actividad por día',
@@ -358,14 +366,15 @@ const Dashboard = () => {
       public: true
     },
     {
+      // 🟩 LIMA/VERDE LIMA — Estadísticas (antes púrpura, ahora único)
       id: 'estadisticas',
       title: 'Estadísticas',
       subtitle: 'Gráficas y métricas anuales',
       value: null,
       icon: <BarChart2 size={24} color="#ffffff" />,
       path: '/estadisticas',
-      cardBg: 'linear-gradient(145deg, #c084fc 0%, #9333ea 100%)',
-      cardBorder: '#7e22ce',
+      cardBg: 'linear-gradient(145deg, #a3e635 0%, #65a30d 100%)',
+      cardBorder: '#4d7c0f',
       accentColor: '#ffffff',
       iconBg: 'rgba(255,255,255,0.22)',
       textColor: '#ffffff',
