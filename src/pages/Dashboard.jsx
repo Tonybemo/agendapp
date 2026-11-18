@@ -234,18 +234,21 @@ const Dashboard = () => {
   };
   const goToday = () => { setSelectedYear(now.getFullYear()); setSelectedMonth(now.getMonth()); };
 
-  // Cuadrícula unificada 3x3: todas las tarjetas con el mismo tamaño y su propio tono pastel único
+  // Cuadrícula unificada 3x3: todas las tarjetas con gradientes vivos y texto blanco
   const allModuleCards = [
     {
       id: 'muestras',
       title: 'Muestras',
       subtitle: 'Recogida y analíticas de agua',
       value: monthStats ? monthStats.muestras : '...',
-      icon: <Droplet size={24} color="#0284c7" />,
+      icon: <Droplet size={24} color="#ffffff" />,
       path: '/aquapp',
-      cardBg: 'linear-gradient(145deg, #f0f9ff 0%, #e0f2fe 100%)',
-      cardBorder: '#bae6fd',
-      accentColor: '#0284c7',
+      cardBg: 'linear-gradient(145deg, #38bdf8 0%, #0284c7 100%)',
+      cardBorder: '#0369a1',
+      accentColor: '#ffffff',
+      iconBg: 'rgba(255,255,255,0.22)',
+      textColor: '#ffffff',
+      subtitleColor: 'rgba(255,255,255,0.78)',
       public: true
     },
     {
@@ -253,11 +256,14 @@ const Dashboard = () => {
       title: 'Tratamientos',
       subtitle: 'Desinfección, limpiezas y torres',
       value: monthStats ? monthStats.tratamientos : '...',
-      icon: <FlaskConical size={24} color="#059669" />,
+      icon: <FlaskConical size={24} color="#ffffff" />,
       path: '/aquapp?tab=tratamientos',
-      cardBg: 'linear-gradient(145deg, #ecfdf5 0%, #d1fae5 100%)',
-      cardBorder: '#a7f3d0',
-      accentColor: '#059669',
+      cardBg: 'linear-gradient(145deg, #34d399 0%, #059669 100%)',
+      cardBorder: '#047857',
+      accentColor: '#ffffff',
+      iconBg: 'rgba(255,255,255,0.22)',
+      textColor: '#ffffff',
+      subtitleColor: 'rgba(255,255,255,0.78)',
       public: true
     },
     {
@@ -265,11 +271,14 @@ const Dashboard = () => {
       title: 'Avisos Mapfre',
       subtitle: 'Avisos de control de plagas',
       value: monthStats ? monthStats.avisos : '...',
-      icon: <MapPin size={24} color="#dc2626" />,
+      icon: <MapPin size={24} color="#ffffff" />,
       path: '/avisomap',
-      cardBg: 'linear-gradient(145deg, #fef2f2 0%, #fee2e2 100%)',
-      cardBorder: '#fecaca',
-      accentColor: '#dc2626',
+      cardBg: 'linear-gradient(145deg, #fb7185 0%, #dc2626 100%)',
+      cardBorder: '#b91c1c',
+      accentColor: '#ffffff',
+      iconBg: 'rgba(255,255,255,0.22)',
+      textColor: '#ffffff',
+      subtitleColor: 'rgba(255,255,255,0.78)',
       public: true
     },
     {
@@ -277,11 +286,14 @@ const Dashboard = () => {
       title: 'Tareas',
       subtitle: monthStats ? `${monthStats.tareasCompletadas} de ${monthStats.tareasTotal} completadas` : 'Visitas mensuales',
       value: monthStats ? `${monthStats.tareasPct}%` : '...',
-      icon: <CalendarCheck size={24} color="#4f46e5" />,
+      icon: <CalendarCheck size={24} color="#ffffff" />,
       path: '/tareas',
-      cardBg: 'linear-gradient(145deg, #eef2ff 0%, #e0e7ff 100%)',
-      cardBorder: '#c7d2fe',
-      accentColor: '#4f46e5',
+      cardBg: 'linear-gradient(145deg, #818cf8 0%, #4f46e5 100%)',
+      cardBorder: '#4338ca',
+      accentColor: '#ffffff',
+      iconBg: 'rgba(255,255,255,0.22)',
+      textColor: '#ffffff',
+      subtitleColor: 'rgba(255,255,255,0.78)',
       public: false
     },
     {
@@ -290,11 +302,14 @@ const Dashboard = () => {
       isWorkapp: true,
       subtitle: 'Jornada laboral y horas extras',
       value: monthStats ? `${monthStats.jornadasDias}d` : '...',
-      icon: <Briefcase size={24} color="#7c3aed" />,
+      icon: <Briefcase size={24} color="#ffffff" />,
       path: '/workapp',
-      cardBg: 'linear-gradient(145deg, #f5f3ff 0%, #ede9fe 100%)',
-      cardBorder: '#ddd6fe',
-      accentColor: '#7c3aed',
+      cardBg: 'linear-gradient(145deg, #c084fc 0%, #7c3aed 100%)',
+      cardBorder: '#6d28d9',
+      accentColor: '#ffffff',
+      iconBg: 'rgba(255,255,255,0.22)',
+      textColor: '#ffffff',
+      subtitleColor: 'rgba(255,255,255,0.78)',
       public: false
     },
     {
@@ -302,11 +317,14 @@ const Dashboard = () => {
       title: 'Calculadora Técnica',
       subtitle: 'Cloro, neutralización y conversor',
       value: null,
-      icon: <Calculator size={24} color="#0d9488" />,
+      icon: <Calculator size={24} color="#ffffff" />,
       path: '/calculadora',
-      cardBg: 'linear-gradient(145deg, #f0fdfa 0%, #ccfbf1 100%)',
-      cardBorder: '#99f6E4',
-      accentColor: '#0d9488',
+      cardBg: 'linear-gradient(145deg, #2dd4bf 0%, #0d9488 100%)',
+      cardBorder: '#0f766e',
+      accentColor: '#ffffff',
+      iconBg: 'rgba(255,255,255,0.22)',
+      textColor: '#ffffff',
+      subtitleColor: 'rgba(255,255,255,0.78)',
       public: true
     },
     {
@@ -314,11 +332,14 @@ const Dashboard = () => {
       title: 'Productos',
       subtitle: 'Catálogo, fichas y registros',
       value: null,
-      icon: <BookOpen size={24} color="#d97706" />,
+      icon: <BookOpen size={24} color="#ffffff" />,
       path: '/catalogo',
-      cardBg: 'linear-gradient(145deg, #fffbeb 0%, #fef3c7 100%)',
-      cardBorder: '#fde68a',
-      accentColor: '#d97706',
+      cardBg: 'linear-gradient(145deg, #fbbf24 0%, #d97706 100%)',
+      cardBorder: '#b45309',
+      accentColor: '#ffffff',
+      iconBg: 'rgba(255,255,255,0.22)',
+      textColor: '#ffffff',
+      subtitleColor: 'rgba(255,255,255,0.78)',
       public: false
     },
     {
@@ -326,11 +347,14 @@ const Dashboard = () => {
       title: 'Calendario Global',
       subtitle: 'Agenda y actividad por día',
       value: null,
-      icon: <Calendar size={24} color="#db2777" />,
+      icon: <Calendar size={24} color="#ffffff" />,
       path: '/calendario',
-      cardBg: 'linear-gradient(145deg, #fdf2f8 0%, #fce7f3 100%)',
-      cardBorder: '#fbcfe8',
-      accentColor: '#db2777',
+      cardBg: 'linear-gradient(145deg, #f472b6 0%, #db2777 100%)',
+      cardBorder: '#be185d',
+      accentColor: '#ffffff',
+      iconBg: 'rgba(255,255,255,0.22)',
+      textColor: '#ffffff',
+      subtitleColor: 'rgba(255,255,255,0.78)',
       public: true
     },
     {
@@ -338,11 +362,14 @@ const Dashboard = () => {
       title: 'Estadísticas',
       subtitle: 'Gráficas y métricas anuales',
       value: null,
-      icon: <BarChart2 size={24} color="#9333ea" />,
+      icon: <BarChart2 size={24} color="#ffffff" />,
       path: '/estadisticas',
-      cardBg: 'linear-gradient(145deg, #faf5ff 0%, #f3e8ff 100%)',
-      cardBorder: '#e9d5ff',
-      accentColor: '#9333ea',
+      cardBg: 'linear-gradient(145deg, #c084fc 0%, #9333ea 100%)',
+      cardBorder: '#7e22ce',
+      accentColor: '#ffffff',
+      iconBg: 'rgba(255,255,255,0.22)',
+      textColor: '#ffffff',
+      subtitleColor: 'rgba(255,255,255,0.78)',
       public: false
     }
   ];
@@ -458,24 +485,24 @@ const Dashboard = () => {
             <div className="dash-unified-top">
               <div
                 className="dash-unified-icon-box"
-                style={{ borderColor: card.cardBorder }}
+                style={{ background: card.iconBg || 'rgba(255,255,255,0.22)', borderColor: 'rgba(255,255,255,0.3)' }}
               >
                 {card.icon}
               </div>
 
               {card.value !== null ? (
-                <div className="dash-unified-stat" style={{ color: card.accentColor }}>
+                <div className="dash-unified-stat" style={{ color: card.textColor || card.accentColor }}>
                   {card.value}
                 </div>
               ) : (
-                <div className="dash-unified-arrow" style={{ color: card.accentColor }}>
+                <div className="dash-unified-arrow" style={{ background: 'rgba(255,255,255,0.22)', color: '#ffffff' }}>
                   <ChevronRight size={20} strokeWidth={2.5} />
                 </div>
               )}
             </div>
 
             <div className="dash-unified-bottom">
-              <h3>{card.title}</h3>
+              <h3 style={{ color: card.textColor || '#0F172A' }}>{card.title}</h3>
               {card.isWorkapp && monthStats ? (
                 <div className="dash-workapp-compact-pills">
                   <span className="dash-wa-pill">{monthStats.totalHoras}h trab.</span>
@@ -483,7 +510,7 @@ const Dashboard = () => {
                   <span className="dash-wa-pill money">{monthStats.importe}€</span>
                 </div>
               ) : (
-                <p>{card.subtitle}</p>
+                <p style={{ color: card.subtitleColor || 'var(--text-muted)' }}>{card.subtitle}</p>
               )}
             </div>
           </div>
