@@ -267,30 +267,56 @@ const Calculadora = () => {
   const [ferrocidDensidad, setFerrocidDensidad] = useState(1.04); // g/cm³
 
   // ── ESTADO BOMBA FERROCID ───────────────────────────────────────────
+  const [ferBombaTipo, setFerBombaTipo] = useState('seko');    // 'seko' | 'emec'
   const [ferBombaCaudal, setFerBombaCaudal] = useState(4);      // L/h
   const [ferBombaEscala, setFerBombaEscala] = useState('1');    // '1' = :1 | '5' = :5
   const [ferBombaMinutos, setFerBombaMinutos] = useState(30);   // min
 
   // ── ESTADO BOMBA HIPOCLORITO ────────────────────────────────────────
+  const [hipBombaTipo, setHipBombaTipo] = useState('seko');    // 'seko' | 'emec'
   const [hipBombaCaudal, setHipBombaCaudal] = useState(4);
   const [hipBombaEscala, setHipBombaEscala] = useState('1');
   const [hipBombaMinutos, setHipBombaMinutos] = useState(30);
 
   // Helper: cálculo de bomba (reutilizable para ambas pestañas)
-  const calcBomba = (volumenL, caudalLh, escala, minutos) => {
+  const calcBomba = (volumenL, caudalLh, escala, minutos, tipo = 'seko') => {
     const v = parseFloat(volumenL) || 0;
+    const vMl = v * 1000;
     const q = parseFloat(caudalLh) || 1;
     const m = parseFloat(minutos) || 1;
-    const caudalEfectivo = escala === '5' ? q / 5 : q;
     const horas = m / 60;
-    // % ruleta = (V_L / horas) / caudalEfectivo * 100
-    const pct = (v / horas) / caudalEfectivo * 100;
-    return {
-      pct: pct,
-      pctDisplay: pct.toFixed(1),
-      caudalEfectivo: caudalEfectivo.toFixed(2),
-      excede: pct > 100,
-    };
+    const caudalNecesarioLh = horas > 0 ? v / horas : 0;
+    const probeta3minMl = m > 0 ? (vMl / m) * 3 : 0;
+
+    if (tipo === 'emec') {
+      // EMEC VMS MF: máx 180 imp/min correspondientes a caudal nominal
+      const pct = q > 0 ? (caudalNecesarioLh / q) * 100 : 0;
+      const impExact = q > 0 ? (caudalNecesarioLh / q) * 180 : 0;
+      const impRound = Math.round(impExact);
+      return {
+        tipo: 'emec',
+        caudalNecesarioLh: caudalNecesarioLh.toFixed(2),
+        pct: pct,
+        pctDisplay: pct.toFixed(1),
+        impulsos: impRound,
+        impulsosDisplay: impRound.toString(),
+        probeta3minMl: probeta3minMl >= 10 ? probeta3minMl.toFixed(0) : probeta3minMl.toFixed(1),
+        excede: impRound > 180 || pct > 100,
+      };
+    } else {
+      // Seko Tekna Evo (Análoga)
+      const caudalEfectivo = escala === '5' ? q / 5 : q;
+      const pct = caudalEfectivo > 0 ? (caudalNecesarioLh / caudalEfectivo) * 100 : 0;
+      return {
+        tipo: 'seko',
+        caudalNecesarioLh: caudalNecesarioLh.toFixed(2),
+        caudalEfectivo: caudalEfectivo.toFixed(2),
+        pct: pct,
+        pctDisplay: pct.toFixed(1),
+        probeta3minMl: probeta3minMl >= 10 ? probeta3minMl.toFixed(0) : probeta3minMl.toFixed(1),
+        excede: pct > 100,
+      };
+    }
   };
 
   const calculoFerrocid = useMemo(() => {
@@ -904,7 +930,7 @@ const Calculadora = () => {
               {/* ── MÓDULO BOMBA DOSIFICADORA – HIPOCLORITO ── */}
               {(() => {
                 const hipVolL = parseFloat(calculoHipoclorito.litrosCorregidos) || 0;
-                const rb = calcBomba(hipVolL, hipBombaCaudal, hipBombaEscala, hipBombaMinutos);
+                const rb = calcBomba(hipVolL, hipBombaCaudal, hipBombaEscala, hipBombaMinutos, hipBombaTipo);
                 return (
                   <div className="calc-bomba-card calc-bomba-card--cloro">
                     <div className="calc-bomba-header">
@@ -912,10 +938,35 @@ const Calculadora = () => {
                         <Gauge size={18} color="#0284c7" />
                         <h5>Ajuste de Bomba Dosificadora y Temporizador</h5>
                       </div>
-                      <span className="calc-bomba-model-tag">Seko Tekna Evo / Análoga</span>
+                      <span className="calc-bomba-model-tag">
+                        {hipBombaTipo === 'emec' ? 'EMEC VMS MF / Digital' : 'Seko Tekna Evo / Análoga'}
+                      </span>
                     </div>
 
                     <div className="calc-bomba-grid">
+                      {/* Selector de Tipo de Bomba */}
+                      <div className="calc-bomba-field">
+                        <label>Tipo de bomba dosificadora</label>
+                        <div className="calc-bomba-tipo-toggle">
+                          <button
+                            type="button"
+                            className={`calc-bomba-tipo-btn calc-bomba-tipo-btn--cloro ${hipBombaTipo === 'seko' ? 'active' : ''}`}
+                            onClick={() => setHipBombaTipo('seko')}
+                          >
+                            <strong>Seko Tekna Evo / Análoga</strong>
+                            <span>Ruleta con escala % (:1 / :5)</span>
+                          </button>
+                          <button
+                            type="button"
+                            className={`calc-bomba-tipo-btn calc-bomba-tipo-btn--cloro ${hipBombaTipo === 'emec' ? 'active' : ''}`}
+                            onClick={() => setHipBombaTipo('emec')}
+                          >
+                            <strong>EMEC VMS MF / Digital</strong>
+                            <span>Impulsos/minuto (Modo Const)</span>
+                          </button>
+                        </div>
+                      </div>
+
                       {/* Caudal */}
                       <div className="calc-bomba-field">
                         <label>Caudal máximo de la bomba</label>
@@ -939,24 +990,26 @@ const Calculadora = () => {
                         </div>
                       </div>
 
-                      {/* Escala */}
-                      <div className="calc-bomba-field">
-                        <label>Escala de la bomba</label>
-                        <div className="calc-bomba-escala-toggle">
-                          <button type="button"
-                            className={`calc-bomba-escala-btn calc-bomba-escala-btn--cloro ${hipBombaEscala === '1' ? 'active' : ''}`}
-                            onClick={() => setHipBombaEscala('1')}>
-                            <strong>:1</strong>
-                            <span>Escala normal (100%)</span>
-                          </button>
-                          <button type="button"
-                            className={`calc-bomba-escala-btn calc-bomba-escala-btn--cloro ${hipBombaEscala === '5' ? 'active' : ''}`}
-                            onClick={() => setHipBombaEscala('5')}>
-                            <strong>:5</strong>
-                            <span>Escala reducida (20%)</span>
-                          </button>
+                      {/* Escala (SOLO visible si Seko) */}
+                      {hipBombaTipo === 'seko' && (
+                        <div className="calc-bomba-field">
+                          <label>Escala de la bomba</label>
+                          <div className="calc-bomba-escala-toggle">
+                            <button type="button"
+                              className={`calc-bomba-escala-btn calc-bomba-escala-btn--cloro ${hipBombaEscala === '1' ? 'active' : ''}`}
+                              onClick={() => setHipBombaEscala('1')}>
+                              <strong>:1</strong>
+                              <span>Escala normal (100%)</span>
+                            </button>
+                            <button type="button"
+                              className={`calc-bomba-escala-btn calc-bomba-escala-btn--cloro ${hipBombaEscala === '5' ? 'active' : ''}`}
+                              onClick={() => setHipBombaEscala('5')}>
+                              <strong>:5</strong>
+                              <span>Escala reducida (20%)</span>
+                            </button>
+                          </div>
                         </div>
-                      </div>
+                      )}
 
                       {/* Tiempo temporizador */}
                       <div className="calc-bomba-field">
@@ -982,38 +1035,97 @@ const Calculadora = () => {
                       </div>
                     </div>
 
-                    {/* Resultado ruleta */}
+                    {/* Resultado */}
                     <div className={`calc-bomba-result calc-bomba-result--cloro ${rb.excede ? 'excede' : 'ok'}`}>
                       <div className="calc-bomba-result-main">
-                        <span className="calc-bomba-result-label">AJUSTE RECOMENDADO EN RULETA</span>
+                        <span className="calc-bomba-result-label">
+                          {hipBombaTipo === 'emec'
+                            ? 'AJUSTE EN PANTALLA (MODO CONST)'
+                            : 'AJUSTE RECOMENDADO EN RULETA'}
+                        </span>
+                        
                         <div className="calc-bomba-pct-row">
-                          <strong className={rb.excede ? 'pct-excede' : 'pct-ok pct-ok--cloro'}>
-                            {rb.excede ? '> 100' : rb.pctDisplay} %
-                          </strong>
-                          <span className="calc-bomba-pct-desc">
-                            durante {hipBombaMinutos} min · Escala :{hipBombaEscala} · {rb.caudalEfectivo} L/h efectivos
-                          </span>
+                          {hipBombaTipo === 'emec' ? (
+                            <>
+                              <strong className={rb.excede ? 'pct-excede' : 'pct-ok pct-ok--cloro'}>
+                                {rb.excede ? '> 180' : rb.impulsosDisplay}
+                              </strong>
+                              <span className="calc-bomba-unit-tag calc-bomba-unit-tag--cloro">imp/min</span>
+                              <span className="calc-bomba-pct-desc">
+                                durante {hipBombaMinutos} min · Máx. 180 imp/min · {hipBombaCaudal} L/h
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <strong className={rb.excede ? 'pct-excede' : 'pct-ok pct-ok--cloro'}>
+                                {rb.excede ? '> 100' : rb.pctDisplay} %
+                              </strong>
+                              <span className="calc-bomba-pct-desc">
+                                durante {hipBombaMinutos} min · Escala :{hipBombaEscala} · {rb.caudalEfectivo} L/h efectivos
+                              </span>
+                            </>
+                          )}
                         </div>
-                        <p className="calc-bomba-instruccion">
-                          Ajustar dial al <strong>{rb.excede ? '---' : rb.pctDisplay} %</strong> durante <strong>{hipBombaMinutos} minutos</strong>
-                        </p>
+
+                        {hipBombaTipo === 'emec' ? (
+                          <p className="calc-bomba-instruccion">
+                            Programar pantalla a <strong>{rb.excede ? '---' : `${rb.impulsosDisplay} imp/min`}</strong> en modo constante durante <strong>{hipBombaMinutos} minutos</strong> ({rb.pctDisplay} % de caudal)
+                          </p>
+                        ) : (
+                          <p className="calc-bomba-instruccion">
+                            Ajustar dial al <strong>{rb.excede ? '---' : rb.pctDisplay} %</strong> durante <strong>{hipBombaMinutos} minutos</strong>
+                          </p>
+                        )}
+
+                        {/* Línea de comprobación en campo para probeta */}
+                        {hipBombaTipo === 'emec' && (
+                          <div className="calc-bomba-probeta-line calc-bomba-probeta-line--cloro">
+                            <FlaskConical size={14} />
+                            <span>
+                              Prueba en probeta (3 min): <strong>{rb.probeta3minMl} mL</strong> ({rb.pctDisplay} %)
+                            </span>
+                          </div>
+                        )}
                       </div>
+
                       {rb.excede && (
                         <div className="calc-bomba-alerta">
                           <AlertTriangle size={16} />
                           <span>
-                            <strong>Capacidad insuficiente en {hipBombaMinutos} min:</strong> Aumenta el tiempo del temporizador, cambia a escala :1 o usa una bomba de mayor caudal.
+                            {hipBombaTipo === 'emec' ? (
+                              <>
+                                <strong>Dosis superior a la capacidad en ese tiempo:</strong> aumenta los minutos del temporizador o usa una bomba de mayor caudal.
+                              </>
+                            ) : (
+                              <>
+                                <strong>Capacidad insuficiente en {hipBombaMinutos} min:</strong> Aumenta el tiempo del temporizador, cambia a escala :1 o usa una bomba de mayor caudal.
+                              </>
+                            )}
                           </span>
                         </div>
                       )}
                     </div>
 
+                    {/* Bloque FÓRMULA */}
                     <div className="calc-formula-footer" style={{ marginTop: 10 }}>
-                      <span className="calc-formula-badge">FÓRMULA:</span>
-                      <code>% Ruleta = [ V(L) ÷ (min ÷ 60) ] ÷ Caudal efectivo (L/h) × 100</code>
-                      <code style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                        = [ {hipVolL.toFixed(2)} ÷ ({hipBombaMinutos} ÷ 60) ] ÷ {rb.caudalEfectivo} × 100 = {rb.pctDisplay} %
-                      </code>
+                      <span className="calc-formula-badge">
+                        {hipBombaTipo === 'emec' ? 'FÓRMULA (EMEC VMS MF):' : 'FÓRMULA (SEKO TEKNA EVO):'}
+                      </span>
+                      {hipBombaTipo === 'emec' ? (
+                        <>
+                          <code>Impulsos/min = [ V(L) ÷ (min ÷ 60) ] ÷ Caudal máx (L/h) × 180 imp/min</code>
+                          <code style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                            = [ {hipVolL.toFixed(2)} ÷ ({hipBombaMinutos} ÷ 60) ] ÷ {hipBombaCaudal} × 180 = {rb.impulsosDisplay} imp/min ({rb.pctDisplay} %)
+                          </code>
+                        </>
+                      ) : (
+                        <>
+                          <code>% Ruleta = [ V(L) ÷ (min ÷ 60) ] ÷ Caudal efectivo (L/h) × 100</code>
+                          <code style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                            = [ {hipVolL.toFixed(2)} ÷ ({hipBombaMinutos} ÷ 60) ] ÷ {rb.caudalEfectivo} × 100 = {rb.pctDisplay} %
+                          </code>
+                        </>
+                      )}
                     </div>
                   </div>
                 );
@@ -2635,8 +2747,8 @@ const Calculadora = () => {
 
               {/* ── MÓDULO BOMBA DOSIFICADORA – FERROCID ── */}
               {(() => {
-                const ferVolL = parseFloat(calculoFerrocid.volumenL);
-                const rb = calcBomba(ferVolL, ferBombaCaudal, ferBombaEscala, ferBombaMinutos);
+                const ferVolL = parseFloat(calculoFerrocid.volumenL) || 0;
+                const rb = calcBomba(ferVolL, ferBombaCaudal, ferBombaEscala, ferBombaMinutos, ferBombaTipo);
                 return (
                   <div className="calc-bomba-card">
                     <div className="calc-bomba-header">
@@ -2644,10 +2756,35 @@ const Calculadora = () => {
                         <Gauge size={18} color="#16a34a" />
                         <h5>Ajuste de Bomba Dosificadora y Temporizador</h5>
                       </div>
-                      <span className="calc-bomba-model-tag">Seko Tekna Evo / Análoga</span>
+                      <span className="calc-bomba-model-tag">
+                        {ferBombaTipo === 'emec' ? 'EMEC VMS MF / Digital' : 'Seko Tekna Evo / Análoga'}
+                      </span>
                     </div>
 
                     <div className="calc-bomba-grid">
+                      {/* Selector de Tipo de Bomba */}
+                      <div className="calc-bomba-field">
+                        <label>Tipo de bomba dosificadora</label>
+                        <div className="calc-bomba-tipo-toggle">
+                          <button
+                            type="button"
+                            className={`calc-bomba-tipo-btn ${ferBombaTipo === 'seko' ? 'active' : ''}`}
+                            onClick={() => setFerBombaTipo('seko')}
+                          >
+                            <strong>Seko Tekna Evo / Análoga</strong>
+                            <span>Ruleta con escala % (:1 / :5)</span>
+                          </button>
+                          <button
+                            type="button"
+                            className={`calc-bomba-tipo-btn ${ferBombaTipo === 'emec' ? 'active' : ''}`}
+                            onClick={() => setFerBombaTipo('emec')}
+                          >
+                            <strong>EMEC VMS MF / Digital</strong>
+                            <span>Impulsos/minuto (Modo Const)</span>
+                          </button>
+                        </div>
+                      </div>
+
                       {/* Caudal */}
                       <div className="calc-bomba-field">
                         <label>Caudal máximo de la bomba</label>
@@ -2671,24 +2808,26 @@ const Calculadora = () => {
                         </div>
                       </div>
 
-                      {/* Escala */}
-                      <div className="calc-bomba-field">
-                        <label>Escala de la bomba</label>
-                        <div className="calc-bomba-escala-toggle">
-                          <button type="button"
-                            className={`calc-bomba-escala-btn ${ferBombaEscala === '1' ? 'active' : ''}`}
-                            onClick={() => setFerBombaEscala('1')}>
-                            <strong>:1</strong>
-                            <span>Escala normal (100%)</span>
-                          </button>
-                          <button type="button"
-                            className={`calc-bomba-escala-btn ${ferBombaEscala === '5' ? 'active' : ''}`}
-                            onClick={() => setFerBombaEscala('5')}>
-                            <strong>:5</strong>
-                            <span>Escala reducida (20%)</span>
-                          </button>
+                      {/* Escala (SOLO visible si Seko) */}
+                      {ferBombaTipo === 'seko' && (
+                        <div className="calc-bomba-field">
+                          <label>Escala de la bomba</label>
+                          <div className="calc-bomba-escala-toggle">
+                            <button type="button"
+                              className={`calc-bomba-escala-btn ${ferBombaEscala === '1' ? 'active' : ''}`}
+                              onClick={() => setFerBombaEscala('1')}>
+                              <strong>:1</strong>
+                              <span>Escala normal (100%)</span>
+                            </button>
+                            <button type="button"
+                              className={`calc-bomba-escala-btn ${ferBombaEscala === '5' ? 'active' : ''}`}
+                              onClick={() => setFerBombaEscala('5')}>
+                              <strong>:5</strong>
+                              <span>Escala reducida (20%)</span>
+                            </button>
+                          </div>
                         </div>
-                      </div>
+                      )}
 
                       {/* Tiempo temporizador */}
                       <div className="calc-bomba-field">
@@ -2714,38 +2853,97 @@ const Calculadora = () => {
                       </div>
                     </div>
 
-                    {/* Resultado ruleta */}
+                    {/* Resultado */}
                     <div className={`calc-bomba-result ${rb.excede ? 'excede' : 'ok'}`}>
                       <div className="calc-bomba-result-main">
-                        <span className="calc-bomba-result-label">AJUSTE RECOMENDADO EN RULETA</span>
+                        <span className="calc-bomba-result-label">
+                          {ferBombaTipo === 'emec'
+                            ? 'AJUSTE EN PANTALLA (MODO CONST)'
+                            : 'AJUSTE RECOMENDADO EN RULETA'}
+                        </span>
+                        
                         <div className="calc-bomba-pct-row">
-                          <strong className={rb.excede ? 'pct-excede' : 'pct-ok'}>
-                            {rb.excede ? '> 100' : rb.pctDisplay} %
-                          </strong>
-                          <span className="calc-bomba-pct-desc">
-                            durante {ferBombaMinutos} min · Escala :{ferBombaEscala} · {rb.caudalEfectivo} L/h efectivos
-                          </span>
+                          {ferBombaTipo === 'emec' ? (
+                            <>
+                              <strong className={rb.excede ? 'pct-excede' : 'pct-ok'}>
+                                {rb.excede ? '> 180' : rb.impulsosDisplay}
+                              </strong>
+                              <span className="calc-bomba-unit-tag">imp/min</span>
+                              <span className="calc-bomba-pct-desc">
+                                durante {ferBombaMinutos} min · Máx. 180 imp/min · {ferBombaCaudal} L/h
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <strong className={rb.excede ? 'pct-excede' : 'pct-ok'}>
+                                {rb.excede ? '> 100' : rb.pctDisplay} %
+                              </strong>
+                              <span className="calc-bomba-pct-desc">
+                                durante {ferBombaMinutos} min · Escala :{ferBombaEscala} · {rb.caudalEfectivo} L/h efectivos
+                              </span>
+                            </>
+                          )}
                         </div>
-                        <p className="calc-bomba-instruccion">
-                          Ajustar dial al <strong>{rb.excede ? '---' : rb.pctDisplay} %</strong> durante <strong>{ferBombaMinutos} minutos</strong>
-                        </p>
+
+                        {ferBombaTipo === 'emec' ? (
+                          <p className="calc-bomba-instruccion">
+                            Programar pantalla a <strong>{rb.excede ? '---' : `${rb.impulsosDisplay} imp/min`}</strong> en modo constante durante <strong>{ferBombaMinutos} minutos</strong> ({rb.pctDisplay} % de caudal)
+                          </p>
+                        ) : (
+                          <p className="calc-bomba-instruccion">
+                            Ajustar dial al <strong>{rb.excede ? '---' : rb.pctDisplay} %</strong> durante <strong>{ferBombaMinutos} minutos</strong>
+                          </p>
+                        )}
+
+                        {/* Línea de comprobación en campo para probeta */}
+                        {ferBombaTipo === 'emec' && (
+                          <div className="calc-bomba-probeta-line">
+                            <FlaskConical size={14} />
+                            <span>
+                              Prueba en probeta (3 min): <strong>{rb.probeta3minMl} mL</strong> ({rb.pctDisplay} %)
+                            </span>
+                          </div>
+                        )}
                       </div>
+
                       {rb.excede && (
                         <div className="calc-bomba-alerta">
                           <AlertTriangle size={16} />
                           <span>
-                            <strong>Capacidad insuficiente en {ferBombaMinutos} min:</strong> Aumenta el tiempo del temporizador, cambia a escala :1 o usa una bomba de mayor caudal.
+                            {ferBombaTipo === 'emec' ? (
+                              <>
+                                <strong>Dosis superior a la capacidad en ese tiempo:</strong> aumenta los minutos del temporizador o usa una bomba de mayor caudal.
+                              </>
+                            ) : (
+                              <>
+                                <strong>Capacidad insuficiente en {ferBombaMinutos} min:</strong> Aumenta el tiempo del temporizador, cambia a escala :1 o usa una bomba de mayor caudal.
+                              </>
+                            )}
                           </span>
                         </div>
                       )}
                     </div>
 
+                    {/* Bloque FÓRMULA */}
                     <div className="calc-formula-footer" style={{ marginTop: 10 }}>
-                      <span className="calc-formula-badge">FÓRMULA:</span>
-                      <code>% Ruleta = [ V(L) ÷ (min ÷ 60) ] ÷ Caudal efectivo (L/h) × 100</code>
-                      <code style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                        = [ {ferVolL.toFixed(3)} ÷ ({ferBombaMinutos} ÷ 60) ] ÷ {rb.caudalEfectivo} × 100 = {rb.pctDisplay} %
-                      </code>
+                      <span className="calc-formula-badge">
+                        {ferBombaTipo === 'emec' ? 'FÓRMULA (EMEC VMS MF):' : 'FÓRMULA (SEKO TEKNA EVO):'}
+                      </span>
+                      {ferBombaTipo === 'emec' ? (
+                        <>
+                          <code>Impulsos/min = [ V(L) ÷ (min ÷ 60) ] ÷ Caudal máx (L/h) × 180 imp/min</code>
+                          <code style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                            = [ {ferVolL.toFixed(3)} ÷ ({ferBombaMinutos} ÷ 60) ] ÷ {ferBombaCaudal} × 180 = {rb.impulsosDisplay} imp/min ({rb.pctDisplay} %)
+                          </code>
+                        </>
+                      ) : (
+                        <>
+                          <code>% Ruleta = [ V(L) ÷ (min ÷ 60) ] ÷ Caudal efectivo (L/h) × 100</code>
+                          <code style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                            = [ {ferVolL.toFixed(3)} ÷ ({ferBombaMinutos} ÷ 60) ] ÷ {rb.caudalEfectivo} × 100 = {rb.pctDisplay} %
+                          </code>
+                        </>
+                      )}
                     </div>
                   </div>
                 );

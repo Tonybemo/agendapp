@@ -1739,8 +1739,155 @@
   background: rgba(3, 105, 161, 0.2);
 }
 
+/* ── Selector de Tipo de Bomba ── */
+.calc-bomba-tipo-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.calc-bomba-tipo-btn {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  background: var(--bg-card-hover);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.18s ease;
+}
+
+.calc-bomba-tipo-btn strong {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.calc-bomba-tipo-btn span {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.calc-bomba-tipo-btn:hover {
+  border-color: var(--border-input);
+  background: var(--bg-card);
+}
+
+/* Verde – Ferrocid */
+.calc-bomba-tipo-btn.active {
+  border-color: #16a34a;
+  background: #f0fdf4;
+  box-shadow: 0 3px 10px rgba(22, 163, 74, 0.15);
+}
+.calc-bomba-tipo-btn.active strong { color: #15803d; }
+.calc-bomba-tipo-btn.active span   { color: #166534; }
+
+/* Azul – Hipoclorito */
+.calc-bomba-tipo-btn--cloro.active {
+  border-color: #0284c7;
+  background: #f0f9ff;
+  box-shadow: 0 3px 10px rgba(2, 132, 199, 0.15);
+}
+.calc-bomba-tipo-btn--cloro.active strong { color: #0369a1; }
+.calc-bomba-tipo-btn--cloro.active span   { color: #0284c7; }
+
+/* Etiqueta de unidad (imp/min) */
+.calc-bomba-unit-tag {
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: #16a34a;
+  margin-left: 2px;
+}
+
+.calc-bomba-unit-tag--cloro {
+  color: #0284c7;
+}
+
+/* Línea de comprobación en probeta */
+.calc-bomba-probeta-line {
+  margin-top: 10px;
+  padding: 7px 12px;
+  background: rgba(22, 163, 74, 0.1);
+  border: 1px solid rgba(22, 163, 74, 0.25);
+  border-radius: var(--radius-xs);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.83rem;
+  color: #14532d;
+  font-weight: 600;
+}
+
+.calc-bomba-probeta-line svg {
+  color: #16a34a;
+  flex-shrink: 0;
+}
+
+.calc-bomba-probeta-line strong {
+  font-weight: 900;
+  color: #15803d;
+}
+
+.calc-bomba-probeta-line--cloro {
+  background: rgba(2, 132, 199, 0.1);
+  border-color: rgba(2, 132, 199, 0.25);
+  color: #0c4a6e;
+}
+
+.calc-bomba-probeta-line--cloro svg {
+  color: #0284c7;
+}
+
+.calc-bomba-probeta-line--cloro strong {
+  color: #0369a1;
+}
+
+/* Dark mode */
+[data-theme='dark'] .calc-bomba-tipo-btn.active {
+  background: rgba(20, 83, 45, 0.25);
+  border-color: #16a34a;
+}
+[data-theme='dark'] .calc-bomba-tipo-btn.active strong { color: #4ade80; }
+[data-theme='dark'] .calc-bomba-tipo-btn.active span { color: #86efac; }
+
+[data-theme='dark'] .calc-bomba-tipo-btn--cloro.active {
+  background: rgba(3, 105, 161, 0.25);
+  border-color: #0284c7;
+}
+[data-theme='dark'] .calc-bomba-tipo-btn--cloro.active strong { color: #38bdf8; }
+[data-theme='dark'] .calc-bomba-tipo-btn--cloro.active span { color: #7dd3fc; }
+
+[data-theme='dark'] .calc-bomba-unit-tag {
+  color: #4ade80;
+}
+[data-theme='dark'] .calc-bomba-unit-tag--cloro {
+  color: #38bdf8;
+}
+
+[data-theme='dark'] .calc-bomba-probeta-line {
+  background: rgba(20, 83, 45, 0.3);
+  border-color: rgba(74, 222, 128, 0.3);
+  color: #86efac;
+}
+[data-theme='dark'] .calc-bomba-probeta-line strong {
+  color: #4ade80;
+}
+
+[data-theme='dark'] .calc-bomba-probeta-line--cloro {
+  background: rgba(3, 105, 161, 0.3);
+  border-color: rgba(56, 189, 248, 0.3);
+  color: #bae6fd;
+}
+[data-theme='dark'] .calc-bomba-probeta-line--cloro strong {
+  color: #38bdf8;
+}
+
 /* ── Responsive ── */
 @media (max-width: 600px) {
+  .calc-bomba-tipo-toggle,
   .calc-bomba-escala-toggle {
     grid-template-columns: 1fr;
   }
