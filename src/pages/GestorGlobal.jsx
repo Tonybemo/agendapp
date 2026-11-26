@@ -69,6 +69,21 @@ const parseContact = (contactRaw) => {
   };
 };
 
+// Helper para extraer la localidad en mayúsculas a partir de la dirección
+const extractLocalidad = (address) => {
+  if (!address || address === 'null' || !address.trim()) return 'SIN LOCALIDAD';
+  const parts = address.split(',').map(p => p.trim()).filter(Boolean);
+  if (parts.length >= 2) {
+    let candidate = parts[parts.length - 1];
+    if (candidate.toLowerCase() === 'asturias' || candidate.toLowerCase() === 'españa') {
+      candidate = parts[parts.length - 2] || candidate;
+    }
+    const cleaned = candidate.replace(/^\d{5}\s*/, '').trim();
+    if (cleaned) return cleaned.toUpperCase();
+  }
+  return (parts[0] || 'CLIENTE').substring(0, 25).toUpperCase();
+};
+
 const GestorGlobal = () => {
   const [activeTab, setActiveTab] = useState('clientes'); // 'clientes' o 'tareas'
   const [searchQuery, setSearchQuery] = useState('');
@@ -487,126 +502,122 @@ const GestorGlobal = () => {
                 const { contactos } = parseContact(client.contact);
                 const hasAddress = client.address && client.address !== 'null' && client.address.trim() !== '';
                 const phonesList = contactos.filter(c => c.telefono);
+                const primaryPhone = phonesList[0]?.telefono || '';
+                const localidad = extractLocalidad(client.address);
 
                 return (
-                  <div key={client.id} className="gg-card client-card">
-                    {/* Cabecera Tarjeta */}
-                    <div className="gg-card-header">
-                      <div className="gg-card-title-group">
-                        <div className="gg-card-avatar client">
-                          <Building2 size={18} />
-                        </div>
-                        <div className="gg-card-title-container">
-                          <h3 className="gg-card-title" title={client.name}>{client.name}</h3>
-                          {contactos.length > 0 && contactos.some(c => c.persona) && (
-                            <div className="gg-card-contacts-badges">
-                              {contactos.map((ct, idx) => ct.persona ? (
-                                <span key={idx} className="gg-card-contact-badge" title={`Persona de contacto: ${ct.persona}${ct.telefono ? ' (' + ct.telefono + ')' : ''}`}>
-                                  <User size={11} /> {ct.persona}
+                  <div key={client.id} className="gg-simple-card client">
+                    {/* Franja superior de color corporativo */}
+                    <div className="gg-card-stripe client-stripe" />
+
+                    <div className="gg-card-content">
+                      {/* Fila 1: Localidad (izq) y Badge de entidad (dcha) */}
+                      <div className="gg-card-meta-row">
+                        <span className="gg-card-loc">
+                          <span className="gg-pin-emoji">📍</span>
+                          {localidad}
+                        </span>
+                        <span className="gg-card-badge-type client">CLIENTE</span>
+                      </div>
+
+                      {/* Fila 2: Nombre del Cliente (grande, bold y destacado) */}
+                      <h4 className="gg-card-title-main" title={client.name}>
+                        {client.name}
+                      </h4>
+
+                      {/* Fila 3: Píldoras de Contacto y Teléfonos */}
+                      <div className="gg-card-tags-row">
+                        {contactos.length > 0 && contactos.some(c => c.persona || c.telefono) ? (
+                          contactos.map((ct, idx) => (
+                            <React.Fragment key={idx}>
+                              {ct.persona && (
+                                <span className="gg-pill-contact" title={`Contacto: ${ct.persona}`}>
+                                  <User size={12} />
+                                  <span>{ct.persona}</span>
                                 </span>
-                              ) : null)}
-                            </div>
-                          )}
-                        </div>
+                              )}
+                              {ct.telefono && (
+                                <a 
+                                  href={`tel:${ct.telefono.replace(/\s+/g, '')}`} 
+                                  className="gg-pill-phone"
+                                  title={`Llamar a ${ct.persona || client.name}: ${ct.telefono}`}
+                                >
+                                  <Phone size={11} />
+                                  <span>{ct.telefono}</span>
+                                </a>
+                              )}
+                            </React.Fragment>
+                          ))
+                        ) : (
+                          <span className="gg-pill-empty">
+                            <Phone size={11} />
+                            <span>Sin teléfonos guardados</span>
+                          </span>
+                        )}
                       </div>
 
-                      <div className="gg-card-actions">
-                        <button 
-                          type="button" 
-                          className="icon-btn-edit" 
-                          onClick={() => openEditModal(client, 'cliente')}
-                          title={`Editar datos de ${client.name}`}
-                        >
-                          <Edit3 size={15}/>
-                        </button>
-                        <button 
-                          type="button" 
-                          className="icon-btn-delete" 
-                          onClick={() => handleDeleteCliente(client.id, client.name)}
-                          title={`Eliminar ${client.name}`}
-                        >
-                          <Trash2 size={15}/>
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Cuerpo Tarjeta */}
-                    <div className="gg-card-body">
-                      {/* Dirección */}
-                      <div className={`gg-info-row ${hasAddress ? 'address' : 'empty'}`}>
-                        <MapPin size={15} className={`info-icon ${hasAddress ? 'text-primary' : 'faint'}`} />
-                        <span className="info-text">
+                      {/* Fila 4: Caja limpia de Dirección física */}
+                      <div className={`gg-card-address-box ${hasAddress ? '' : 'is-empty'}`}>
+                        <span className="gg-address-icon">📍</span>
+                        <span className="gg-address-text">
                           {hasAddress ? client.address : 'Sin dirección guardada'}
                         </span>
                       </div>
 
-                      {/* Teléfono / Contactos */}
-                      {contactos.length === 0 ? (
-                        <div className="gg-info-row empty">
-                          <Phone size={15} className="info-icon faint" />
-                          <span className="info-text">Sin teléfono guardado</span>
-                        </div>
-                      ) : (
-                        <div className="gg-card-contacts-group">
-                          {contactos.map((ct, idx) => (
-                            <div key={idx} className={`gg-info-row ${ct.telefono ? 'phone' : 'empty'}`}>
-                              <Phone size={14} className={`info-icon ${ct.telefono ? 'text-success' : 'faint'}`} />
-                              <div className="gg-contact-cell">
-                                {ct.persona && <span className="gg-contact-label">{ct.persona}:</span>}
-                                {ct.telefono ? (
-                                  <a 
-                                    href={`tel:${ct.telefono.replace(/\s+/g, '')}`} 
-                                    className="phone-link"
-                                    title={`Llamar a ${ct.persona || client.name} (${ct.telefono})`}
-                                  >
-                                    {ct.telefono}
-                                  </a>
-                                ) : (
-                                  <span className="info-text faint">Sin teléfono</span>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                      {/* Fila 5: Botones de Acción directos con colores vivos */}
+                      <div className="gg-card-actions-row">
+                        <div className="gg-main-btns">
+                          <button
+                            type="button"
+                            className="btn-gg-btn btn-maps"
+                            onClick={() => openMapsForClient(client.name, client.address)}
+                            title={`Cómo llegar a ${client.name} (Google Maps / Waze)`}
+                          >
+                            <Navigation size={13} />
+                            <span>Cómo llegar</span>
+                          </button>
 
-                    {/* Pie Tarjeta / Acciones directas */}
-                    <div className="gg-card-footer">
-                      <button
-                        type="button"
-                        className="btn-como-llegar"
-                        onClick={() => openMapsForClient(client.name, client.address)}
-                        title={`Cómo llegar a ${client.name} (Google Maps / Waze)`}
-                      >
-                        <Navigation size={14} />
-                        <span>Cómo llegar</span>
-                      </button>
-
-                      {phonesList.length === 0 ? (
-                        <button
-                          type="button"
-                          className="btn-add-contact-hint"
-                          onClick={() => openEditModal(client, 'cliente')}
-                          title="Añadir teléfono y persona de contacto"
-                        >
-                          + Añadir contacto
-                        </button>
-                      ) : (
-                        <div className="gg-card-footer-calls">
-                          {phonesList.map((ct, idx) => (
-                            <a 
-                              key={idx}
-                              href={`tel:${ct.telefono.replace(/\s+/g, '')}`} 
-                              className="btn-llamar-quick"
-                              title={`Llamar a ${ct.persona ? `${ct.persona} (${client.name})` : client.name} (${ct.telefono})`}
+                          {primaryPhone ? (
+                            <a
+                              href={`tel:${primaryPhone.replace(/\s+/g, '')}`}
+                              className="btn-gg-btn btn-call"
+                              title={`Llamar a ${phonesList[0]?.persona ? `${phonesList[0].persona} (${primaryPhone})` : primaryPhone}`}
                             >
                               <Phone size={13} />
-                              <span>Llamar {ct.persona ? `(${ct.persona})` : ''}</span>
+                              <span>Llamar</span>
                             </a>
-                          ))}
+                          ) : (
+                            <button
+                              type="button"
+                              className="btn-gg-btn btn-call is-disabled"
+                              disabled
+                              title="Sin teléfono registrado"
+                            >
+                              <Phone size={13} />
+                              <span>Sin telf.</span>
+                            </button>
+                          )}
                         </div>
-                      )}
+
+                        <div className="gg-admin-btns">
+                          <button 
+                            type="button" 
+                            className="btn-gg-icon edit" 
+                            onClick={() => openEditModal(client, 'cliente')}
+                            title={`Editar datos de ${client.name}`}
+                          >
+                            <Edit3 size={15}/>
+                          </button>
+                          <button 
+                            type="button" 
+                            className="btn-gg-icon delete" 
+                            onClick={() => handleDeleteCliente(client.id, client.name)}
+                            title={`Eliminar ${client.name}`}
+                          >
+                            <Trash2 size={15}/>
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 );
@@ -627,54 +638,67 @@ const GestorGlobal = () => {
                 const hasDesc = task.description && task.description !== 'null' && task.description.trim() !== '';
 
                 return (
-                  <div key={task.id} className="gg-card task-card">
-                    {/* Cabecera Tarjeta */}
-                    <div className="gg-card-header">
-                      <div className="gg-card-title-group">
-                        <div className="gg-card-avatar task">
-                          <CheckSquare size={18} />
-                        </div>
-                        <div className="gg-card-title-container">
-                          <h3 className="gg-card-title" title={task.name}>{task.name}</h3>
-                          <span className="gg-card-type-tag">Tarea estándar</span>
-                        </div>
+                  <div key={task.id} className="gg-simple-card task">
+                    {/* Franja superior de color */}
+                    <div className="gg-card-stripe task-stripe" />
+
+                    <div className="gg-card-content">
+                      {/* Fila 1: Meta */}
+                      <div className="gg-card-meta-row">
+                        <span className="gg-card-loc task-loc">
+                          <CheckSquare size={13} />
+                          ACTUACIÓN
+                        </span>
+                        <span className="gg-card-badge-type task">TAREA GLOBAL</span>
                       </div>
 
-                      <div className="gg-card-actions">
-                        <button 
-                          type="button" 
-                          className="icon-btn-edit" 
-                          onClick={() => openEditModal(task, 'tarea')}
-                          title={`Editar tarea "${task.name}"`}
-                        >
-                          <Edit3 size={15}/>
-                        </button>
-                        <button 
-                          type="button" 
-                          className="icon-btn-delete" 
-                          onClick={() => handleDeleteTarea(task.id, task.name)}
-                          title={`Eliminar tarea "${task.name}"`}
-                        >
-                          <Trash2 size={15}/>
-                        </button>
-                      </div>
-                    </div>
+                      {/* Fila 2: Nombre de la tarea */}
+                      <h4 className="gg-card-title-main" title={task.name}>
+                        {task.name}
+                      </h4>
 
-                    {/* Cuerpo Tarjeta */}
-                    <div className="gg-card-body">
-                      <div className={`gg-info-row ${hasDesc ? 'description' : 'empty'}`}>
-                        <AlignLeft size={15} className={`info-icon ${hasDesc ? 'text-primary' : 'faint'}`} />
-                        <span className="info-text">
+                      {/* Fila 3: Píldora de estado */}
+                      <div className="gg-card-tags-row">
+                        <span className="gg-pill-contact task">
+                          <CheckCircle2 size={12} className="text-success" />
+                          <span>Disponible en Planificación</span>
+                        </span>
+                      </div>
+
+                      {/* Fila 4: Caja de descripción */}
+                      <div className={`gg-card-address-box task-desc ${hasDesc ? '' : 'is-empty'}`}>
+                        <span className="gg-address-icon">📝</span>
+                        <span className="gg-address-text">
                           {hasDesc ? task.description : 'Sin descripción adicional'}
                         </span>
                       </div>
-                    </div>
 
-                    {/* Pie Tarjeta */}
-                    <div className="gg-card-footer task-footer">
-                      <div className="gg-task-status-pill">
-                        <CheckCircle2 size={13} className="text-success" />
-                        <span>Disponible en Planificación</span>
+                      {/* Fila 5: Acciones */}
+                      <div className="gg-card-actions-row">
+                        <div className="gg-main-btns">
+                          <span className="gg-task-status-tag">
+                            <Sparkles size={13} /> Sincronizada
+                          </span>
+                        </div>
+
+                        <div className="gg-admin-btns">
+                          <button 
+                            type="button" 
+                            className="btn-gg-icon edit" 
+                            onClick={() => openEditModal(task, 'tarea')}
+                            title={`Editar tarea "${task.name}"`}
+                          >
+                            <Edit3 size={15}/>
+                          </button>
+                          <button 
+                            type="button" 
+                            className="btn-gg-icon delete" 
+                            onClick={() => handleDeleteTarea(task.id, task.name)}
+                            title={`Eliminar tarea "${task.name}"`}
+                          >
+                            <Trash2 size={15}/>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>

@@ -242,298 +242,349 @@
   gap: 16px;
 }
 
-/* ── Tarjetas Individuales (Cards) ── */
-.gg-card {
+/* ── Tarjetas Individuales Limpias (Estilo Avisomap) ── */
+.gg-simple-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 16px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
   display: flex;
   flex-direction: column;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
   overflow: hidden;
   position: relative;
 }
 
-.gg-card:hover {
+.gg-simple-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-  border-color: var(--border-input);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.07);
+  border-color: rgba(37, 99, 235, 0.2);
 }
 
-.gg-card.client-card {
-  border-left: 4px solid var(--primary, #3b82f6);
-}
-
-.gg-card.task-card {
-  border-left: 4px solid var(--accent-workapp, #e11d48);
-}
-
-/* Cabecera de la Tarjeta */
-.gg-card-header {
-  padding: 14px 14px 10px 14px;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 8px;
-}
-
-.gg-card-title-group {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  flex: 1;
-  min-width: 0;
-}
-
-.gg-card-avatar {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  margin-top: 1px;
-}
-
-.gg-card-avatar.client {
-  background: rgba(59, 130, 246, 0.1);
-  color: var(--primary, #3b82f6);
-}
-
-.gg-card-avatar.task {
-  background: rgba(225, 29, 72, 0.1);
-  color: var(--accent-workapp, #e11d48);
-}
-
-.gg-card-title-container {
-  flex: 1;
-  min-width: 0;
-}
-
-.gg-card-title {
-  margin: 0;
-  font-size: 0.98rem;
-  font-weight: 700;
-  color: var(--text-main);
-  line-height: 1.3;
-  word-break: break-word;
-}
-
-.gg-card-contact-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.74rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  background: var(--bg-card-hover, #f1f5f9);
-  padding: 2px 7px;
-  border-radius: 6px;
-  margin-top: 5px;
-}
-
-.gg-card-type-tag {
-  display: inline-block;
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: #b91c1c;
-  background: rgba(239, 68, 68, 0.08);
-  padding: 1px 7px;
-  border-radius: 6px;
-  margin-top: 5px;
-}
-
-/* Botones de acción en la tarjeta */
-.gg-card-actions {
-  display: flex;
-  gap: 6px;
+/* Franja superior de color */
+.gg-card-stripe {
+  height: 4.5px;
+  width: 100%;
   flex-shrink: 0;
 }
 
-.icon-btn-edit,
-.icon-btn-delete {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s ease;
+.gg-card-stripe.client-stripe {
+  background: linear-gradient(90deg, #0284c7 0%, #38bdf8 100%);
 }
 
-.icon-btn-edit {
-  color: #16a34a;
-  background: rgba(34, 197, 94, 0.1);
+.gg-card-stripe.task-stripe {
+  background: linear-gradient(90deg, #ea580c 0%, #f97316 100%);
 }
 
-.icon-btn-edit:hover {
-  background: rgba(34, 197, 94, 0.2);
-  transform: scale(1.05);
-}
-
-.icon-btn-delete {
-  color: #dc2626;
-  background: rgba(239, 68, 68, 0.1);
-}
-
-.icon-btn-delete:hover {
-  background: rgba(239, 68, 68, 0.2);
-  transform: scale(1.05);
-}
-
-/* Cuerpo de la Tarjeta */
-.gg-card-body {
-  padding: 0 14px 12px 14px;
+/* Contenido interior */
+.gg-card-content {
+  padding: 16px 18px;
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 12px;
   flex: 1;
 }
 
-.gg-info-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.82rem;
-  color: var(--text-secondary);
-  line-height: 1.35;
-}
-
-.gg-info-row .info-icon {
-  flex-shrink: 0;
-}
-
-.gg-info-row.empty {
-  color: var(--text-faint);
-  font-style: italic;
-  font-size: 0.78rem;
-}
-
-.gg-info-row .info-icon.faint {
-  color: var(--text-faint);
-  opacity: 0.7;
-}
-
-.gg-info-row .info-icon.text-primary {
-  color: var(--primary, #3b82f6);
-}
-
-.gg-info-row .info-icon.text-success {
-  color: var(--color-success, #22c55e);
-}
-
-.gg-info-row .phone-link {
-  color: #15803d;
-  font-weight: 700;
-  text-decoration: none;
-  letter-spacing: 0.02em;
-  transition: color 0.15s;
-}
-
-.gg-info-row .phone-link:hover {
-  color: #166534;
-  text-decoration: underline;
-}
-
-.gg-info-row.description .info-text {
-  color: var(--text-secondary);
-  font-size: 0.82rem;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-/* Pie de la Tarjeta / Acciones */
-.gg-card-footer {
-  padding: 10px 14px;
-  background: var(--bg-card-hover, #f8fafc);
-  border-top: 1px solid var(--border-light, #f1f5f9);
+/* Fila 1: Localidad a la izq, Badge a la dcha */
+.gg-card-meta-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
-.gg-card-footer.task-footer {
-  justify-content: flex-start;
-}
-
-.btn-como-llegar {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: var(--radius-pill, 999px);
-  border: none;
-  background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%);
-  color: #ffffff;
-  font-size: 0.76rem;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(14, 165, 233, 0.25);
-  transition: all 0.15s ease;
-  white-space: nowrap;
-}
-
-.btn-como-llegar:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 3px 10px rgba(14, 165, 233, 0.4);
-}
-
-.btn-llamar-quick {
+.gg-card-loc {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 5px 12px;
-  border-radius: var(--radius-pill, 999px);
-  background: rgba(34, 197, 94, 0.12);
-  border: 1px solid rgba(34, 197, 94, 0.35);
-  color: #15803d;
-  font-size: 0.76rem;
-  font-weight: 700;
-  text-decoration: none;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  white-space: nowrap;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--text-secondary);
+  letter-spacing: 0.4px;
 }
 
-.btn-llamar-quick:hover {
-  background: #22c55e;
-  color: #ffffff;
-  border-color: #22c55e;
+.gg-card-loc.task-loc {
+  color: #ea580c;
+}
+
+.gg-pin-emoji {
+  font-size: 0.85rem;
+}
+
+.gg-card-badge-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+  letter-spacing: 0.3px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.gg-card-badge-type.task {
+  background: #fff7ed;
+  color: #c2410c;
+  border-color: #fed7aa;
+}
+
+[data-theme='dark'] .gg-card-badge-type.client {
+  background: rgba(37, 99, 235, 0.2);
+  color: #93c5fd;
+  border-color: rgba(37, 99, 235, 0.35);
+}
+
+[data-theme='dark'] .gg-card-badge-type.task {
+  background: rgba(234, 88, 12, 0.15);
+  color: #fb923c;
+  border-color: rgba(234, 88, 12, 0.35);
+}
+
+/* Fila 2: Título destacado */
+.gg-card-title-main {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1.25;
+  letter-spacing: -0.2px;
+  word-break: break-word;
+}
+
+/* Fila 3: Píldoras de Contacto y Teléfonos */
+.gg-card-tags-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.gg-pill-contact {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.73rem;
+  font-weight: 700;
+  background: var(--bg-card-hover);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.gg-pill-contact.task {
+  background: #ecfdf5;
+  color: #047857;
+  border-color: #a7f3d0;
+}
+
+.gg-pill-phone {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.73rem;
+  font-weight: 800;
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+  text-decoration: none;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.gg-pill-phone:hover {
+  background: #d1fae5;
   transform: translateY(-1px);
 }
 
-.btn-add-contact-hint {
-  background: transparent;
-  border: 1px dashed var(--border-input, #cbd5e1);
-  color: var(--text-muted);
-  border-radius: var(--radius-pill, 999px);
+[data-theme='dark'] .gg-pill-phone {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #34d399;
+}
+
+.gg-pill-empty {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   padding: 4px 10px;
-  font-size: 0.72rem;
+  border-radius: 999px;
+  font-size: 0.73rem;
   font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s;
+  color: var(--text-faint);
+  background: var(--bg-card-hover);
+  border: 1px dashed var(--border);
 }
 
-.btn-add-contact-hint:hover {
-  background: var(--bg-card);
-  color: var(--primary, #3b82f6);
-  border-color: var(--primary, #3b82f6);
+/* Fila 4: Caja de Dirección / Notas */
+.gg-card-address-box {
+  background: var(--bg-card-hover);
+  border: 1px solid var(--border);
+  border-left: 3.5px solid #0284c7;
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  font-style: italic;
 }
 
-.gg-task-status-pill {
+.gg-card-address-box.is-empty {
+  color: var(--text-faint);
+  border-left-color: var(--border-input);
+}
+
+.gg-card-address-box.task-desc {
+  border-left-color: #ea580c;
+}
+
+.gg-address-icon {
+  font-size: 0.9rem;
+  font-style: normal;
+  line-height: 1.2;
+}
+
+.gg-address-text {
+  word-break: break-word;
+}
+
+/* Fila 5: Botones de Acción */
+.gg-card-actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  margin-top: auto;
+  flex-wrap: wrap;
+}
+
+.gg-main-btns {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-gg-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.75rem;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 0.82rem;
   font-weight: 700;
-  color: #15803d;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  color: #ffffff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+  text-decoration: none;
+}
+
+/* Botón Maps (Azul) */
+.btn-gg-btn.btn-maps {
+  background: #2563eb;
+}
+
+.btn-gg-btn.btn-maps:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+/* Botón Llamar (Verde) */
+.btn-gg-btn.btn-call {
+  background: #059669;
+}
+
+.btn-gg-btn.btn-call:hover:not(:disabled) {
+  background: #047857;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+}
+
+.btn-gg-btn.btn-call.is-disabled,
+.btn-gg-btn.btn-call:disabled {
+  background: var(--bg-card-hover);
+  color: var(--text-faint);
+  border: 1px solid var(--border);
+  cursor: not-allowed;
+  box-shadow: none;
+  opacity: 0.55;
+}
+
+.gg-task-status-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #047857;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+/* Botones de Administración (Editar / Borrar) */
+.gg-admin-btns {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.btn-gg-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-card-hover);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-gg-icon.edit:hover {
+  background: #fff7ed;
+  border-color: #fed7aa;
+  color: #ea580c;
+  transform: translateY(-1px);
+}
+
+.btn-gg-icon.delete:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #ef4444;
+  transform: translateY(-1px);
+}
+
+[data-theme='dark'] .btn-gg-icon.edit:hover {
+  background: rgba(234, 88, 12, 0.15);
+  border-color: rgba(234, 88, 12, 0.35);
+  color: #fb923c;
+}
+
+[data-theme='dark'] .btn-gg-icon.delete:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #f87171;
 }
 
 /* ── Estados Vacíos y de Carga ── */
