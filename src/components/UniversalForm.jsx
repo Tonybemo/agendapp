@@ -2308,8 +2308,9 @@ const UniversalForm = () => {
   return (
     <>
       {/* Floating Action Button */}
-      <button className={`uf-fab ${isOpen ? 'open' : ''}`} onClick={() => setIsOpen(true)}>
-        <Plus size={32} />
+      <button className={`uf-fab ${isOpen ? 'open' : ''}`} onClick={() => setIsOpen(true)} title="Añadir nuevo registro">
+        <Plus size={22} strokeWidth={2.8} />
+        <span className="uf-fab-label">Añadir</span>
       </button>
 
       {/* Modal Overlay */}
